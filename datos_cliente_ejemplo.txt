@@ -1,0 +1,25 @@
+from pathlib import Path
+
+# Crear la carpeta desde cero tras el reinicio
+base_dir = Path("nutriprompt")
+base_dir.mkdir(parents=True, exist_ok=True)
+
+# Contenido para datos_cliente_ejemplo.txt
+datos_cliente_texto = """Nombre y Apellidos: Manuel Jiménez
+Edad: 45 años
+Peso Actual: 84 kg
+Altura: 175 cm
+Presupuesto Semanal: 60 €
+Horario Disponible para Ejercicio: Martes y jueves de 7:00 a 8:00, sábados por la mañana
+Restricciones Alimentarias: Sin lactosa
+Otras Indicaciones: Tendencia a alergias estacionales; prefiere evitar entrenamientos al aire libre en primavera
+Objetivo: Perder 5 kg en 3 meses
+Nivel de Actividad Actual: Sedentario (trabajo en oficina)
+Tiempo Disponible para Cocinar: 30 minutos al día
+Tipo de Empleo: Administrativo en despacho
+Comentarios Adicionales: Prefiere recetas fáciles y rápidas. No le gusta el pescado azul (excepto el atún en conserva).
+"""
+
+# Guardar el archivo
+with open(base_dir / "datos_cliente_ejemplo.txt", "w", encoding="utf-8") as f:
+    f.write(datos_cliente_texto)

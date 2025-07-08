@@ -1,0 +1,23 @@
+# Entornos virtuales
+venv/
+.env
+
+# Archivos de configuración de entorno local
+*.env
+
+# Salidas generadas
+prompt_generado.txt
+output_ejemplo.md
+
+# Archivos temporales
+*.pyc
+__pycache__/
+*.log
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de editor
+.vscode/
+.idea/

@@ -1,31 +1,56 @@
-# 🥦 NutriPrompt — Plan Semanal Saludable con IA
+🥦 NutriPrompt — Plan Semanal Saludable con IA
+<img src="https://raw.githubusercontent.com/beatriangu/nutriprompt/main/nutriprompt1.png" width="250" alt="NutriPrompt logo">
+NutriPrompt es una herramienta inteligente que genera planes de alimentación y ejercicio personalizados a partir de un formulario rellenado por el cliente, utilizando técnicas de Prompt Engineering.
 
-Este proyecto demuestra cómo, a partir de un simple formulario rellenado por el cliente, se puede generar un plan semanal personalizado con IA usando técnicas de Prompt Engineering.
+Este proyecto demuestra cómo, a partir de un simple formulario, se puede construir un prompt estructurado y eficaz que sirve como entrada para herramientas de IA como ChatGPT.
 
-## 📌 ¿Qué hace?
+📌 ¿Qué hace?
+🔹 Extrae los datos del cliente desde un formulario (texto plano)
+🔹 Construye un prompt seguro y bien estructurado
+🔹 El prompt puede copiarse y pegarse en ChatGPT para generar un plan personalizado
+🔹 Incluye ejemplos reales anonimizados
 
-🔹 Extrae los datos del cliente desde un formulario  
-🔹 Construye un prompt seguro y estructurado  
-🔹 Genera un plan semanal con IA: comidas, ejercicios, descanso y costes  
-🔹 Presentado en formato de tabla, fácil de leer y copiar
+🧠 Tecnologías utilizadas
+Prompt Engineering
 
-## 🧠 Tecnologías utilizadas
+Python (para estructurar los datos)
 
-- Prompt Engineering
-- Python (opcional, para estructurar datos o extracción de PDF)
-- OpenAI / ChatGPT
+ChatGPT (uso manual del prompt generado)
 
-## 📄 Ejemplo de formulario
+📄 Ejemplo de formulario
+Se incluye un formulario real (anonimizado) con los datos de un cliente y un ejemplo del prompt generado a partir de esos datos.
 
-Se incluye un formulario real (anonimizado) y un ejemplo del prompt generado.
+🚀 Próximos pasos
+Integración con una interfaz web interactiva
 
-## 🚀 Próximos pasos
+Automatización de la extracción desde formularios PDF
 
-- Integración en una web
-- Automatización de extracción desde PDFs
-- Generación de PDF final para entregar al cliente
-
----
+Generación de un plan final en PDF para entregar al cliente
 
 ✳️ Proyecto creado como parte de la formación en IA aplicada a servicios personalizados.
+
+⚙️ ¿Cómo ejecutar este proyecto?
+Clona este repositorio:
+
+bash
+Copiar código
+git clone https://github.com/beatriangu/nutriprompt.git
+cd nutriprompt
+Crea y activa un entorno virtual:
+
+bash
+Copiar código
+python3 -m venv venv
+source venv/bin/activate
+Instala los requisitos:
+
+bash
+Copiar código
+pip install -r requirements.txt
+Genera el prompt:
+
+bash
+Copiar código
+python prompt_generator.py
+Esto creará un archivo prompt_generado.txt que podrás copiar directamente y pegar en ChatGPT (o cualquier herramienta de IA compatible) para obtener el plan semanal personalizado.
 

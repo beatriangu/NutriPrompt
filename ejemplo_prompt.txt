@@ -1,0 +1,47 @@
+"""<<INSTRUCCIONES>>
+Actúa como un nutricionista profesional, cercano y motivador. Vas a generar un plan saludable y personalizado de 7 días para un cliente usando la información que te doy a continuación.
+
+🔹 El plan debe incluir:
+- Desayuno, comida, cena, snack
+- Ejercicio adaptado a su disponibilidad
+- Consejos de descanso
+- Coste estimado diario, respetando su presupuesto semanal
+- Recetas fáciles (cuando se indique)
+- Evita alimentos contraindicados (lactosa, pescado azul excepto atún en conserva)
+- Todo en una tabla clara, práctica y fácil de copiar
+
+🔹 Condiciones:
+- No sobrepasar el presupuesto de 60 €
+- No recomendar ejercicio al aire libre (por alergias estacionales)
+- Cocinado en máximo 30 minutos al día
+
+🔹 Tono:
+- Cercano, motivador, con frases breves de ánimo como “¡Puedes con esto!” o “¡Buen trabajo, vamos a por el siguiente día!”
+
+<<FIN INSTRUCCIONES>>
+
+<<DATOS DEL CLIENTE>>
+Nombre: Manuel Jiménez
+Edad: 45 años
+Peso: 84 kg
+Altura: 175 cm
+Presupuesto semanal: 60 €
+Horario para ejercicio: Martes y jueves 7:00–8:00, sábados por la mañana
+Restricciones: Sin lactosa, evitar entrenamientos al aire libre
+Objetivo: Perder 5 kg en 3 meses
+Nivel de actividad actual: Sedentario (trabajo en oficina)
+Tiempo para cocinar: 30 minutos al día
+Comentarios: Recetas fáciles y rápidas. No le gusta el pescado azul, salvo atún en conserva.
+<<FIN DATOS>>
+
+Por favor, genera una tabla con 7 filas (una por día) y las siguientes columnas:
+- Día
+- Desayuno
+- Comida
+- Cena
+- Snack
+- Ejercicio
+- Descanso
+- Coste (€)
+""",
+Por favor, genera la tabla en formato Markdown para que sea fácil de copiar y pegar.

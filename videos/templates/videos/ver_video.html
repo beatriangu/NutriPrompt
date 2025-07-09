@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NutriPrompt Demo</title>
+</head>
+<body>
+    <h1>{{ video.titulo }}</h1>
+    <p>{{ video.descripcion }}</p>
+    <video controls width="720">
+        <source src="{{ video.archivo.url }}" type="video/mp4">
+        Tu navegador no soporta vídeo HTML5.
+    </video>
+</body>
+</html>

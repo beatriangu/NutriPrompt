@@ -1,6 +1,18 @@
-# prompt_generator.py
+import sys
+import os
+import fitz  # PyMuPDF
+import subprocess
 
-def generar_prompt(datos_cliente_path="datos_cliente_ejemplo.txt", salida="prompt_generado.txt"):
+def extraer_texto_desde_pdf(ruta_pdf):
+    """Extrae el texto de un PDF con PyMuPDF"""
+    doc = fitz.open(ruta_pdf)
+    texto = ""
+    for pagina in doc:
+        texto += pagina.get_text()
+    return texto.strip()
+
+def generar_prompt(texto_cliente):
+    """Genera el prompt completo con instrucciones y datos del cliente"""
     instrucciones = """
 <<INSTRUCCIONES>>
 Actúa como un nutricionista profesional, cercano y motivador. Vas a generar un plan saludable y personalizado de 7 días para un cliente usando la información que te doy a continuación.
@@ -36,21 +48,36 @@ Por favor, genera una tabla con 7 filas (una por día) y las siguientes columnas
 - Coste (€)
 """
 
-    # Leer datos del cliente
+    return f"{instrucciones}\n\n<<DATOS DEL CLIENTE>>\n{texto_cliente}\n<<FIN DATOS>>\n{cierre}"
+
+def lanzar_starlit(prompt_path, salida="output_ejemplo.md"):
+    """Lanza Starlit CLI con el prompt generado"""
     try:
-        with open(datos_cliente_path, "r", encoding="utf-8") as f:
-            datos_cliente = f.read().strip()
+        subprocess.run(["starlit", "prompt", "run", "--input", prompt_path, "--output", salida], check=True)
+        print(f"✅ Plan generado con Starlit y guardado en {salida}")
     except FileNotFoundError:
-        print(f"⚠️ Archivo no encontrado: {datos_cliente_path}")
-        return
-
-    prompt_completo = f"{instrucciones}\n\n<<DATOS DEL CLIENTE>>\n{datos_cliente}\n<<FIN DATOS>>\n{cierre}"
-
-    # Guardar prompt generado
-    with open(salida, "w", encoding="utf-8") as f:
-        f.write(prompt_completo)
-        print(f"✅ Prompt generado con éxito en: {salida}")
-
+        print("❌ No se encuentra el ejecutable 'starlit'. ¿Está instalado con npm?")
+    except subprocess.CalledProcessError:
+        print("❌ Ocurrió un error al ejecutar Starlit.")
 
 if __name__ == "__main__":
-    generar_prompt()
+    if len(sys.argv) < 2:
+        print("Uso: python prompt_generator.py ruta_del_pdf")
+        sys.exit(1)
+
+    ruta_pdf = sys.argv[1]
+
+    if not os.path.exists(ruta_pdf):
+        print(f"⚠️ No se encuentra el archivo: {ruta_pdf}")
+        sys.exit(1)
+
+    texto_cliente = extraer_texto_desde_pdf(ruta_pdf)
+    prompt = generar_prompt(texto_cliente)
+
+    prompt_path = "prompt_generado.txt"
+    with open(prompt_path, "w", encoding="utf-8") as f:
+        f.write(prompt)
+        print(f"✅ Prompt guardado en {prompt_path}")
+
+    lanzar_starlit(prompt_path)
+

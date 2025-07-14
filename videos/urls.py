@@ -1,17 +1,15 @@
 from django.urls import path
 from .views import (
+    bienvenida,
     ver_video,
     formulario_demo,
-    generar_plan,
-    procesar_plan,
-    cargando
+    procesar_plan_directo,
 )
 
 urlpatterns = [
-    path('', ver_video, name='ver_video'),  # Página principal con el vídeo demo
-    path('formulario/', formulario_demo, name='formulario'),  # Formulario bonito
-    path('generar-plan/', generar_plan, name='generar_plan'),  # Paso intermedio
-    path('procesar-plan/', procesar_plan, name='procesar_plan'),  # Generar plan IA
-    path('cargando/', cargando, name='cargando'),
-
+    path('', bienvenida, name='bienvenida'),  # Página de bienvenida
+    path('video/', ver_video, name='ver_video'),  # Página demo con vídeo
+    path('formulario/', formulario_demo, name='formulario'),  # Formulario de entrada
+    path('procesar-directo/', procesar_plan_directo, name='procesar_plan_directo'),  # Generación directa del plan
 ]
+

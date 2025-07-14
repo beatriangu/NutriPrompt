@@ -1,71 +1,106 @@
 import streamlit as st
-import pandas as pd
-import random
+import os
+from fpdf import FPDF
+from PIL import Image
+import io
+from datetime import datetime
 
-st.set_page_config(page_title="NutriPrompt Demo", page_icon="🍽️", layout="wide")
+st.set_page_config(page_title="NutriPrompt – Plan generado", page_icon="💡", layout="centered")
 
-# Simulación de datos extraídos del formulario
-cliente = {
-    "nombre": "Carla Rodríguez",
-    "edad": 29,
-    "peso": 68,
-    "altura": 165,
-    "presupuesto": 45,
-    "horarios_ejercicio": ["Lunes 18:00–19:00", "Miércoles 18:00–19:00", "Viernes 18:00–19:00"],
-    "restricciones": ["sin gluten", "digestiones pesadas"],
-    "objetivo_peso": "Perder 3 kg en 6 semanas",
-    "tiempo_cocina": 60,
-    "actividad": "moderado",
-    "comentarios": ["snacks saludables", "evitar impacto en rodillas"]
-}
+st.title("💡 NutriPrompt: Tu Plan Semanal Personalizado")
 
-# Función para generar el plan
-@st.cache_data
-def generar_plan(cliente):
-    dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-    desayunos = ["Tostadas de arroz con aguacate", "Smoothie de plátano y avena sin gluten"]
-    comidas = ["Quinoa con pollo y verduras", "Ensalada de lentejas y huevo cocido"]
-    cenas = ["Crema de calabaza con huevo", "Tortilla de espinacas"]
-    snacks = ["Yogur sin lactosa con nueces", "Fruta + puñado de semillas"]
-    ejercicios = ["Bicicleta estática 30 min", "Yoga suave 30 min", "Ejercicios de core sin impacto"]
-    descansos = ["Estiramientos 10 min antes de dormir", "Respiración profunda 5 min"]
+st.markdown("""
+Este espacio muestra el resultado final generado con IA a partir de los datos de tu formulario.  
+¡Listo para poner en práctica y cuidarte esta semana! 🥑🏃‍♀️🧘‍♂️
+""")
 
-    data = []
-    for i, dia in enumerate(dias):
-        data.append({
-            "Día": dia,
-            "🍳 Desayuno": random.choice(desayunos),
-            "🥗 Comida": random.choice(comidas),
-            "🌙 Cena": random.choice(cenas),
-            "🍏 Snack": random.choice(snacks),
-            "🏋️ Ejercicio": ejercicios[i % len(ejercicios)],
-            "🛌 Descanso": random.choice(descansos),
-            "Coste Diario (€)": round(cliente["presupuesto"] / 7, 2)
-        })
+# Archivos de entrada
+output_path = "output_ejemplo.md"
+formulario_path = "datos_cliente_ejemplo.txt"
+fondo_path = "media/fondos/bienvenida_fondo.jpg"
 
-    return pd.DataFrame(data)
+# Función para extraer el nombre del cliente desde el .txt
+def obtener_nombre_desde_txt(ruta):
+    if not os.path.exists(ruta):
+        return "Cliente"
+    with open(ruta, "r", encoding="utf-8") as f:
+        for linea in f:
+            if linea.lower().startswith("nombre"):
+                return linea.split(":", 1)[1].strip()
+    return "Cliente"
 
-# Interfaz Streamlit
-st.title("🧠 NutriPrompt - Generador de Plan Semanal Personalizado")
-st.markdown("Este es un ejemplo funcional que simula la generación de un plan basado en datos extraídos de un formulario nutricional PDF.")
+# Pie de página
+def pie_de_pagina(pdf):
+    pdf.set_y(-15)
+    pdf.set_font("Arial", "I", 9)
+    pdf.set_text_color(100, 100, 100)
+    pdf.cell(0, 10, "Generado con IA – NutriPrompt", 0, 0, "C")
 
-with st.expander("📄 Ver resumen del formulario cargado"):
-    st.markdown(f"- **Nombre:** {cliente['nombre']}")
-    st.markdown(f"- **Edad:** {cliente['edad']} años")
-    st.markdown(f"- **Peso:** {cliente['peso']} kg | **Altura:** {cliente['altura']} cm")
-    st.markdown(f"- **Objetivo:** {cliente['objetivo_peso']}")
-    st.markdown(f"- **Restricciones:** {', '.join(cliente['restricciones'])}")
-    st.markdown(f"- **Tiempo de cocina disponible:** {cliente['tiempo_cocina']} min/día")
-    st.markdown(f"- **Presupuesto semanal:** {cliente['presupuesto']} €")
-    st.markdown(f"- **Comentarios adicionales:** {', '.join(cliente['comentarios'])}")
+# Función para generar PDF completo
+def generar_pdf_desde_markdown(contenido, cliente="Cliente", fecha="", fondo_path=""):
+    pdf = FPDF()
 
-st.markdown("### 🚀 ¿Lista para generar tu plan?")
-if st.button("Generar plan semanal"):
-    df = generar_plan(cliente)
-    st.success("¡Plan generado con éxito! 💚")
-    st.dataframe(df, use_container_width=True)
-    total = df["Coste Diario (€)"].sum()
-    st.markdown(f"**💰 Total semanal estimado:** `{total:.2f} €`")
+    # Portada
+    pdf.add_page()
+    if os.path.exists(fondo_path):
+        img = Image.open(fondo_path)
+        img = img.resize((595, 842))
+        temp_path = "temp_portada.jpg"
+        img.save(temp_path)
+        pdf.image(temp_path, x=0, y=0, w=210, h=297)
+        os.remove(temp_path)
 
-st.markdown("---")
-st.markdown("👩‍💻 Este proyecto forma parte del servicio de **Soluciones Tecnológicas** (IA + Nutrición).")
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_font("Arial", "B", 20)
+    pdf.set_xy(0, 100)
+    pdf.cell(210, 10, "Plan Semanal NutriPrompt", ln=True, align="C")
+
+    pdf.set_font("Arial", "", 14)
+    pdf.cell(210, 10, f"Cliente: {cliente}", ln=True, align="C")
+    pdf.cell(210, 10, f"Fecha: {fecha}", ln=True, align="C")
+
+    pie_de_pagina(pdf)
+
+    # Contenido
+    pdf.add_page()
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("Arial", size=11)
+    pdf.set_auto_page_break(auto=True, margin=15)
+
+    for linea in contenido.split("\n"):
+        pdf.multi_cell(0, 8, linea)
+
+    pie_de_pagina(pdf)
+
+    pdf_bytes = io.BytesIO()
+    pdf.output(pdf_bytes)
+    pdf_bytes.seek(0)
+    return pdf_bytes
+
+# Mostrar resultado en Streamlit
+if os.path.exists(output_path):
+    with open(output_path, "r", encoding="utf-8") as f:
+        contenido_markdown = f.read()
+
+    nombre_cliente = obtener_nombre_desde_txt(formulario_path)
+    fecha_actual = datetime.now().strftime("%d/%m/%Y")
+
+    st.markdown("### 🧾 Resultado generado por IA")
+    st.markdown(contenido_markdown, unsafe_allow_html=True)
+
+    pdf_bytes = generar_pdf_desde_markdown(
+        contenido_markdown,
+        cliente=nombre_cliente,
+        fecha=fecha_actual,
+        fondo_path=fondo_path
+    )
+
+    st.download_button(
+        label="📄 Descargar plan como PDF",
+        data=pdf_bytes,
+        file_name=f"plan_nutriprompt_{nombre_cliente.replace(' ', '_')}.pdf",
+        mime="application/pdf"
+    )
+
+else:
+    st.warning("⚠️ El archivo `output_ejemplo.md` no se ha generado aún. Asegúrate de haber enviado el formulario y pulsado 'Generar plan'.")

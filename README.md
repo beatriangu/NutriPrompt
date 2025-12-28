@@ -296,10 +296,10 @@ MIT License - ver [LICENSE](LICENSE) para detalles
 
 ## 👤 Autor
 
-**Beatriz Angulo**
-- Portfolio: [bchill.es](https://bchill.es)
+**Bea Lamiquiz**
+- Portfolio: [bchill.net](https://bchill.net)
 - GitHub: [@beatriangu](https://github.com/beatriangu)
-- LinkedIn: [beatriz-angulo](https://linkedin.com/in/beatriz-angulo)
+- LinkedIn: [bealamiquiz](https://www.linkedin.com/in/bealamiquiz/)
 
 ---
 

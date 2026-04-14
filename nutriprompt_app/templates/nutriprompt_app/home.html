@@ -1,0 +1,242 @@
+{% load static %}
+{% get_media_prefix as media_url %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>NutriPrompt · Generador de Planes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: url("{{ media_url }}formularios/nutriprompt_fondo.png") no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+        }
+
+        .fondo-oscuro {
+            background-color: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(3px);
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1rem;
+            box-sizing: border-box;
+        }
+
+        .form-container {
+            background-color: rgba(255, 255, 255, 0.97);
+            padding: 2rem;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 0.8rem;
+            font-size: 1.9rem;
+        }
+
+        .subtexto {
+            font-size: 0.95rem;
+            color: #555;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .mensaje-error {
+            color: #b00020;
+            background-color: #fdecea;
+            border: 1px solid #f5c2c7;
+            padding: 0.9rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        form {
+            margin-top: 0.5rem;
+        }
+
+        label {
+            display: block;
+            margin-top: 1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 0.7rem;
+            margin-top: 0.35rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background-color: #fff;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #27ae60;
+            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.15);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        .nota-campo {
+            margin-top: 0.3rem;
+            font-size: 0.84rem;
+            color: #777;
+        }
+
+        button {
+            margin-top: 1.6rem;
+            width: 100%;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 0.9rem 1rem;
+            border-radius: 6px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.08s ease;
+        }
+
+        button:hover {
+            background-color: #219150;
+        }
+
+        button:active {
+            transform: scale(0.995);
+        }
+
+        button:disabled {
+            background-color: #7fbf98;
+            cursor: not-allowed;
+        }
+
+        .disclaimer {
+            margin-top: 1.4rem;
+            font-size: 0.85rem;
+            color: #666;
+            line-height: 1.45;
+            text-align: center;
+        }
+
+        @media (max-width: 640px) {
+            .form-container {
+                padding: 1.4rem;
+            }
+
+            h1 {
+                font-size: 1.55rem;
+            }
+
+            button {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="fondo-oscuro">
+    <div class="form-container">
+        <h1>🧠 NutriPrompt · Generador de Plan Semanal</h1>
+
+        <p class="subtexto">
+            Completa los datos principales y genera una propuesta semanal personalizada
+            con ayuda de IA, pensada como orientación práctica y estructurada.
+        </p>
+
+        {% if error %}
+            <p class="mensaje-error">{{ error }}</p>
+        {% endif %}
+
+        <form method="post" action="{% url 'generar_plan' %}" autocomplete="off">
+            {% csrf_token %}
+
+            <label for="nombre">Nombre</label>
+            <input
+                type="text"
+                name="nombre"
+                id="nombre"
+                required
+                placeholder="Ej. Bea Lamiquiz"
+            >
+
+            <label for="objetivo">Objetivo principal</label>
+            <input
+                type="text"
+                name="objetivo"
+                id="objetivo"
+                required
+                placeholder="Ej. Mejorar la organización semanal de las comidas"
+            >
+            <p class="nota-campo">Indica el objetivo principal que quieres priorizar.</p>
+
+            <label for="restricciones">Restricciones alimentarias</label>
+            <input
+                type="text"
+                name="restricciones"
+                id="restricciones"
+                placeholder="Ej. Sin gluten, sin lactosa, bajo en FODMAPs"
+            >
+
+            <label for="preferencias">Preferencias personales</label>
+            <textarea
+                name="preferencias"
+                id="preferencias"
+                rows="4"
+                placeholder="Ej. Prefiero pollo y pescado, comidas fáciles, cenas ligeras, poco tiempo para cocinar..."
+            ></textarea>
+
+            <label for="presupuesto">Presupuesto semanal (€)</label>
+            <input
+                type="text"
+                name="presupuesto"
+                id="presupuesto"
+                placeholder="Ej. 45"
+            >
+
+            <button type="submit" id="submit-btn">✨ Generar plan personalizado</button>
+        </form>
+
+        <p class="disclaimer">
+            ⚠️ Este plan es orientativo y no sustituye el asesoramiento de un profesional sanitario o nutricional.
+        </p>
+    </div>
+</div>
+
+<script>
+    const form = document.querySelector("form");
+    const button = document.getElementById("submit-btn");
+
+    form.addEventListener("submit", () => {
+        button.innerText = "Generando...";
+        button.disabled = true;
+    });
+</script>
+
+</body>
+</html>
+

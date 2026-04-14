@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Plan Semanal – {{ plan_nombre }}</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 12px;
+      color: #333;
+      margin: 2rem;
+    }
+
+    h1, h2 {
+      color: #146c43;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .table-wrapper {
+      border: 1px solid #ccc;
+      padding: 1rem;
+      border-radius: 6px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      text-align: center;
+    }
+
+    th {
+      background-color: #e0f7fa;
+    }
+
+    .footer {
+      margin-top: 1.5rem;
+      text-align: right;
+      font-size: 11px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Plan Semanal NutriPrompt</h1>
+    <p>Generado para: <strong>{{ plan_nombre|default:"Cliente" }}</strong></p>
+  </div>
+
+  <div class="table-wrapper">
+    {{ plan|safe }}
+  </div>
+
+  <div class="footer">
+    <p><strong>📅 Generado el:</strong> {{ plan_fecha|default:"-" }}</p>
+    <p><strong>💰 Coste total estimado:</strong> {{ plan_coste|default:"-" }} €</p>
+  </div>
+
+</body>
+</html>

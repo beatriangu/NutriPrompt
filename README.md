@@ -316,4 +316,249 @@ MIT License - ver [LICENSE](LICENSE) para detalles
 ⭐ Si este proyecto te resultó útil, ¡dale una estrella!
 
 🐛 ¿Encontraste un bug? [Abre un issue](https://github.com/beatriangu/NutriPrompt/issues)
+=======
+🥦 NutriPrompt — Generador Inteligente de Planes Nutricionales con IA
+<img src="https://raw.githubusercontent.com/beatriangu/nutriprompt/main/nutriprompt1.png" width="260" alt="NutriPrompt logo">
+
+
+
+
+🧠 Qué es NutriPrompt
+NutriPrompt es una aplicación que transforma datos de un usuario en un plan semanal personalizado de alimentación, utilizando IA generativa + Prompt Engineering + Django.
+👉 Pasa de ser un generador de prompts a un producto completo funcional.
+
+🎯 Problema que resuelve
+Crear planes personalizados implica:
+
+
+Recoger datos del cliente
+
+
+Estructurarlos correctamente
+
+
+Diseñar prompts eficaces
+
+
+Generar contenido útil con IA
+
+
+❌ Todo esto consume tiempo
+❌ Y depende mucho de la calidad del prompt
+👉 NutriPrompt automatiza todo el proceso end-to-end
+
+🚀 Qué hace ahora (versión actual)
+Formulario web → Backend Django → Prompt estructurado → Gemini API → JSON → HTML → PDF
+🔹 Flujo completo
+
+
+Usuario completa un formulario web
+
+
+El sistema construye un prompt estructurado automáticamente
+
+
+Se envía a IA (Google Gemini)
+
+
+Se genera un plan semanal en JSON
+
+
+Se renderiza en HTML
+
+
+Se exporta como PDF descargable
+
+
+
+💥 Funcionalidades principales
+
+
+🧾 Formulario dinámico (Django)
+
+
+🧠 Generación automática de prompts
+
+
+🤖 Integración con Gemini API
+
+
+📊 Salida estructurada (JSON → HTML)
+
+
+📄 Generación automática de PDF
+
+
+⚠️ Sistema de fallback si la IA falla
+
+
+🎨 Interfaz cuidada y orientada a producto
+
+
+
+🧪 Ejemplo de uso
+Input:
+Nombre: Bea  Objetivo: Organización semanal  Restricciones: Sin lactosa, bajo FODMAPs  Preferencias: Pollo y pescado  
+Output:
+✔ Plan semanal completo
+✔ Adaptado a restricciones
+✔ Estructurado por días
+✔ Descargable en PDF
+
+🧠 Stack técnico
+
+
+Backend: Django
+
+
+Lenguaje: Python 3
+
+
+IA: Google Gemini API
+
+
+Frontend: HTML + CSS
+
+
+PDF: WeasyPrint
+
+
+Data handling: JSON + Pandas
+
+
+Prompt Engineering: Diseño estructurado
+
+
+
+🏗️ Arquitectura
+Usuario  ↓Formulario Django  ↓Generador de prompt  ↓Gemini API  ↓JSON estructurado  ↓HTML renderizado  ↓PDF descargable
+
+📁 Estructura del proyecto
+nutriprompt/├── nutriprompt_app/│   ├── services/        # Lógica IA (Gemini)│   ├── templates/       # UI (home + resultado)│   ├── views.py         # Flujo principal│   └── ...├── nutriprompt_web/     # Configuración Django├── media/│   ├── formularios/     # Imágenes / assets│   └── resultados/      # PDFs generados (ignored)├── colab/               # Experimentos iniciales├── prototypes/          # Versiones experimentales├── examples/            # Datos reales anonimizados└── README.md
+
+🧠 Evolución del proyecto
+Este proyecto refleja un proceso real de desarrollo:
+✅ Fase 1 — Prompt manual
+
+
+Generación en ChatGPT
+
+
+✅ Fase 2 — Automatización en Python
+
+
+Generador de prompts
+
+
+✅ Fase 3 — Prototipo en Colab
+
+
+Validación de IA
+
+
+✅ Fase 4 — Integración IA real
+
+
+Gemini API
+
+
+🚀 Fase 5 — Aplicación web (actual)
+
+
+Django + UX + PDF + fallback
+
+
+
+⚠️ Nota importante
+
+Este sistema genera recomendaciones orientativas.
+No sustituye el asesoramiento de un profesional sanitario.
+
+
+🧠 Decisiones de producto
+🔹 ¿Por qué usar Prompt Engineering?
+
+
+Control total sobre la salida
+
+
+Mejora de calidad sin necesidad de fine-tuning
+
+
+Iteración rápida
+
+
+🔹 ¿Por qué Django?
+
+
+Control backend completo
+
+
+Escalabilidad
+
+
+Integración sencilla con IA
+
+
+🔹 ¿Por qué fallback?
+
+
+La IA puede fallar (cuotas / saturación)
+
+
+El sistema sigue funcionando → mejor UX
+
+
+
+⚙️ Instalación
+git clone https://github.com/beatriangu/nutriprompt.gitcd nutriprompt
+1. Entorno virtual
+python3 -m venv venvsource venv/bin/activate
+2. Dependencias
+pip install -r requirements.txt
+3. Variables de entorno
+Crea .env:
+GOOGLE_API_KEY=tu_api_keyDJANGO_SECRET_KEY=tu_secret_keyDEBUG=True
+
+4. Ejecutar
+python manage.py runserver
+👉 http://127.0.0.1:8000/
+
+🧪 Prototipos incluidos
+
+
+📓 /colab → experimentos con IA
+
+
+🧪 /prototypes → versiones alternativas (Streamlit)
+
+
+📄 /examples → datos reales anonimizados
+
+
+
+🎯 Enfoque profesional
+Este proyecto demuestra:
+✔ Integración real con IA
+✔ Diseño de prompts robustos
+✔ Arquitectura backend clara
+✔ Pensamiento de producto
+✔ UX resiliente
+
+👩‍💻 Autora
+Beatriz Lamiquiz
+
+
+GitHub: https://github.com/beatriangu
+
+
+LinkedIn: https://www.linkedin.com/in/bealamiquiz/
+
+
+
+⭐ Si te interesa
+Si te gusta el proyecto:
+👉 dale una estrella
+👉 o conecta conmigo para compartir ideas
+
 

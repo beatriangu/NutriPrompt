@@ -77,6 +77,15 @@ def generar_plan_desde_pdf(ruta_pdf, salida="output_ejemplo.md"):
         print(f"✅ Plan generado y guardado en {salida}")
     return salida
 
+def generar_respuesta_personalizada(texto_cliente):
+    """
+    Genera el texto del plan semanal en base al contenido extraído del formulario PDF.
+    Esta versión es ideal para usar dentro de una vista Django.
+    """
+    prompt = generar_prompt(texto_cliente)
+    resultado = generador(prompt, max_new_tokens=512)[0]["generated_text"]
+    return resultado
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Uso: python prompt_generator_optimo.py ruta_del_pdf")

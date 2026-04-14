@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>NutriPrompt · Resultado del Plan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --verde-principal: #27ae60;
+            --verde-hover: #219150;
+            --azul-principal: #3498db;
+            --azul-hover: #2c80b4;
+            --texto: #2c3e50;
+            --texto-suave: #666;
+            --fondo: #f5f7f8;
+            --blanco: #ffffff;
+            --borde: #e1e4e8;
+            --sombra: 0 10px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(180deg, #f8faf9 0%, #eef3f1 100%);
+            color: var(--texto);
+            padding: 2rem 1rem 3rem;
+        }
+
+        .page-wrapper {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 1.8rem;
+        }
+
+        .hero h1 {
+            margin: 0 0 0.7rem;
+            font-size: 2rem;
+            color: var(--texto);
+        }
+
+        .hero p {
+            margin: 0 auto;
+            max-width: 760px;
+            color: var(--texto-suave);
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        .disclaimer {
+            margin: 1rem auto 0;
+            max-width: 780px;
+            background: #fff8e8;
+            border: 1px solid #f1d38a;
+            color: #7a5a00;
+            padding: 0.9rem 1rem;
+            border-radius: 10px;
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+
+        .plan-card {
+            background-color: var(--blanco);
+            border-radius: 16px;
+            box-shadow: var(--sombra);
+            padding: 1.5rem;
+            overflow: hidden;
+        }
+
+        .plan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .plan-header h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: var(--texto);
+        }
+
+        .acciones {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .boton {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.78rem 1.2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.98rem;
+            transition: background-color 0.25s, transform 0.08s ease, box-shadow 0.25s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .boton:active {
+            transform: scale(0.995);
+        }
+
+        .boton-volver {
+            background-color: #edf2f7;
+            color: #334155;
+        }
+
+        .boton-volver:hover {
+            background-color: #dde6ee;
+        }
+
+        .boton-descarga {
+            background-color: var(--azul-principal);
+            color: white;
+            box-shadow: 0 6px 18px rgba(52, 152, 219, 0.2);
+        }
+
+        .boton-descarga:hover {
+            background-color: var(--azul-hover);
+        }
+
+        .tabla-wrapper {
+            overflow-x: auto;
+            margin-top: 1rem;
+            border-radius: 10px;
+        }
+
+        .tabla-wrapper table {
+            width: 100%;
+            min-width: 720px;
+            border-collapse: collapse;
+            background-color: white;
+        }
+
+        .tabla-wrapper th,
+        .tabla-wrapper td {
+            border: 1px solid var(--borde);
+            padding: 0.9rem;
+            text-align: left;
+            vertical-align: top;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        .tabla-wrapper th {
+            background-color: #f3f6f8;
+            color: var(--texto);
+            font-weight: 700;
+        }
+
+        .tabla-wrapper tr:nth-child(even) td {
+            background-color: #fafcfc;
+        }
+
+        .tabla-wrapper p {
+            margin: 0.3rem 0;
+        }
+
+        .bloque-info {
+            margin-top: 1.4rem;
+            color: var(--texto-suave);
+            font-size: 0.92rem;
+            line-height: 1.6;
+        }
+
+        .bloque-info strong {
+            color: var(--texto);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1.2rem 0.8rem 2rem;
+            }
+
+            .hero h1 {
+                font-size: 1.65rem;
+            }
+
+            .plan-card {
+                padding: 1rem;
+            }
+
+            .plan-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .acciones {
+                width: 100%;
+            }
+
+            .boton {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <section class="hero">
+            <h1>🎯 Plan personalizado generado con IA</h1>
+            <p>
+                Aquí tienes tu propuesta semanal generada a partir de la información proporcionada.
+                El objetivo es ofrecerte una base clara, práctica y fácil de revisar.
+            </p>
+            <div class="disclaimer">
+                ⚠️ Este plan es orientativo y no sustituye el asesoramiento de un profesional sanitario o nutricional.
+            </div>
+        </section>
+
+        <section class="plan-card">
+            <div class="plan-header">
+                <h2>Tu planificación semanal</h2>
+                <div class="acciones">
+                    <a href="{% url 'home' %}" class="boton boton-volver">← Volver al formulario</a>
+                    {% if pdf_url %}
+                        <a href="{{ pdf_url }}" class="boton boton-descarga" download target="_blank" rel="noopener noreferrer">
+                            📄 Descargar PDF
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="tabla-wrapper">
+                {{ tabla_html|safe }}
+            </div>
+
+            <div class="bloque-info">
+                <p><strong>Consejo:</strong> revisa el plan antes de aplicarlo y ajústalo según tus necesidades reales, tus hábitos y cualquier indicación profesional que debas seguir.</p>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

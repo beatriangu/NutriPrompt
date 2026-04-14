@@ -11,6 +11,7 @@
       background: linear-gradient(to right, #e9f5ec, #f7fdfc);
       font-family: 'Segoe UI', sans-serif;
     }
+
     .header {
       background-color: #d1e7dd;
       padding: 2rem;
@@ -19,14 +20,17 @@
       margin-bottom: 2rem;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
     }
+
     .header h1 {
       color: #146c43;
       font-weight: 700;
     }
+
     .header p {
       color: #198754;
       font-size: 1.1rem;
     }
+
     .table-wrapper {
       background: white;
       border-radius: 1rem;
@@ -34,28 +38,42 @@
       overflow-x: auto;
       padding: 1rem;
     }
+
     table {
       width: 100%;
       min-width: 800px;
       border-collapse: collapse;
     }
+
     th, td {
       padding: 0.75rem;
       text-align: center;
       border-bottom: 1px solid #dee2e6;
     }
+
     th {
       background-color: #e0f7fa;
       font-size: 0.95rem;
     }
+
     td {
       font-size: 0.93rem;
     }
+
     .footer-note {
       margin-top: 1.5rem;
       font-size: 0.9rem;
       color: #6c757d;
       text-align: right;
+    }
+
+    .botones {
+      text-align: center;
+      margin-top: 2rem;
+    }
+
+    .botones a {
+      margin: 0 0.5rem;
     }
 
     @media (max-width: 768px) {
@@ -86,10 +104,18 @@
 
   <div class="footer-note">
     <p><strong>📅 Generado el:</strong> {{ plan_fecha|default:"hoy" }}</p>
-    <p><strong>💰 Coste total estimado:</strong> {{ plan_coste|default:"-" }}</p>
+    <p><strong>💰 Coste total estimado:</strong> {{ plan_coste|default:"-" }} €</p>
+  </div>
+
+  <div class="botones">
+    {% if pdf_url %}
+      <a href="{{ pdf_url }}" class="btn btn-success" download target="_blank">📄 Descargar PDF</a>
+    {% endif %}
+    <a href="{% url 'formulario_demo' %}" class="btn btn-outline-secondary">🔁 Volver al inicio</a>
   </div>
 </div>
 
 </body>
 </html>
+
 

@@ -3,24 +3,31 @@ import os
 
 from dotenv import load_dotenv
 
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 load_dotenv(BASE_DIR / ".env")
 
-SECRET_KEY = os.getenv(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-fallback-key-change-me"
-)
 
-DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+def get_bool_env(name: str, default: bool = False) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"true", "1", "yes", "on"}
 
-ALLOWED_HOSTS = (
-    [host.strip() for host in os.getenv("ALLOWED_HOSTS", "").split(",") if host.strip()]
-    if os.getenv("ALLOWED_HOSTS")
-    else []
-)
+
+def get_list_env(name: str) -> list[str]:
+    value = os.getenv(name, "")
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-fallback-key-change-me")
+DEBUG = get_bool_env("DEBUG", default=True)
+ALLOWED_HOSTS = get_list_env("ALLOWED_HOSTS")
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
+
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -29,9 +36,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "videos",
     "nutriprompt_app",
 ]
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -43,7 +50,9 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+
 ROOT_URLCONF = "nutriprompt_web.urls"
+
 
 TEMPLATES = [
     {
@@ -63,7 +72,9 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = "nutriprompt_web.wsgi.application"
+
 
 DATABASES = {
     "default": {
@@ -72,6 +83,7 @@ DATABASES = {
     }
 }
 
+
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -79,15 +91,19 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+
 LANGUAGE_CODE = "es-es"
 TIME_ZONE = "Europe/Madrid"
 USE_I18N = True
 USE_TZ = True
 
+
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

@@ -1,247 +1,808 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>NutriPrompt · Resultado del Plan</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        :root {
-            --verde-principal: #27ae60;
-            --verde-hover: #219150;
-            --azul-principal: #3498db;
-            --azul-hover: #2c80b4;
-            --texto: #2c3e50;
-            --texto-suave: #666;
-            --fondo: #f5f7f8;
-            --blanco: #ffffff;
-            --borde: #e1e4e8;
-            --sombra: 0 10px 24px rgba(0, 0, 0, 0.08);
+{% extends "nutriprompt_app/base.html" %}
+{% load static %}
+
+{% block title %}NutriPrompt · Resultado del Plan{% endblock %}
+{% block meta_description %}NutriPrompt · Resultado del plan semanal personalizado con resumen del perfil, planificación semanal y lista de la compra orientativa.{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --color-primary: #27ae60;
+        --color-primary-hover: #219150;
+        --color-secondary: #3498db;
+        --color-secondary-hover: #2c80b4;
+
+        --color-text: #24323f;
+        --color-text-muted: #5f6c76;
+        --color-text-soft: #70808d;
+
+        --color-white: #ffffff;
+        --color-surface: rgba(255, 255, 255, 0.96);
+        --color-surface-soft: #f8fbfd;
+        --color-surface-muted: #fafcfc;
+
+        --color-border: #e2e8ee;
+        --color-border-soft: #edf2f6;
+
+        --shadow-md: 0 10px 26px rgba(15, 23, 42, 0.08);
+        --shadow-sm: 0 5px 16px rgba(15, 23, 42, 0.05);
+        --shadow-xl: 0 18px 48px rgba(15, 23, 42, 0.16);
+
+        --radius-xl: 22px;
+        --radius-lg: 18px;
+        --radius-md: 12px;
+        --radius-sm: 10px;
+        --radius-pill: 999px;
+
+        --color-warning-bg: #fff8e8;
+        --color-warning-border: #f1d38a;
+        --color-warning-text: #7a5a00;
+
+        --color-neutral-btn: #edf2f7;
+        --color-neutral-btn-hover: #dde6ee;
+
+        --color-badge-ai-bg: #ecfdf3;
+        --color-badge-ai-border: #b7ebc9;
+        --color-badge-ai-text: #166534;
+
+        --color-badge-openai-bg: #eef6ff;
+        --color-badge-openai-border: #cfe1ff;
+        --color-badge-openai-text: #1d4ed8;
+
+        --color-badge-mock-bg: #fff7ed;
+        --color-badge-mock-border: #fed7aa;
+        --color-badge-mock-text: #9a3412;
+
+        --color-badge-fallback-bg: #fffaf0;
+        --color-badge-fallback-border: #f6d7a7;
+        --color-badge-fallback-text: #92400e;
+
+        --color-shopping-bg: #f7fbff;
+        --color-shopping-border: #dbeaf7;
+        --color-shopping-title: #1f4f75;
+
+        --color-tag-bg: #eef7f1;
+        --color-tag-border: #d8eadf;
+        --color-tag-text: #25543d;
+
+        --container-max: 1220px;
+        --space-1: 0.25rem;
+        --space-2: 0.5rem;
+        --space-3: 0.75rem;
+        --space-4: 1rem;
+        --space-5: 1.25rem;
+        --space-6: 1.5rem;
+        --space-8: 2rem;
+        --space-10: 2.5rem;
+        --space-12: 3rem;
+
+        --font-base: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+        --focus-ring: 0 0 0 3px rgba(39, 174, 96, 0.22);
+    }
+
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        margin: 0;
+        font-family: var(--font-base);
+        color: var(--color-text);
+        background:
+            linear-gradient(rgba(8, 16, 22, 0.34), rgba(8, 16, 22, 0.34)),
+            url("/media/formularios/nutriprompt_fondo.png") no-repeat center center fixed;
+        background-size: cover;
+        line-height: 1.5;
+    }
+
+    img,
+    svg,
+    video {
+        display: block;
+        max-width: 100%;
+    }
+
+    a {
+        color: inherit;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+        font: inherit;
+    }
+
+    :focus-visible {
+        outline: none;
+        box-shadow: var(--focus-ring);
+        border-radius: var(--radius-sm);
+    }
+
+    .page-wrap {
+        width: min(100% - 2rem, var(--container-max));
+        margin-inline: auto;
+        padding-block: var(--space-8) var(--space-12);
+    }
+
+    .page-shell {
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(6px);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-xl);
+        overflow: hidden;
+    }
+
+    .page-inner {
+        padding: var(--space-8);
+    }
+
+    .stack-lg > * + * {
+        margin-top: var(--space-5);
+    }
+
+    .hero {
+        text-align: center;
+        margin-bottom: var(--space-8);
+    }
+
+    .hero__eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin-bottom: 0.9rem;
+        padding: 0.45rem 0.8rem;
+        border-radius: var(--radius-pill);
+        background: rgba(39, 174, 96, 0.10);
+        color: #1b6c45;
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+    }
+
+    .hero__title {
+        margin: 0 0 var(--space-3);
+        font-size: clamp(1.9rem, 3vw, 2.55rem);
+        line-height: 1.12;
+        letter-spacing: -0.02em;
+    }
+
+    .hero__text {
+        margin: 0 auto;
+        max-width: 840px;
+        color: var(--color-text-muted);
+        font-size: 1rem;
+        line-height: 1.72;
+    }
+
+    .alert {
+        max-width: 860px;
+        margin: var(--space-4) auto 0;
+        padding: 0.95rem 1rem;
+        border: 1px solid var(--color-warning-border);
+        border-radius: var(--radius-md);
+        background: var(--color-warning-bg);
+        color: var(--color-warning-text);
+        font-size: 0.94rem;
+        line-height: 1.6;
+    }
+
+    .layout-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.72fr) minmax(310px, 0.92fr);
+        gap: var(--space-5);
+        align-items: start;
+    }
+
+    .stack-col > * + * {
+        margin-top: var(--space-5);
+    }
+
+    .card {
+        background: var(--color-surface);
+        border: 1px solid rgba(226, 232, 238, 0.72);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+    }
+
+    .card--padded {
+        padding: var(--space-6);
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: var(--space-4);
+        flex-wrap: wrap;
+        margin-bottom: var(--space-4);
+    }
+
+    .section-title {
+        margin: 0 0 0.35rem;
+        font-size: 1.2rem;
+        line-height: 1.25;
+    }
+
+    .section-text {
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: 0.96rem;
+        line-height: 1.62;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.45rem 0.75rem;
+        border-radius: var(--radius-pill);
+        border: 1px solid transparent;
+        font-size: 0.82rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .status-badge--ai {
+        background: var(--color-badge-ai-bg);
+        border-color: var(--color-badge-ai-border);
+        color: var(--color-badge-ai-text);
+    }
+
+    .status-badge--openai {
+        background: var(--color-badge-openai-bg);
+        border-color: var(--color-badge-openai-border);
+        color: var(--color-badge-openai-text);
+    }
+
+    .status-badge--mock {
+        background: var(--color-badge-mock-bg);
+        border-color: var(--color-badge-mock-border);
+        color: var(--color-badge-mock-text);
+    }
+
+    .status-badge--fallback {
+        background: var(--color-badge-fallback-bg);
+        border-color: var(--color-badge-fallback-border);
+        color: var(--color-badge-fallback-text);
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+    }
+
+    .summary-item {
+        padding: 1rem;
+        border: 1px solid #e5efea;
+        border-radius: var(--radius-md);
+        background: #f8fbf9;
+        min-width: 0;
+    }
+
+    .summary-item__label {
+        display: block;
+        margin-bottom: 0.35rem;
+        font-size: 0.78rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #617281;
+    }
+
+    .summary-item__value {
+        font-size: 0.97rem;
+        color: var(--color-text);
+        line-height: 1.55;
+        word-break: break-word;
+    }
+
+    .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-top: var(--space-4);
+    }
+
+    .tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 0.85rem;
+        border: 1px solid var(--color-tag-border);
+        border-radius: var(--radius-pill);
+        background: var(--color-tag-bg);
+        color: var(--color-tag-text);
+        font-size: 0.88rem;
+        font-weight: 600;
+        line-height: 1;
+    }
+
+    .info-box {
+        margin-top: var(--space-4);
+        padding: 1rem 1.05rem;
+        border: 1px solid #d7eaf8;
+        border-radius: var(--radius-md);
+        background: #f6fbff;
+        color: #33546d;
+        font-size: 0.93rem;
+        line-height: 1.65;
+    }
+
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        padding: 0.8rem 1.2rem;
+        border: 1px solid transparent;
+        border-radius: var(--radius-sm);
+        font-size: 0.97rem;
+        font-weight: 700;
+        line-height: 1;
+        text-decoration: none;
+        cursor: pointer;
+        transition:
+            background-color 0.22s ease,
+            border-color 0.22s ease,
+            color 0.22s ease,
+            transform 0.08s ease,
+            box-shadow 0.22s ease;
+    }
+
+    .btn:hover {
+        text-decoration: none;
+    }
+
+    .btn:active {
+        transform: translateY(1px);
+    }
+
+    .btn--neutral {
+        background: var(--color-neutral-btn);
+        color: #334155;
+    }
+
+    .btn--neutral:hover {
+        background: var(--color-neutral-btn-hover);
+    }
+
+    .btn--primary {
+        background: var(--color-secondary);
+        color: #fff;
+        box-shadow: 0 6px 18px rgba(52, 152, 219, 0.2);
+    }
+
+    .btn--primary:hover {
+        background: var(--color-secondary-hover);
+    }
+
+    .table-shell {
+        margin-top: var(--space-4);
+        padding: 0.3rem;
+        overflow-x: auto;
+        border: 1px solid var(--color-border-soft);
+        border-radius: 16px;
+        background: #fff;
+    }
+
+    .table-shell > * {
+        max-width: 100%;
+    }
+
+    .table-shell table {
+        width: 100%;
+        min-width: 720px;
+        border-collapse: collapse;
+        background: #fff;
+    }
+
+    .table-shell th,
+    .table-shell td {
+        padding: 0.95rem;
+        border: 1px solid var(--color-border);
+        vertical-align: top;
+        text-align: left;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--color-text);
+    }
+
+    .table-shell th {
+        background: #f3f6f8;
+        font-weight: 700;
+    }
+
+    .table-shell tr:nth-child(even) td {
+        background: var(--color-surface-muted);
+    }
+
+    .table-shell h1,
+    .table-shell h2,
+    .table-shell h3,
+    .table-shell h4 {
+        margin-top: 0;
+        color: var(--color-text);
+    }
+
+    .table-shell p {
+        margin: 0.35rem 0;
+    }
+
+    .table-shell ul,
+    .table-shell ol {
+        margin: 0.45rem 0 0.45rem 1.1rem;
+        padding: 0;
+    }
+
+    .meta-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: var(--space-4);
+    }
+
+    .text-link {
+        color: #2c80b4;
+        font-size: 0.92rem;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .text-link:hover {
+        text-decoration: underline;
+    }
+
+    .helper-copy {
+        margin-top: var(--space-5);
+        padding-top: var(--space-4);
+        border-top: 1px solid var(--color-border-soft);
+        color: var(--color-text-muted);
+        font-size: 0.94rem;
+        line-height: 1.7;
+    }
+
+    .helper-copy p {
+        margin: 0.45rem 0;
+    }
+
+    .helper-copy strong {
+        color: var(--color-text);
+    }
+
+    .shopping-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-4);
+        margin-top: var(--space-4);
+    }
+
+    .shopping-card {
+        padding: 1rem;
+        border: 1px solid var(--color-shopping-border);
+        border-radius: 14px;
+        background: #fbfdff;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .shopping-card__title {
+        margin: 0 0 0.8rem;
+        color: var(--color-shopping-title);
+        font-size: 1rem;
+    }
+
+    .shopping-card ul {
+        margin: 0;
+        padding-left: 1.15rem;
+    }
+
+    .shopping-card li {
+        margin-bottom: 0.42rem;
+        color: var(--color-text);
+        line-height: 1.5;
+    }
+
+    .shopping-card li:last-child {
+        margin-bottom: 0;
+    }
+
+    .shopping-note {
+        margin-top: var(--space-4);
+        padding: 0.95rem 1rem;
+        border: 1px solid var(--color-shopping-border);
+        border-radius: var(--radius-md);
+        background: var(--color-shopping-bg);
+        color: #466179;
+        font-size: 0.93rem;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 980px) {
+        .layout-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 820px) {
+        .page-wrap {
+            width: min(100% - 1.25rem, var(--container-max));
+            padding-block: 1.25rem 2rem;
         }
 
-        * {
-            box-sizing: border-box;
+        .page-inner {
+            padding: 1rem;
         }
 
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(180deg, #f8faf9 0%, #eef3f1 100%);
-            color: var(--texto);
-            padding: 2rem 1rem 3rem;
+        .card--padded {
+            padding: 1rem;
         }
 
-        .page-wrapper {
-            max-width: 1100px;
-            margin: 0 auto;
+        .section-header {
+            flex-direction: column;
+            align-items: stretch;
         }
 
-        .hero {
-            text-align: center;
-            margin-bottom: 1.8rem;
+        .actions {
+            flex-direction: column;
         }
 
-        .hero h1 {
-            margin: 0 0 0.7rem;
-            font-size: 2rem;
-            color: var(--texto);
-        }
-
-        .hero p {
-            margin: 0 auto;
-            max-width: 760px;
-            color: var(--texto-suave);
-            line-height: 1.6;
-            font-size: 1rem;
-        }
-
-        .disclaimer {
-            margin: 1rem auto 0;
-            max-width: 780px;
-            background: #fff8e8;
-            border: 1px solid #f1d38a;
-            color: #7a5a00;
-            padding: 0.9rem 1rem;
-            border-radius: 10px;
-            font-size: 0.92rem;
-            line-height: 1.5;
-        }
-
-        .plan-card {
-            background-color: var(--blanco);
-            border-radius: 16px;
-            box-shadow: var(--sombra);
-            padding: 1.5rem;
-            overflow: hidden;
-        }
-
-        .plan-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-bottom: 1rem;
-        }
-
-        .plan-header h2 {
-            margin: 0;
-            font-size: 1.3rem;
-            color: var(--texto);
-        }
-
-        .acciones {
-            display: flex;
-            gap: 0.8rem;
-            flex-wrap: wrap;
-        }
-
-        .boton {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.78rem 1.2rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.98rem;
-            transition: background-color 0.25s, transform 0.08s ease, box-shadow 0.25s;
-            border: none;
-            cursor: pointer;
-        }
-
-        .boton:active {
-            transform: scale(0.995);
-        }
-
-        .boton-volver {
-            background-color: #edf2f7;
-            color: #334155;
-        }
-
-        .boton-volver:hover {
-            background-color: #dde6ee;
-        }
-
-        .boton-descarga {
-            background-color: var(--azul-principal);
-            color: white;
-            box-shadow: 0 6px 18px rgba(52, 152, 219, 0.2);
-        }
-
-        .boton-descarga:hover {
-            background-color: var(--azul-hover);
-        }
-
-        .tabla-wrapper {
-            overflow-x: auto;
-            margin-top: 1rem;
-            border-radius: 10px;
-        }
-
-        .tabla-wrapper table {
+        .btn {
             width: 100%;
-            min-width: 720px;
-            border-collapse: collapse;
-            background-color: white;
         }
 
-        .tabla-wrapper th,
-        .tabla-wrapper td {
-            border: 1px solid var(--borde);
-            padding: 0.9rem;
-            text-align: left;
-            vertical-align: top;
-            line-height: 1.5;
-            font-size: 0.95rem;
+        .shopping-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 520px) {
+        .hero__title {
+            font-size: 1.5rem;
         }
 
-        .tabla-wrapper th {
-            background-color: #f3f6f8;
-            color: var(--texto);
-            font-weight: 700;
-        }
-
-        .tabla-wrapper tr:nth-child(even) td {
-            background-color: #fafcfc;
-        }
-
-        .tabla-wrapper p {
-            margin: 0.3rem 0;
-        }
-
-        .bloque-info {
-            margin-top: 1.4rem;
-            color: var(--texto-suave);
+        .hero__text,
+        .alert,
+        .summary-item__value,
+        .info-box,
+        .shopping-note,
+        .helper-copy {
             font-size: 0.92rem;
-            line-height: 1.6;
         }
 
-        .bloque-info strong {
-            color: var(--texto);
+        .tag {
+            width: 100%;
+            justify-content: center;
         }
 
-        @media (max-width: 768px) {
-            body {
-                padding: 1.2rem 0.8rem 2rem;
-            }
-
-            .hero h1 {
-                font-size: 1.65rem;
-            }
-
-            .plan-card {
-                padding: 1rem;
-            }
-
-            .plan-header {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .acciones {
-                width: 100%;
-            }
-
-            .boton {
-                width: 100%;
-            }
+        .table-shell table {
+            min-width: 640px;
         }
-    </style>
-</head>
-<body>
-    <div class="page-wrapper">
-        <section class="hero">
-            <h1>🎯 Plan personalizado generado con IA</h1>
-            <p>
-                Aquí tienes tu propuesta semanal generada a partir de la información proporcionada.
-                El objetivo es ofrecerte una base clara, práctica y fácil de revisar.
-            </p>
-            <div class="disclaimer">
-                ⚠️ Este plan es orientativo y no sustituye el asesoramiento de un profesional sanitario o nutricional.
-            </div>
-        </section>
+    }
 
-        <section class="plan-card">
-            <div class="plan-header">
-                <h2>Tu planificación semanal</h2>
-                <div class="acciones">
-                    <a href="{% url 'home' %}" class="boton boton-volver">← Volver al formulario</a>
-                    {% if pdf_url %}
-                        <a href="{{ pdf_url }}" class="boton boton-descarga" download target="_blank" rel="noopener noreferrer">
-                            📄 Descargar PDF
-                        </a>
-                    {% endif %}
+    @media print {
+        body {
+            background: #fff;
+        }
+
+        .page-wrap {
+            width: 100%;
+            padding: 0;
+        }
+
+        .page-shell {
+            background: #fff;
+            box-shadow: none;
+            border-radius: 0;
+        }
+
+        .page-inner {
+            padding: 0;
+        }
+
+        .actions,
+        .meta-links {
+            display: none !important;
+        }
+
+        .card {
+            box-shadow: none;
+            border: 1px solid #d9dfe5;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+    <div class="page-shell">
+        <div class="page-inner">
+            <main class="stack-lg">
+                <header class="hero" aria-labelledby="page-title">
+                    <div class="hero__eyebrow">📋 Resultado generado</div>
+
+                    <h1 id="page-title" class="hero__title">Plan semanal personalizado</h1>
+                    <p class="hero__text">
+                        Este plan ha sido generado automáticamente a partir de la información proporcionada,
+                        utilizando una combinación de lógica estructurada y una arquitectura preparada para IA.
+                    </p>
+
+                    <div class="alert" role="note" aria-label="Aviso importante">
+                        ⚠️ Este plan es orientativo y no sustituye el asesoramiento de un profesional sanitario o nutricional.
+                    </div>
+                </header>
+
+                <div class="layout-grid">
+                    <section class="stack-col">
+                        <section class="card card--padded" aria-labelledby="plan-title">
+                            <div class="section-header">
+                                <div>
+                                    <h2 id="plan-title" class="section-title">Tu planificación semanal</h2>
+                                    <p class="section-text">
+                                        Revísala con calma y úsala como una base práctica que puedes adaptar a tu rutina, presupuesto y disponibilidad real.
+                                    </p>
+                                </div>
+
+                                <nav class="actions" aria-label="Acciones del plan">
+                                    <a href="{% url 'home' %}" class="btn btn--neutral">
+                                        ← Volver al formulario
+                                    </a>
+
+                                    {% if pdf_url %}
+                                        <a
+                                            href="{{ pdf_url }}"
+                                            class="btn btn--primary"
+                                            download
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            aria-label="Descargar el plan en PDF"
+                                        >
+                                            📄 Descargar PDF
+                                        </a>
+                                    {% endif %}
+                                </nav>
+                            </div>
+
+                            <div class="table-shell" aria-label="Tabla del plan semanal">
+                                {{ tabla_html|safe }}
+                            </div>
+
+                            {% if html_url %}
+                                <div class="meta-links">
+                                    <a
+                                        href="{{ html_url }}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="text-link"
+                                    >
+                                        Ver versión HTML guardada
+                                    </a>
+                                </div>
+                            {% endif %}
+
+                            <div class="helper-copy">
+                                <p>
+                                    <strong>Consejo:</strong> revisa el plan antes de aplicarlo y ajústalo según tus necesidades reales,
+                                    tu rutina diaria y cualquier indicación profesional que debas seguir.
+                                </p>
+                                <p>
+                                    <strong>Sugerencia:</strong> este tipo de planificación funciona mejor cuando se utiliza como una guía práctica
+                                    y flexible, no como una pauta cerrada.
+                                </p>
+                            </div>
+                        </section>
+
+                        {% if shopping_list %}
+                        <section class="card card--padded" aria-labelledby="shopping-title">
+                            <div>
+                                <h2 id="shopping-title" class="section-title">🛒 Lista de la compra orientativa</h2>
+                                <p class="section-text">
+                                    Hemos detectado automáticamente ingredientes a partir del plan semanal para ayudarte a organizar la compra de forma más práctica.
+                                </p>
+                            </div>
+
+                            <div class="shopping-grid">
+                                {% for category, items in shopping_list.items %}
+                                    <article class="shopping-card">
+                                        <h3 class="shopping-card__title">{{ category }}</h3>
+                                        <ul>
+                                            {% for item in items %}
+                                                <li>{{ item|capfirst }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </article>
+                                {% endfor %}
+                            </div>
+
+                            <div class="shopping-note">
+                                Esta lista es orientativa y está pensada para facilitar la planificación. Puedes ajustarla según lo que ya tengas en casa,
+                                las cantidades que necesites o tus marcas preferidas.
+                            </div>
+                        </section>
+                        {% endif %}
+                    </section>
+
+                    <aside class="stack-col" aria-labelledby="summary-title">
+                        <section class="card card--padded">
+                            <div class="section-header">
+                                <div>
+                                    <h2 id="summary-title" class="section-title">Resumen del sistema</h2>
+                                </div>
+
+                                {% if source_type == "mock" %}
+                                    <span class="status-badge status-badge--mock">Modo demo</span>
+                                {% elif source_type == "fallback" %}
+                                    <span class="status-badge status-badge--fallback">Sistema estructurado (fallback)</span>
+                                {% elif source_type == "openai" %}
+                                    <span class="status-badge status-badge--openai">Generado con IA (OpenAI)</span>
+                                {% elif source_type == "gemini" %}
+                                    <span class="status-badge status-badge--ai">Generado con IA (Gemini)</span>
+                                {% else %}
+                                    <span class="status-badge status-badge--ai">Generación automática</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="summary-grid">
+                                <article class="summary-item">
+                                    <span class="summary-item__label">Cliente</span>
+                                    <div class="summary-item__value">{{ nombre|default:"No especificado" }}</div>
+                                </article>
+
+                                <article class="summary-item">
+                                    <span class="summary-item__label">Resultado</span>
+                                    <div class="summary-item__value">Plan semanal estructurado de comidas</div>
+                                </article>
+
+                                <article class="summary-item">
+                                    <span class="summary-item__label">Generación</span>
+                                    <div class="summary-item__value">
+                                        {% if source_type == "mock" %}
+                                            Modo de demostración del flujo completo.
+                                        {% elif source_type == "fallback" %}
+                                            Salida generada con lógica estructurada y motor de respaldo.
+                                        {% elif source_type == "openai" or source_type == "gemini" %}
+                                            Salida generada con proveedor de IA y validación de estructura.
+                                        {% else %}
+                                            Salida automática basada en el contexto introducido.
+                                        {% endif %}
+                                    </div>
+                                </article>
+
+                                <article class="summary-item">
+                                    <span class="summary-item__label">Formato</span>
+                                    <div class="summary-item__value">Vista web + descarga en PDF</div>
+                                </article>
+                            </div>
+
+                            {% if profile_tags %}
+                                <div class="tag-list" aria-label="Etiquetas del perfil">
+                                    {% for tag in profile_tags %}
+                                        <span class="tag">{{ tag }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            <div class="info-box">
+                                Este sistema está diseñado como una base escalable: combina formularios estructurados,
+                                reglas de negocio y generación automática, permitiendo evolucionar hacia modelos de IA
+                                más avanzados sin perder control ni coherencia en el resultado.
+                            </div>
+                        </section>
+                    </aside>
                 </div>
-            </div>
-
-            <div class="tabla-wrapper">
-                {{ tabla_html|safe }}
-            </div>
-
-            <div class="bloque-info">
-                <p><strong>Consejo:</strong> revisa el plan antes de aplicarlo y ajústalo según tus necesidades reales, tus hábitos y cualquier indicación profesional que debas seguir.</p>
-            </div>
-        </section>
+            </main>
+        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

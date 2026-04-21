@@ -1,242 +1,951 @@
+{% extends "nutriprompt_app/base.html" %}
 {% load static %}
 {% get_media_prefix as media_url %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>NutriPrompt · Generador de Planes</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: url("{{ media_url }}formularios/nutriprompt_fondo.png") no-repeat center center fixed;
-            background-size: cover;
-            min-height: 100vh;
+
+{% block title %}NutriPrompt · Generador de Planes{% endblock %}
+{% block meta_description %}NutriPrompt · Genera planes semanales personalizados con una experiencia clara, guiada y profesional.{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --verde-principal: #27ae60;
+        --verde-hover: #219150;
+        --verde-suave: rgba(39, 174, 96, 0.14);
+        --verde-suave-2: rgba(39, 174, 96, 0.08);
+        --verde-profundo: #1d6d46;
+
+        --azul-suave: #f6fbff;
+        --azul-borde: #d7eaf8;
+        --azul-texto: #33546d;
+
+        --texto: #1f2d3a;
+        --texto-secundario: #60707d;
+        --texto-suave: #7b8893;
+
+        --blanco: rgba(255, 255, 255, 0.97);
+        --blanco-fuerte: #ffffff;
+
+        --borde: #d6dee6;
+        --borde-suave: #e7edf2;
+        --fondo-caja: #f8fbfd;
+        --fondo-chip: #f3f8f5;
+        --fondo-seccion: #fbfcfd;
+
+        --error-texto: #8f1d2c;
+        --error-fondo: #fdecef;
+        --error-borde: #f3c2cb;
+
+        --sombra: 0 18px 42px rgba(0, 0, 0, 0.22);
+        --sombra-suave: 0 8px 20px rgba(15, 23, 42, 0.06);
+
+        --radio-xl: 20px;
+        --radio-lg: 16px;
+        --radio-md: 12px;
+        --radio-sm: 10px;
+        --radio-pill: 999px;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        color: var(--texto);
+        background:
+            linear-gradient(rgba(8, 16, 22, 0.42), rgba(8, 16, 22, 0.42)),
+            url("{{ media_url }}formularios/nutriprompt_fondo.png") no-repeat center center fixed;
+        background-size: cover;
+        min-height: 100vh;
+    }
+
+    .page-overlay {
+        width: 100%;
+        min-height: 100vh;
+        padding: 2rem 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .form-shell {
+        width: 100%;
+        max-width: 1080px;
+        border-radius: var(--radio-xl);
+        background: var(--blanco);
+        box-shadow: var(--sombra);
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        backdrop-filter: blur(6px);
+    }
+
+    .hero {
+        position: relative;
+        padding: 2.2rem 2rem 1.6rem;
+        background:
+            linear-gradient(135deg, rgba(39, 174, 96, 0.14), rgba(39, 174, 96, 0.03)),
+            linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 251, 253, 0.98));
+        border-bottom: 1px solid var(--borde-suave);
+    }
+
+    .hero-grid {
+        display: grid;
+        grid-template-columns: 1.4fr 0.9fr;
+        gap: 1.5rem;
+        align-items: start;
+    }
+
+    .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin-bottom: 0.85rem;
+        padding: 0.45rem 0.8rem;
+        border-radius: var(--radio-pill);
+        background: var(--fondo-chip);
+        color: var(--verde-profundo);
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+    }
+
+    .hero h1 {
+        margin: 0;
+        color: #1b2c39;
+        font-size: clamp(1.95rem, 3vw, 2.75rem);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }
+
+    .hero p {
+        max-width: 760px;
+        margin: 1rem 0 0;
+        color: var(--texto-secundario);
+        font-size: 1rem;
+        line-height: 1.7;
+    }
+
+    .hero-points {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+        margin-top: 1rem;
+    }
+
+    .hero-point {
+        padding: 0.58rem 0.85rem;
+        border: 1px solid var(--borde-suave);
+        border-radius: var(--radio-pill);
+        background: rgba(255, 255, 255, 0.92);
+        color: #44535e;
+        font-size: 0.86rem;
+        line-height: 1;
+        font-weight: 700;
+    }
+
+    .hero-side {
+        padding: 1rem;
+        border: 1px solid var(--borde-suave);
+        border-radius: var(--radio-lg);
+        background: rgba(255, 255, 255, 0.78);
+        box-shadow: var(--sombra-suave);
+    }
+
+    .hero-side__title {
+        margin: 0 0 0.65rem;
+        font-size: 0.98rem;
+        font-weight: 800;
+        color: #1f2d3d;
+    }
+
+    .hero-side__list {
+        margin: 0;
+        padding-left: 1.1rem;
+        color: var(--texto-secundario);
+        font-size: 0.9rem;
+        line-height: 1.65;
+    }
+
+    .hero-side__list li + li {
+        margin-top: 0.35rem;
+    }
+
+    .form-body {
+        padding: 1.75rem 2rem 2rem;
+    }
+
+    .mensaje-error {
+        margin-bottom: 1.2rem;
+        padding: 0.95rem 1rem;
+        border-radius: 12px;
+        border: 1px solid var(--error-borde);
+        background: var(--error-fondo);
+        color: var(--error-texto);
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    .mensaje-error ul {
+        margin: 0.5rem 0 0 1rem;
+        padding: 0;
+    }
+
+    form {
+        margin-top: 0.35rem;
+    }
+
+    .section-card {
+        margin-top: 1rem;
+        padding: 1.3rem;
+        border: 1px solid var(--borde-suave);
+        border-radius: var(--radio-lg);
+        background: var(--fondo-seccion);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.35);
+    }
+
+    .section-card + .section-card {
+        margin-top: 1rem;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        margin: 0 0 1rem 0;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #e6eaee;
+    }
+
+    .section-title h2 {
+        margin: 0;
+        font-size: 1.07rem;
+        font-weight: 800;
+        color: #1f2d3d;
+    }
+
+    .section-title span {
+        font-size: 0.82rem;
+        color: var(--texto-suave);
+        font-weight: 600;
+        text-align: right;
+    }
+
+    .section-intro {
+        margin: -0.2rem 0 1rem;
+        color: var(--texto-secundario);
+        font-size: 0.92rem;
+        line-height: 1.6;
+    }
+
+    .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
+
+    .field {
+        margin-top: 1rem;
+    }
+
+    .field:first-child {
+        margin-top: 0;
+    }
+
+    .field-error {
+        margin-top: 0.45rem;
+        color: var(--error-texto);
+        font-size: 0.84rem;
+        line-height: 1.5;
+        font-weight: 600;
+    }
+
+    label.label-main {
+        display: block;
+        margin-bottom: 0.45rem;
+        font-weight: 700;
+        color: #243746;
+        font-size: 0.95rem;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="file"],
+    select,
+    textarea {
+        width: 100%;
+        padding: 0.84rem 0.92rem;
+        border: 1px solid #c9d2db;
+        border-radius: 10px;
+        font: inherit;
+        color: var(--texto);
+        background: var(--blanco-fuerte);
+        transition: border-color 0.22s ease, box-shadow 0.22s ease, background-color 0.22s ease, transform 0.12s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    input[type="file"]:focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: var(--verde-principal);
+        box-shadow: 0 0 0 4px var(--verde-suave);
+        background: #fff;
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .nota-campo {
+        margin-top: 0.42rem;
+        font-size: 0.84rem;
+        line-height: 1.55;
+        color: #73808c;
+    }
+
+    .helper-inline {
+        margin-top: 0.6rem;
+        padding: 0.78rem 0.9rem;
+        border-radius: 10px;
+        background: rgba(39, 174, 96, 0.06);
+        color: #436056;
+        font-size: 0.84rem;
+        line-height: 1.55;
+        border: 1px solid rgba(39, 174, 96, 0.1);
+    }
+
+    .choice-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+        margin-top: 0.7rem;
+    }
+
+    .choice-card {
+        position: relative;
+    }
+
+    .choice-card input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .choice-card label {
+        display: block;
+        padding: 1rem 1rem;
+        border-radius: 12px;
+        border: 1px solid var(--borde);
+        background: #fff;
+        color: var(--texto);
+        cursor: pointer;
+        transition: all 0.22s ease;
+        min-height: 100%;
+        font-weight: 700;
+        box-shadow: 0 1px 0 rgba(255,255,255,0.7);
+    }
+
+    .choice-card label:hover {
+        border-color: #adc9b9;
+        transform: translateY(-1px);
+    }
+
+    .choice-card input:checked + label {
+        border-color: var(--verde-principal);
+        background: rgba(39, 174, 96, 0.08);
+        box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.10);
+        color: #194d34;
+    }
+
+    .choice-card label small {
+        display: block;
+        margin-top: 0.3rem;
+        color: var(--texto-suave);
+        font-size: 0.8rem;
+        font-weight: 500;
+        line-height: 1.45;
+    }
+
+    .checkbox-chip-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem;
+        margin-top: 0.7rem;
+    }
+
+    .checkbox-chip {
+        position: relative;
+    }
+
+    .checkbox-chip input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .checkbox-chip label {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.7rem 0.98rem;
+        border: 1px solid var(--borde);
+        border-radius: 999px;
+        background: #fff;
+        color: #44535e;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 700;
+        line-height: 1;
+        transition: all 0.2s ease;
+    }
+
+    .checkbox-chip label:hover {
+        border-color: #adc9b9;
+    }
+
+    .checkbox-chip input:checked + label {
+        background: rgba(39, 174, 96, 0.1);
+        border-color: var(--verde-principal);
+        color: #1c6a43;
+        box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.09);
+    }
+
+    .feature-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .feature-box {
+        padding: 1rem;
+        border: 1px dashed #cfe0d7;
+        border-radius: 12px;
+        background: #fcfefd;
+    }
+
+    .feature-box h3 {
+        margin: 0 0 0.4rem;
+        font-size: 0.95rem;
+        color: #1f2d3d;
+    }
+
+    .feature-box p {
+        margin: 0;
+        color: var(--texto-secundario);
+        font-size: 0.86rem;
+        line-height: 1.6;
+    }
+
+    .coming-soon {
+        display: inline-flex;
+        align-items: center;
+        margin-top: 0.6rem;
+        padding: 0.38rem 0.65rem;
+        border-radius: 999px;
+        background: #eef6ff;
+        color: #31577a;
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+    }
+
+    .privacy-box {
+        margin-top: 1rem;
+        padding: 1rem 1.05rem;
+        border-radius: 12px;
+        border: 1px solid #d8e5dc;
+        background: #f7faf8;
+        color: #4a5a4d;
+        font-size: 0.89rem;
+        line-height: 1.6;
+    }
+
+    .checkbox-group {
+        margin-top: 1rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.7rem;
+        color: #3f4952;
+        font-size: 0.94rem;
+        line-height: 1.55;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+        margin-top: 0.2rem;
+        transform: scale(1.08);
+        accent-color: var(--verde-principal);
+    }
+
+    .submit-area {
+        margin-top: 1.35rem;
+        display: grid;
+        gap: 0.85rem;
+    }
+
+    .submit-btn {
+        width: 100%;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(180deg, var(--verde-principal), var(--verde-hover));
+        color: #fff;
+        padding: 1rem 1rem;
+        font-size: 1.03rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: transform 0.08s ease, opacity 0.25s ease, box-shadow 0.25s ease;
+        box-shadow: 0 12px 24px rgba(39, 174, 96, 0.18);
+    }
+
+    .submit-btn:hover {
+        box-shadow: 0 14px 28px rgba(39, 174, 96, 0.25);
+    }
+
+    .submit-btn:active {
+        transform: scale(0.995);
+    }
+
+    .submit-btn:disabled {
+        opacity: 0.82;
+        cursor: wait;
+    }
+
+    .submit-note {
+        text-align: center;
+        font-size: 0.84rem;
+        line-height: 1.55;
+        color: #65727d;
+    }
+
+    .required-mark {
+        color: #b42318;
+        font-weight: 800;
+    }
+
+    .disclaimer {
+        margin-top: 1.1rem;
+        text-align: center;
+        font-size: 0.84rem;
+        line-height: 1.45;
+        color: #64707a;
+    }
+
+    @media (max-width: 980px) {
+        .hero-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 840px) {
+        .form-body,
+        .hero {
+            padding-left: 1.35rem;
+            padding-right: 1.35rem;
+        }
+    }
+
+    @media (max-width: 720px) {
+        .grid-2,
+        .grid-3,
+        .choice-grid,
+        .feature-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 560px) {
+        .page-overlay {
+            padding: 1rem 0.75rem;
         }
 
-        .fondo-oscuro {
-            background-color: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(3px);
-            width: 100%;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 2rem 1rem;
-            box-sizing: border-box;
+        .form-shell {
+            border-radius: 14px;
         }
 
-        .form-container {
-            background-color: rgba(255, 255, 255, 0.97);
-            padding: 2rem;
-            border-radius: 12px;
-            width: 100%;
-            max-width: 600px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-            box-sizing: border-box;
+        .hero {
+            padding: 1.3rem 1rem 1rem;
         }
 
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 0.8rem;
-            font-size: 1.9rem;
+        .form-body {
+            padding: 1rem 1rem 1.25rem;
         }
 
-        .subtexto {
-            font-size: 0.95rem;
-            color: #555;
-            text-align: center;
-            margin-bottom: 1.5rem;
-            line-height: 1.5;
+        .hero h1 {
+            font-size: 1.65rem;
         }
 
-        .mensaje-error {
-            color: #b00020;
-            background-color: #fdecea;
-            border: 1px solid #f5c2c7;
-            padding: 0.9rem 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            text-align: center;
-            font-size: 0.95rem;
+        .hero p {
+            font-size: 0.94rem;
         }
 
-        form {
-            margin-top: 0.5rem;
+        .section-card {
+            padding: 1rem;
         }
+    }
+</style>
+{% endblock %}
 
-        label {
-            display: block;
-            margin-top: 1rem;
-            font-weight: 600;
-            color: #2c3e50;
-        }
+{% block content %}
+<div class="page-overlay">
+    <div class="form-shell">
+        <section class="hero">
+            <div class="hero-grid">
+                <div>
+                    <div class="eyebrow">✨ NutriPrompt · Demo funcional avanzada</div>
+                    <h1>Genera un plan semanal con una experiencia más clara, útil y profesional</h1>
+                    <p>
+                        Completa un formulario guiado, estructura mejor tu contexto real y obtén una propuesta semanal
+                        personalizada con salida visual, lista de la compra orientativa y descarga en PDF.
+                    </p>
 
-        input[type="text"],
-        textarea {
-            width: 100%;
-            padding: 0.7rem;
-            margin-top: 0.35rem;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-family: inherit;
-            box-sizing: border-box;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            background-color: #fff;
-        }
+                    <div class="hero-points">
+                        <span class="hero-point">Plan semanal estructurado</span>
+                        <span class="hero-point">Resumen del perfil</span>
+                        <span class="hero-point">Lista de la compra</span>
+                        <span class="hero-point">Vista web + PDF</span>
+                    </div>
+                </div>
 
-        input[type="text"]:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #27ae60;
-            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.15);
-        }
+                <aside class="hero-side" aria-label="Ventajas de la herramienta">
+                    <h2 class="hero-side__title">Qué aporta esta demo</h2>
+                    <ul class="hero-side__list">
+                        <li>Recoge el contexto de forma más ordenada y útil.</li>
+                        <li>Reduce errores gracias a opciones guiadas.</li>
+                        <li>Genera un resultado revisable y presentable.</li>
+                        <li>Está preparada para evolucionar hacia PDF y fotos de ingredientes.</li>
+                    </ul>
+                </aside>
+            </div>
+        </section>
 
-        textarea {
-            resize: vertical;
-            min-height: 90px;
-        }
+        <div class="form-body">
+            {% if error %}
+                <div class="mensaje-error" role="alert" aria-live="polite">
+                    {{ error }}
+                </div>
+            {% endif %}
 
-        .nota-campo {
-            margin-top: 0.3rem;
-            font-size: 0.84rem;
-            color: #777;
-        }
+            {% if form.non_field_errors %}
+                <div class="mensaje-error" role="alert" aria-live="polite">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
 
-        button {
-            margin-top: 1.6rem;
-            width: 100%;
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            padding: 0.9rem 1rem;
-            border-radius: 6px;
-            font-size: 1.05rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.08s ease;
-        }
+            <form method="post" action="{% url 'generar_plan' %}" autocomplete="off" id="plan-form" novalidate>
+                {% csrf_token %}
 
-        button:hover {
-            background-color: #219150;
-        }
+                <section class="section-card">
+                    <div class="section-title">
+                        <h2>1. Información básica</h2>
+                        <span>Lo esencial para construir una base coherente</span>
+                    </div>
 
-        button:active {
-            transform: scale(0.995);
-        }
+                    <p class="section-intro">
+                        Este bloque recoge el objetivo principal y las variables más determinantes del plan.
+                    </p>
 
-        button:disabled {
-            background-color: #7fbf98;
-            cursor: not-allowed;
-        }
+                    <div class="field">
+                        <label class="label-main" for="{{ form.nombre.id_for_label }}">
+                            {{ form.nombre.label }} <span class="required-mark">*</span>
+                        </label>
+                        {{ form.nombre }}
+                        {% if form.nombre.help_text %}
+                            <p class="nota-campo">{{ form.nombre.help_text }}</p>
+                        {% endif %}
+                        {% for error in form.nombre.errors %}
+                            <div class="field-error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
 
-        .disclaimer {
-            margin-top: 1.4rem;
-            font-size: 0.85rem;
-            color: #666;
-            line-height: 1.45;
-            text-align: center;
-        }
+                    <div class="field">
+                        <label class="label-main">
+                            {{ form.objetivo.label }} <span class="required-mark">*</span>
+                        </label>
+                        <div class="choice-grid">
+                            {% for radio in form.objetivo %}
+                                <div class="choice-card">
+                                    {{ radio.tag }}
+                                    <label for="{{ radio.id_for_label }}">
+                                        {{ radio.choice_label }}
+                                        <small>
+                                            {% if radio.data.value == "energia" %}
+                                                Prioriza energía sostenida y organización realista.
+                                            {% elif radio.data.value == "peso" %}
+                                                Favorece una estructura más ligera y controlada.
+                                            {% elif radio.data.value == "musculo" %}
+                                                Refuerza la base proteica y la regularidad.
+                                            {% elif radio.data.value == "equilibrado" %}
+                                                Mejora hábitos y consistencia semanal.
+                                            {% endif %}
+                                        </small>
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if form.objetivo.help_text %}
+                            <p class="nota-campo">{{ form.objetivo.help_text }}</p>
+                        {% endif %}
+                        {% for error in form.objetivo.errors %}
+                            <div class="field-error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
 
-        @media (max-width: 640px) {
-            .form-container {
-                padding: 1.4rem;
-            }
+                    <div class="grid-2">
+                        <div class="field">
+                            <label class="label-main" for="{{ form.presupuesto.id_for_label }}">
+                                {{ form.presupuesto.label }}
+                            </label>
+                            {{ form.presupuesto }}
+                            {% for error in form.presupuesto.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
 
-            h1 {
-                font-size: 1.55rem;
-            }
+                        <div class="field">
+                            <label class="label-main" for="{{ form.days_away.id_for_label }}">
+                                {{ form.days_away.label }}
+                            </label>
+                            {{ form.days_away }}
+                            {% if form.days_away.help_text %}
+                                <p class="nota-campo">{{ form.days_away.help_text }}</p>
+                            {% endif %}
+                            {% for error in form.days_away.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
 
-            button {
-                font-size: 1rem;
-            }
-        }
-    </style>
-</head>
-<body>
+                <section class="section-card">
+                    <div class="section-title">
+                        <h2>2. Restricciones y preferencias</h2>
+                        <span>Datos limpios para mejorar la calidad del resultado</span>
+                    </div>
 
-<div class="fondo-oscuro">
-    <div class="form-container">
-        <h1>🧠 NutriPrompt · Generador de Plan Semanal</h1>
+                    <p class="section-intro">
+                        Cuanto más claro sea este bloque, más coherente y útil será la propuesta semanal.
+                    </p>
 
-        <p class="subtexto">
-            Completa los datos principales y genera una propuesta semanal personalizada
-            con ayuda de IA, pensada como orientación práctica y estructurada.
-        </p>
+                    <div class="field">
+                        <label class="label-main">{{ form.restricciones.label }}</label>
+                        <div class="checkbox-chip-group">
+                            {% for checkbox in form.restricciones %}
+                                <div class="checkbox-chip">
+                                    {{ checkbox.tag }}
+                                    <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if form.restricciones.help_text %}
+                            <p class="nota-campo">{{ form.restricciones.help_text }}</p>
+                        {% endif %}
+                        {% for error in form.restricciones.errors %}
+                            <div class="field-error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
 
-        {% if error %}
-            <p class="mensaje-error">{{ error }}</p>
-        {% endif %}
+                    <div class="field">
+                        <label class="label-main">{{ form.preferencias.label }}</label>
+                        <div class="checkbox-chip-group">
+                            {% for checkbox in form.preferencias %}
+                                <div class="checkbox-chip">
+                                    {{ checkbox.tag }}
+                                    <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if form.preferencias.help_text %}
+                            <p class="nota-campo">{{ form.preferencias.help_text }}</p>
+                        {% endif %}
+                        {% for error in form.preferencias.errors %}
+                            <div class="field-error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
 
-        <form method="post" action="{% url 'generar_plan' %}" autocomplete="off">
-            {% csrf_token %}
+                    <div class="field">
+                        <label class="label-main" for="{{ form.notas.id_for_label }}">
+                            {{ form.notas.label }}
+                        </label>
+                        {{ form.notas }}
+                        {% if form.notas.help_text %}
+                            <div class="helper-inline">{{ form.notas.help_text }}</div>
+                        {% endif %}
+                        {% for error in form.notas.errors %}
+                            <div class="field-error">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </section>
 
-            <label for="nombre">Nombre</label>
-            <input
-                type="text"
-                name="nombre"
-                id="nombre"
-                required
-                placeholder="Ej. Bea Lamiquiz"
-            >
+                <section class="section-card">
+                    <div class="section-title">
+                        <h2>3. Contexto de vida</h2>
+                        <span>Para que el plan se adapte a tu semana real</span>
+                    </div>
 
-            <label for="objetivo">Objetivo principal</label>
-            <input
-                type="text"
-                name="objetivo"
-                id="objetivo"
-                required
-                placeholder="Ej. Mejorar la organización semanal de las comidas"
-            >
-            <p class="nota-campo">Indica el objetivo principal que quieres priorizar.</p>
+                    <p class="section-intro">
+                        Aquí se define la parte práctica: dónde comes, qué acceso tienes a cocina y si conviene priorizar tupper o recetas rápidas.
+                    </p>
 
-            <label for="restricciones">Restricciones alimentarias</label>
-            <input
-                type="text"
-                name="restricciones"
-                id="restricciones"
-                placeholder="Ej. Sin gluten, sin lactosa, bajo en FODMAPs"
-            >
+                    <div class="grid-2">
+                        <div class="field">
+                            <label class="label-main" for="{{ form.meal_context.id_for_label }}">
+                                {{ form.meal_context.label }}
+                            </label>
+                            {{ form.meal_context }}
+                            {% for error in form.meal_context.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
 
-            <label for="preferencias">Preferencias personales</label>
-            <textarea
-                name="preferencias"
-                id="preferencias"
-                rows="4"
-                placeholder="Ej. Prefiero pollo y pescado, comidas fáciles, cenas ligeras, poco tiempo para cocinar..."
-            ></textarea>
+                        <div class="field">
+                            <label class="label-main" for="{{ form.special_situation.id_for_label }}">
+                                {{ form.special_situation.label }}
+                            </label>
+                            {{ form.special_situation }}
+                            {% for error in form.special_situation.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
 
-            <label for="presupuesto">Presupuesto semanal (€)</label>
-            <input
-                type="text"
-                name="presupuesto"
-                id="presupuesto"
-                placeholder="Ej. 45"
-            >
+                    <div class="grid-2">
+                        <div class="field">
+                            <label class="label-main" for="{{ form.needs_tupper.id_for_label }}">
+                                {{ form.needs_tupper.label }}
+                            </label>
+                            {{ form.needs_tupper }}
+                            {% for error in form.needs_tupper.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
 
-            <button type="submit" id="submit-btn">✨ Generar plan personalizado</button>
-        </form>
+                        <div class="field">
+                            <label class="label-main" for="{{ form.has_kitchen.id_for_label }}">
+                                {{ form.has_kitchen.label }}
+                            </label>
+                            {{ form.has_kitchen }}
+                            {% for error in form.has_kitchen.errors %}
+                                <div class="field-error">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
 
-        <p class="disclaimer">
-            ⚠️ Este plan es orientativo y no sustituye el asesoramiento de un profesional sanitario o nutricional.
-        </p>
+                    <p class="nota-campo">
+                        Estos datos ayudan a decidir si conviene priorizar platos transportables, cenas ligeras o recetas más sencillas de preparar.
+                    </p>
+                </section>
+
+                <section class="section-card">
+                    <div class="section-title">
+                        <h2>4. Evolución futura del producto</h2>
+                        <span>Preparado para crecer</span>
+                    </div>
+
+                    <p class="section-intro">
+                        Esta demo ya funciona con lógica estructurada, pero está pensada para evolucionar hacia una ayuda todavía más práctica.
+                    </p>
+
+                    <div class="feature-grid">
+                        <article class="feature-box">
+                            <h3>PDF del nutricionista</h3>
+                            <p>
+                                Próximamente, la herramienta podrá apoyarse en un PDF o pauta profesional para adaptar mejor el plan a recomendaciones reales.
+                            </p>
+                            <span class="coming-soon">Próximamente</span>
+                        </article>
+
+                        <article class="feature-box">
+                            <h3>Foto de ingredientes o despensa</h3>
+                            <p>
+                                También podrá tener en cuenta ingredientes ya disponibles en casa para mejorar la planificación y reducir compras innecesarias.
+                            </p>
+                            <span class="coming-soon">Próximamente</span>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="section-card">
+                    <div class="section-title">
+                        <h2>5. Antes de generar</h2>
+                        <span>Última revisión</span>
+                    </div>
+
+                    <div class="privacy-box">
+                        Los datos introducidos en este formulario se utilizan únicamente para generar una propuesta nutricional personalizada.
+                        Esta herramienta es una demo funcional y no sustituye la valoración de un profesional sanitario o nutricional.
+                    </div>
+
+                    <label class="checkbox-group" for="{{ form.accept_privacy.id_for_label }}">
+                        {{ form.accept_privacy }}
+                        <span>{{ form.accept_privacy.label }}</span>
+                    </label>
+                    {% for error in form.accept_privacy.errors %}
+                        <div class="field-error">{{ error }}</div>
+                    {% endfor %}
+
+                    <div class="submit-area">
+                        <button type="submit" id="submit-btn" class="submit-btn">
+                            ✨ Generar plan personalizado
+                        </button>
+                        <p class="submit-note">
+                            El resultado incluirá planificación semanal, resumen del contexto, etiquetas detectadas y lista de la compra orientativa.
+                        </p>
+                    </div>
+                </section>
+            </form>
+
+            <p class="disclaimer">
+                ⚠️ Este plan es orientativo y no sustituye el asesoramiento de un profesional sanitario o nutricional.
+            </p>
+        </div>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-    const form = document.querySelector("form");
-    const button = document.getElementById("submit-btn");
+    (function () {
+        const form = document.getElementById("plan-form");
+        const button = document.getElementById("submit-btn");
+        const nombre = document.getElementById("id_nombre");
+        const privacy = document.getElementById("id_accept_privacy");
 
-    form.addEventListener("submit", () => {
-        button.innerText = "Generando...";
-        button.disabled = true;
-    });
+        if (!form || !button) return;
+
+        form.addEventListener("submit", function (event) {
+            const nombreValido = nombre && nombre.value.trim() !== "";
+            const privacyValido = privacy && privacy.checked;
+
+            if (!nombreValido) {
+                event.preventDefault();
+                alert("Completa al menos el nombre.");
+                return;
+            }
+
+            if (!privacyValido) {
+                event.preventDefault();
+                alert("Debes aceptar la información de privacidad antes de generar el plan.");
+                return;
+            }
+
+            button.textContent = "Generando plan...";
+            button.disabled = true;
+        });
+    })();
 </script>
-
-</body>
-</html>
-
+{% endblock %}

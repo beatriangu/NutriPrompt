@@ -1,0 +1,156 @@
+{% load static %}
+{% get_media_prefix as media_url %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}NutriPrompt{% endblock %}</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}NutriPrompt · Generador de planes semanales personalizados con una experiencia clara, visual y práctica.{% endblock %}">
+    <meta name="theme-color" content="{% block theme_color %}#27ae60{% endblock %}">
+    <meta name="color-scheme" content="light">
+
+    <meta property="og:title" content="{% block og_title %}NutriPrompt{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Generador de planes semanales personalizados con salida visual, resumen del perfil y PDF.{% endblock %}">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="{% block og_image %}{{ media_url }}formularios/nutriprompt_fondo.png{% endblock %}">
+
+    <link rel="icon" href="{% static 'img/favicon2.ico' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/favicon2.ico' %}">
+
+    <style>
+        :root {
+            --base-font: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+            --base-text: #1f2d3a;
+            --base-text-muted: #62707c;
+            --base-bg: #f5f8f7;
+            --base-surface: #ffffff;
+            --base-border: #e3e9ee;
+            --base-focus: 0 0 0 3px rgba(39, 174, 96, 0.22);
+
+            --space-1: 0.25rem;
+            --space-2: 0.5rem;
+            --space-3: 0.75rem;
+            --space-4: 1rem;
+            --space-5: 1.25rem;
+            --space-6: 1.5rem;
+            --space-8: 2rem;
+
+            --radius-sm: 10px;
+            --radius-md: 14px;
+            --radius-lg: 18px;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: var(--base-font);
+            color: var(--base-text);
+            background: var(--base-bg);
+            line-height: 1.5;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        img,
+        svg,
+        video,
+        canvas {
+            display: block;
+            max-width: 100%;
+        }
+
+        button,
+        input,
+        textarea,
+        select {
+            font: inherit;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        :focus-visible {
+            outline: none;
+            box-shadow: var(--base-focus);
+            border-radius: var(--radius-sm);
+        }
+
+        .app-shell {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-main {
+            flex: 1;
+        }
+
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: auto;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+
+        .skip-link:focus {
+            left: 1rem;
+            top: 1rem;
+            width: auto;
+            height: auto;
+            padding: 0.75rem 1rem;
+            background: #ffffff;
+            color: #111827;
+            border-radius: var(--radius-sm);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
+            z-index: 9999;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
+
+    <div class="app-shell">
+        {% block page_top %}{% endblock %}
+
+        <main id="main-content" class="app-main">
+            {% block content %}{% endblock %}
+        </main>
+
+        {% block page_bottom %}{% endblock %}
+    </div>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

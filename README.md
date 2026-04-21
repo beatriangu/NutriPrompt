@@ -1,117 +1,86 @@
-# 🥦 NutriPrompt — AI-Powered Nutritional Plan Generator
-
+🥦 NutriPrompt — AI-Powered Nutritional Plan Generator
 <img src="https://raw.githubusercontent.com/beatriangu/nutriprompt/main/nutriprompt1.png" width="260" alt="NutriPrompt logo">
+🧠 Overview
 
----
+NutriPrompt is a production-oriented AI web application that transforms structured user input into personalized weekly nutrition plans.
 
-## 🧠 What is NutriPrompt?
+It combines:
 
-NutriPrompt is an **AI-powered web application** that transforms structured user input into **personalized weekly nutrition plans** using:
+Prompt Engineering
+Generative AI (Google Gemini + OpenAI fallback)
+Django backend architecture
+Structured data pipelines (JSON → HTML → PDF)
 
-- Prompt Engineering
-- Generative AI (Google Gemini + OpenAI fallback)
-- Django backend
-- Structured data (JSON → HTML → PDF)
+👉 Built as a real AI product, not just a demo.
 
-👉 It evolved from a simple prompt generator into a **fully functional AI product**.
-
----
-
-## 🎯 Problem It Solves
+🎯 Problem
 
 Creating personalized nutrition plans requires:
 
-- Collecting user data  
-- Structuring information correctly  
-- Designing effective prompts  
-- Generating consistent outputs  
+Collecting structured user data
+Designing high-quality prompts
+Ensuring consistent outputs
+Adapting to real-life constraints (budget, time, context)
 
-❌ Time-consuming  
-❌ Highly dependent on prompt quality  
+❌ Time-consuming
+❌ Hard to scale
+❌ Highly dependent on prompt quality
 
 👉 NutriPrompt automates the entire workflow end-to-end.
 
----
+🚀 Product Experience
+User Form → Backend → Prompt → AI → JSON → HTML → PDF
+What the user gets:
 
-## 🚀 Current Workflow
+✔ Weekly structured plan
+✔ Context-aware recommendations
+✔ Shopping list
+✔ Clean visual output
+✔ Downloadable PDF
 
+🤖 AI Architecture (Core Innovation)
 
-User Form → Django Backend → Prompt Generator → AI → JSON → HTML → PDF
+NutriPrompt uses a multi-provider fallback system:
 
+Gemini (primary) → OpenAI (fallback) → Mock (demo mode)
+Why this matters:
+✅ High reliability
+✅ Graceful degradation
+✅ Consistent UX
+✅ Production-ready mindset
+💡 Key Features
+🧾 Guided dynamic form (UX-focused)
+🧠 Automated prompt generation
+🤖 Multi-AI integration (Gemini + OpenAI)
+📊 Structured output (JSON-based)
+📄 PDF generation (WeasyPrint)
+⚠️ Intelligent fallback system
+🎨 Product-level UI/UX
+🧪 Example
 
-### 🔹 Step-by-step:
+Input
 
-1. User fills out a form  
-2. System builds a structured prompt  
-3. Prompt is sent to AI provider  
-4. AI generates structured JSON  
-5. JSON is rendered into HTML  
-6. Plan is exported as downloadable PDF  
+Goal: Weight loss
+Restrictions: Gluten-free
+Preferences: Eggs
 
----
+Output
 
-## 🤖 AI Architecture (Key Feature)
+✔ Weekly meal plan
+✔ Adapted to constraints
+✔ Structured by days
+✔ Shopping list generated
+✔ Exportable as PDF
 
-NutriPrompt uses a **multi-provider fallback system**:
-
-
-Gemini (primary) → OpenAI (fallback) → Mock (optional demo mode)
-
-
-### Why this matters:
-
-- ✅ Improves reliability  
-- ✅ Handles API failures gracefully  
-- ✅ Ensures consistent UX  
-- ✅ Demonstrates production-ready architecture  
-
----
-
-## 💥 Key Features
-
-- 🧾 Dynamic form (Django)
-- 🧠 Automated prompt generation
-- 🤖 Multi-AI integration (Gemini + OpenAI)
-- 📊 Structured output (JSON → HTML)
-- 📄 PDF generation (WeasyPrint)
-- ⚠️ Intelligent fallback system
-- 🎨 Clean and product-oriented UI
-
----
-
-## 🧪 Example
-
-**Input:**
-
-Goal: Weekly organization
-Restrictions: Lactose-free, low FODMAP
-Preferences: Chicken, fish
-
-
-**Output:**
-
-✔ Full weekly plan  
-✔ Adapted to restrictions  
-✔ Structured by days  
-✔ Downloadable as PDF  
-
----
-
-## 🧠 Tech Stack
-
-- **Backend:** Django  
-- **Language:** Python 3  
-- **AI:** Google Gemini API + OpenAI API  
-- **Frontend:** HTML + CSS  
-- **PDF:** WeasyPrint  
-- **Data Handling:** JSON  
-- **Prompt Engineering:** Structured design  
-
----
-
-## 🏗️ Architecture
-
-
+🧠 Tech Stack
+Backend: Django
+Language: Python 3
+AI: Google Gemini API + OpenAI API
+Frontend: HTML + CSS
+PDF: WeasyPrint
+Data: JSON
+Approach: Prompt Engineering
+🏗️ Architecture
 User
 ↓
 Django Form
@@ -125,76 +94,63 @@ Structured JSON
 HTML Rendering
 ↓
 PDF Output
-
-
----
-
-## 🔗 Integrations
-
-NutriPrompt integrates with:
-
-- **Google Colab** → experimentation and prompt validation  
-- **Notion API** → structured data workflows  
-- **Gemini API** → primary AI engine  
-- **OpenAI API** → fallback AI provider  
-
----
-
-## ⚙️ Workflow (Technical)
-
-- Input data is collected (form / structured text)  
-- Prompt is dynamically generated  
-- AI model produces structured JSON  
-- JSON is transformed into HTML  
-- HTML is converted into a downloadable PDF  
-
----
-
-## 🧪 Demo Mode
-
-If AI providers are unavailable, you can enable demo mode:
-
-```python
+🔗 Integrations
+Google Colab → prompt experimentation
+Notion API → structured workflows
+Gemini API → primary AI engine
+OpenAI API → fallback provider
+⚙️ Technical Workflow
+User input is collected via form
+Prompt is dynamically generated
+AI produces structured JSON
+JSON is transformed into HTML
+HTML is converted into PDF
+🧪 Demo Mode
 DEMO_MODE_FALLBACK = True
 
-👉 This ensures the app always returns a valid plan (useful for demos & portfolio).
+👉 Ensures the app always returns a valid result
+(ideal for demos, presentations and portfolio)
 
 📁 Project Structure
 nutriprompt/
 ├── nutriprompt_app/
-│   ├── services/        # AI logic (Gemini + OpenAI)
+│   ├── services/        # AI logic
 │   ├── templates/       # UI
-│   ├── views.py         # Main flow
+│   ├── views.py         # Core flow
 │   └── ...
 ├── nutriprompt_web/     # Django config
 ├── media/
-│   ├── formularios/
-│   └── resultados/
-├── colab/               # AI experiments
-├── prototypes/          # Alternative versions
-├── examples/            # Real anonymized data
+├── colab/               # Experiments
+├── prototypes/
+├── examples/
 └── README.md
 🧠 Project Evolution
+Phase 1 — Manual prompting
+Phase 2 — Python automation
+Phase 3 — Colab prototyping
+Phase 4 — Gemini integration
+Phase 5 — Multi-AI + full web app
 
-This project reflects a real development journey:
+👉 Evolution from prompt tool → AI product
 
-✅ Phase 1 — Manual prompting
-✅ Phase 2 — Python automation
-✅ Phase 3 — Colab prototyping
-✅ Phase 4 — AI integration (Gemini)
-🚀 Phase 5 — Multi-AI system + full web app
-🧠 Product Decisions
+🧠 Product Thinking
+
 Why Prompt Engineering?
+
 Full control over output
-No need for model fine-tuning
+No fine-tuning needed
 Fast iteration
+
 Why Django?
+
 Full backend control
-Scalable architecture
-Easy integration with AI services
-Why a fallback system?
-AI services can fail (quota / latency / overload)
-The system remains usable → better UX
+Scalable structure
+Easy AI integration
+
+Why fallback architecture?
+
+AI APIs fail (quota, latency, overload)
+UX must remain stable
 ⚙️ Installation
 git clone https://github.com/beatriangu/nutriprompt.git
 cd nutriprompt
@@ -217,11 +173,12 @@ python manage.py runserver
 
 This project demonstrates:
 
-✔ Real-world AI integration
+✔ AI integration in real workflows
 ✔ Advanced Prompt Engineering
 ✔ Backend architecture (Django)
-✔ Product thinking
-✔ Resilient system design (fallback logic)
+✔ Product thinking & UX
+✔ Resilient system design
+
 ⚠️ Disclaimer
 
 This system provides informational recommendations only
@@ -238,6 +195,7 @@ Bea Lamiquiz
 💼 LinkedIn: https://www.linkedin.com/in/bealamiquiz/
 
 ⭐ If you like it
+
 Give it a star ⭐
 Connect with me
 Or share ideas 🚀

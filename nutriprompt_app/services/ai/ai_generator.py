@@ -14,6 +14,7 @@ from nutriprompt_app.services.ai.prompt_builder import (
     build_full_prompt,
     build_retry_prompt,
 )
+from nutriprompt_app.services.ai.validator import parse_and_validate_plan
 
 
 MODEL_NAME_GEMINI = "gemini-2.5-flash"
@@ -575,126 +576,6 @@ def _build_profile_guidance(user_input: str) -> str:
     return "\n".join(unique_guidance)
 
 
-def _validate_plan_item(
-    item: dict[str, Any],
-    index: int,
-    rules: dict[str, bool],
-    valid_days: set[str],
-    expected_day: str,
-) -> dict[str, str]:
-    missing = set(REQUIRED_KEYS) - item.keys()
-
-    if missing:
-        raise ValueError(f"Faltan claves en el día {index}: {', '.join(sorted(missing))}")
-
-    normalized_item: dict[str, str] = {}
-
-    for key in REQUIRED_KEYS:
-        value = item.get(key)
-
-        if not isinstance(value, str) or not value.strip():
-            raise ValueError(f"El campo '{key}' del día {index} debe ser un texto no vacío.")
-
-        normalized_item[key] = value.strip()
-
-    day_normalized = _normalize_text(normalized_item["day"])
-    expected_day_normalized = _normalize_text(expected_day)
-
-    if day_normalized not in valid_days:
-        raise ValueError(f"El valor de 'day' en el día {index} no está en español o no es válido.")
-
-    if day_normalized != expected_day_normalized:
-        normalized_item["day"] = expected_day
-
-    full_day_text = " ".join([
-        normalized_item["day"],
-        normalized_item["breakfast"],
-        normalized_item["lunch"],
-        normalized_item["dinner"],
-    ])
-
-    if rules["fish_only"] and _contains_forbidden_with_exceptions(full_day_text, FORBIDDEN_MEATS):
-        raise ValueError(f"El plan incumple la preferencia 'solo pescado' en el día {index}.")
-
-    if rules["vegetarian"] and (
-        _contains_forbidden_with_exceptions(full_day_text, FORBIDDEN_MEATS)
-        or _contains_forbidden_with_exceptions(full_day_text, FORBIDDEN_FISH_AND_SEAFOOD)
-    ):
-        raise ValueError(f"El plan incumple la preferencia vegetariana en el día {index}.")
-
-    if rules["vegan"] and (
-        _contains_forbidden_with_exceptions(full_day_text, FORBIDDEN_MEATS)
-        or _contains_forbidden_with_exceptions(full_day_text, FORBIDDEN_FISH_AND_SEAFOOD)
-        or _contains_forbidden_with_exceptions(full_day_text, FORBIDDEN_ANIMAL_PRODUCTS_FOR_VEGAN)
-    ):
-        raise ValueError(f"El plan incumple la preferencia vegana en el día {index}.")
-
-    if rules["pescetarian"] and _contains_forbidden_with_exceptions(full_day_text, FORBIDDEN_MEATS):
-        raise ValueError(f"El plan incumple la preferencia pescetariana en el día {index}.")
-
-    if rules["lactose_free"] and _contains_forbidden_with_exceptions(
-        full_day_text,
-        FORBIDDEN_LACTOSE_WORDS,
-        SAFE_LACTOSE_PATTERNS,
-    ):
-        raise ValueError(f"El plan parece incumplir la restricción 'sin lactosa' en el día {index}.")
-
-    if rules["gluten_free"] and _contains_forbidden_with_exceptions(
-        full_day_text,
-        FORBIDDEN_GLUTEN_WORDS,
-        SAFE_GLUTEN_PATTERNS,
-    ):
-        raise ValueError(f"El plan parece incumplir la restricción 'sin gluten' en el día {index}.")
-
-    if rules["low_fodmap"] and _contains_forbidden_with_exceptions(
-        full_day_text,
-        FORBIDDEN_HIGH_FODMAP_WORDS,
-        SAFE_FODMAP_PATTERNS,
-    ):
-        raise ValueError(f"El plan parece incumplir el enfoque 'bajo en FODMAPs' en el día {index}.")
-
-    return normalized_item
-
-
-def _validate_plan_data(data: Any, user_input: str) -> list[dict[str, str]]:
-    if not isinstance(data, list):
-        raise ValueError("La salida del modelo no es una lista JSON válida.")
-
-    if len(data) != 7:
-        raise ValueError(f"Se esperaban 7 días en el plan, pero se recibieron {len(data)}.")
-
-    rules = _infer_rules(user_input)
-    valid_days = {_normalize_text(day) for day in SPANISH_DAYS}
-    validated: list[dict[str, str]] = []
-
-    for index, item in enumerate(data, start=1):
-        if not isinstance(item, dict):
-            raise ValueError(f"El elemento {index} del plan no es un objeto JSON válido.")
-
-        validated.append(
-            _validate_plan_item(
-                item=item,
-                index=index,
-                rules=rules,
-                valid_days=valid_days,
-                expected_day=SPANISH_DAYS[index - 1],
-            )
-        )
-
-    return validated
-
-
-def _parse_and_validate(raw_output: str, user_input: str) -> list[dict[str, str]]:
-    clean_output = _clean_json_output(raw_output)
-
-    try:
-        data = json.loads(clean_output)
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"La salida del modelo no es JSON válido: {exc}") from exc
-
-    return _validate_plan_data(data, user_input)
-
-
 def _should_retry_provider_error(error_message: str) -> bool:
     upper = error_message.upper()
     return any(marker in upper for marker in ["503", "UNAVAILABLE", "OVERLOADED", "TIMEOUT", "TIMED OUT"])
@@ -804,7 +685,7 @@ def _generate_with_provider(
         previous_output = raw_output
 
         try:
-            data = _parse_and_validate(raw_output, user_input)
+            data = parse_and_validate_plan(raw_output, user_input)
             return data, provider
         except ValueError as exc:
             last_error = str(exc)

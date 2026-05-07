@@ -1,7 +1,9 @@
 from django.urls import path
 from . import views
 
+app_name = "nutriprompt_app"
+
 urlpatterns = [
-    path('', views.home, name='home'),  # Home y formulario
-    path('plan/', views.procesar_plan_directo, name='generar_plan'),
+    path("", views.home, name="home"),
+    path("generar-plan/", views.procesar_plan_directo, name="procesar_plan_directo"),
 ]

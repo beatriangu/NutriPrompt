@@ -255,7 +255,7 @@ def build_plan_html_table(
 
             .meta-grid {{
                 display: grid;
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: 1fr;
                 gap: 10px;
                 margin-top: 10px;
             }}

@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import json
 import re
 import time
 import unicodedata
-from typing import Any
+from typing import Any, Callable
 
 from django.conf import settings
 from google import genai
@@ -13,36 +15,41 @@ MODEL_NAME_GEMINI = "gemini-2.5-flash"
 MODEL_NAME_OPENAI = "gpt-5-mini"
 
 MAX_PROVIDER_RETRIES = 2
+DEFAULT_ATTEMPTS_PER_PROVIDER = 2
 
 
 SYSTEM_PROMPT = """
-Actúa como un asistente experto en planificación semanal de comidas, inspirado en buenas prácticas nutricionales y con especial atención al enfoque low-FODMAP cuando sea relevante.
-
-Tu tarea es generar un plan semanal estructurado, práctico, realista y coherente con los datos del cliente.
+Actúa como un asistente de organización semanal de comidas.
 
 IMPORTANTE:
-- Este plan es únicamente informativo y no sustituye el consejo de un profesional sanitario cualificado.
-- No hagas diagnósticos ni afirmaciones médicas.
+- NO actúes como nutricionista, médico, dietista ni profesional sanitario.
+- NO hagas diagnósticos.
+- NO prometas beneficios de salud.
+- NO uses lenguaje clínico ni prescriptivo.
+- El plan debe presentarse como una propuesta orientativa de organización de comidas.
+- Recomienda siempre consultar con un profesional sanitario o nutricional si la persona tiene patologías, síntomas persistentes, dudas médicas o restricciones complejas.
 - TODO el contenido debe estar en ESPAÑOL.
 - NO mezcles idiomas.
 - Devuelve SOLO JSON válido, sin texto adicional.
+
+OBJETIVO:
+Generar una propuesta semanal sencilla, práctica y realista de comidas, adaptada a los datos proporcionados por la persona usuaria.
 
 REGLAS OBLIGATORIAS:
 - Genera un plan de 7 días completos.
 - Incluye desayuno, comida y cena para cada día.
 - Respeta SIEMPRE las restricciones alimentarias indicadas.
 - Evita ajo y cebolla.
-- Usa comidas simples, prácticas y realistas.
+- Usa comidas simples, prácticas, realistas y fáciles de entender.
 - Mantén variedad durante la semana.
-- Adapta el plan al objetivo, preferencias, presupuesto y contexto real del cliente.
+- Adapta el plan al objetivo, preferencias, presupuesto y contexto real de la persona.
 - Si la persona comerá fuera de casa, adapta las propuestas a esa situación.
 - Si necesita tupper, prioriza comidas transportables y prácticas.
 - Si tiene acceso limitado o nulo a cocina, evita recetas complejas.
-- Si el perfil es bajo en FODMAPs, evita ingredientes problemáticos y mantén las propuestas suaves y sencillas.
-- Si el objetivo es ganar masa muscular, aumenta la presencia de proteína de forma equilibrada y realista.
+- Si el perfil es bajo en FODMAPs, mantén propuestas suaves y sencillas, sin afirmar efectos médicos.
+- Si el objetivo es ganar masa muscular o energía, sugiere comidas completas y saciantes sin prometer resultados.
 - Si el perfil indica presupuesto ajustado, prioriza ingredientes asequibles y reutilizables.
 - Si el perfil indica poco tiempo para cocinar, prioriza recetas rápidas y de baja elaboración.
-- Si el perfil indica digestiones pesadas o hinchazón frecuente, usa opciones suaves y fáciles de tolerar.
 - Si no puedes cumplir una condición exactamente, adáptate sin incumplir ninguna restricción principal.
 
 FORMATO DE SALIDA:
@@ -60,10 +67,11 @@ Devuelve SOLO un JSON válido con esta estructura exacta:
 No añadas markdown, ni ```json, ni explicaciones antes o después.
 
 Antes de responder, verifica internamente que:
-- Todo está en español
-- El JSON es válido
-- Hay 7 días
-- No aparecen ingredientes prohibidos según las restricciones, preferencias y etiquetas detectadas
+- Todo está en español.
+- El JSON es válido.
+- Hay exactamente 7 días.
+- Los días están en este orden: Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo.
+- No aparecen ingredientes prohibidos según restricciones, preferencias y etiquetas detectadas.
 """.strip()
 
 
@@ -75,8 +83,8 @@ CONTEXT_KNOWLEDGE = {
         "Incluye opciones prácticas para comer fuera de casa.",
     ],
     "restaurant": [
-        "Prefiere platos a la plancha, al horno o al vapor.",
-        "Sugiere pedir salsas y aliños aparte.",
+        "Prefiere platos sencillos a la plancha, al horno o al vapor.",
+        "Sugiere opciones fáciles de pedir y adaptar.",
         "Evita platos con alta probabilidad de llevar ajo, cebolla o ingredientes ocultos.",
         "Haz recomendaciones realistas para pedir en restaurante.",
     ],
@@ -86,16 +94,16 @@ CONTEXT_KNOWLEDGE = {
         "Haz que las comidas del mediodía sean eficientes y realistas para una rutina laboral.",
     ],
     "weekend": [
-        "Permite comidas algo más flexibles, manteniendo el equilibrio general.",
-        "Mantén la estructura semanal pero con opciones agradables y realistas.",
+        "Permite comidas algo más flexibles, manteniendo una estructura sencilla.",
+        "Mantén opciones agradables y realistas.",
     ],
     "event": [
         "Haz el plan práctico y flexible alrededor de comidas sociales o celebraciones.",
-        "Sugiere compensaciones sencillas sin caer en restricciones excesivas.",
+        "Evita lenguaje restrictivo o compensatorio.",
     ],
     "tupper": [
         "Prioriza comidas que se conserven bien y sean cómodas de transportar.",
-        "Prefiere comidas aptas para batch cooking y fáciles de recalentar o consumir.",
+        "Prefiere comidas fáciles de recalentar o consumir.",
         "Evita platos que pierdan calidad rápidamente tras guardarse.",
     ],
     "limited_kitchen": [
@@ -112,45 +120,46 @@ CONTEXT_KNOWLEDGE = {
 
 PROFILE_TAG_GUIDANCE = {
     "perder peso": [
-        "Prioriza platos equilibrados, saciantes y realistas, evitando propuestas extremas o muy restrictivas.",
-        "Favorece combinaciones sencillas con buena presencia de proteína y vegetales tolerables.",
+        "Evita prometer pérdida de peso.",
+        "Propón comidas sencillas, saciantes y realistas sin lenguaje restrictivo.",
     ],
     "ganar energía": [
-        "Incluye comidas completas y estables, fáciles de sostener durante la semana.",
-        "Evita propuestas demasiado escasas o poco saciantes.",
+        "Propón comidas completas y sostenibles para la rutina semanal.",
+        "Evita prometer efectos sobre energía o salud.",
     ],
     "ganar masa muscular": [
-        "Aumenta la presencia de proteína de forma práctica y coherente con restricciones y preferencias.",
-        "Incluye comidas completas, saciantes y realistas.",
-        "Evita propuestas demasiado ligeras o insuficientes.",
+        "Incluye proteína de forma práctica y coherente con restricciones y preferencias.",
+        "Evita prometer ganancia muscular.",
     ],
     "organizar comidas": [
         "Favorece recetas repetibles, simples y fáciles de planificar para varios días.",
         "Reutiliza ingredientes de forma inteligente durante la semana.",
     ],
     "comer más equilibrado": [
-        "Mantén un patrón semanal variado, sencillo y bien compensado.",
-        "Incluye opciones prácticas y fáciles de seguir sin rigidez excesiva.",
+        "Mantén un patrón semanal variado, sencillo y fácil de seguir.",
+        "Evita rigidez excesiva.",
     ],
     "alta proteína": [
-        "Aumenta la presencia de proteína de forma práctica y coherente con restricciones y preferencias.",
+        "Incluye fuentes de proteína compatibles con restricciones y preferencias.",
     ],
     "sin lactosa": [
         "Asegúrate de que todas las propuestas sean compatibles con una pauta sin lactosa.",
+        "Puedes usar alternativas vegetales o productos claramente indicados como sin lactosa.",
     ],
     "sin gluten": [
         "Asegúrate de que todas las propuestas sean compatibles con una pauta sin gluten.",
+        "Si usas pan, pasta, wraps o avena, deben indicarse como sin gluten.",
     ],
     "bajo en FODMAPs": [
-        "Mantén el plan suave, práctico y compatible con un enfoque bajo en FODMAPs.",
-        "Evita combinaciones especialmente pesadas o potencialmente irritantes.",
+        "Mantén el plan suave, sencillo y compatible con un enfoque bajo en FODMAPs.",
+        "No hagas afirmaciones médicas ni prometas mejora de síntomas.",
     ],
     "vegetariano": [
         "No incluyas carne, pescado ni marisco.",
         "Usa opciones vegetarianas simples y realistas.",
     ],
     "vegano": [
-        "No incluyas carne, pescado, marisco, huevos, lácteos, miel ni otros productos de origen animal.",
+        "No incluyas carne, pescado, marisco, huevos, lácteos, miel ni productos de origen animal.",
         "Usa opciones veganas simples, prácticas y realistas.",
     ],
     "pescetariano": [
@@ -158,12 +167,12 @@ PROFILE_TAG_GUIDANCE = {
         "Puedes usar pescado y marisco como proteína animal.",
     ],
     "digestiones pesadas": [
-        "Prioriza preparaciones suaves, simples y poco pesadas.",
-        "Evita mezclas muy copiosas o demasiado grasas.",
+        "Propón preparaciones suaves y sencillas.",
+        "No hagas afirmaciones médicas.",
     ],
     "hinchazón frecuente": [
-        "Favorece platos sencillos, suaves y fáciles de tolerar.",
-        "Evita combinaciones muy pesadas o difíciles de digerir.",
+        "Propón platos sencillos y suaves.",
+        "Recomienda consultar con un profesional si los síntomas persisten.",
     ],
     "poco tiempo para cocinar": [
         "Prioriza recetas rápidas, muy simples y con pocos pasos.",
@@ -203,204 +212,65 @@ REQUIRED_KEYS = ("day", "breakfast", "lunch", "dinner")
 
 
 FORBIDDEN_MEATS = {
-    "chicken",
-    "pollo",
-    "turkey",
-    "pavo",
-    "beef",
-    "ternera",
-    "res",
-    "vacuno",
-    "pork",
-    "cerdo",
-    "lamb",
-    "cordero",
-    "duck",
-    "pato",
-    "ham",
-    "jamon",
-    "bacon",
-    "tocino",
-    "sausage",
-    "sausages",
-    "salchicha",
-    "salchichas",
-    "meatball",
-    "meatballs",
-    "albondiga",
-    "albondigas",
-    "burger",
-    "hamburguesa",
-    "chorizo",
-    "morcilla",
-    "mortadela",
-    "pepperoni",
-    "prosciutto",
-    "fiambre",
-    "carne",
-    "meat",
+    "chicken", "pollo", "turkey", "pavo", "beef", "ternera", "res", "vacuno",
+    "pork", "cerdo", "lamb", "cordero", "duck", "pato", "ham", "jamon", "jamón",
+    "bacon", "tocino", "sausage", "sausages", "salchicha", "salchichas",
+    "meatball", "meatballs", "albondiga", "albondigas", "albóndiga", "albóndigas",
+    "burger", "hamburguesa", "chorizo", "morcilla", "mortadela", "pepperoni",
+    "prosciutto", "fiambre", "carne", "meat",
 }
 
 FORBIDDEN_FISH_AND_SEAFOOD = {
-    "fish",
-    "pescado",
-    "atun",
-    "atún",
-    "salmon",
-    "salmón",
-    "merluza",
-    "bacalao",
-    "sardina",
-    "sardinas",
-    "caballa",
-    "dorada",
-    "lubina",
-    "lenguado",
-    "marisco",
-    "mariscos",
-    "gamba",
-    "gambas",
-    "langostino",
-    "langostinos",
-    "mejillon",
-    "mejillón",
-    "mejillones",
-    "calamar",
-    "calamares",
-    "pulpo",
+    "fish", "pescado", "atun", "atún", "salmon", "salmón", "merluza", "bacalao",
+    "sardina", "sardinas", "caballa", "dorada", "lubina", "lenguado", "marisco",
+    "mariscos", "gamba", "gambas", "langostino", "langostinos", "mejillon",
+    "mejillón", "mejillones", "calamar", "calamares", "pulpo",
 }
 
 FORBIDDEN_ANIMAL_PRODUCTS_FOR_VEGAN = {
-    "huevo",
-    "huevos",
-    "egg",
-    "eggs",
-    "leche",
-    "milk",
-    "queso",
-    "cheese",
-    "yogur",
-    "yogurt",
-    "yoghurt",
-    "nata",
-    "cream",
-    "mantequilla",
-    "butter",
-    "kefir",
-    "kéfir",
-    "mozzarella",
-    "parmesano",
-    "parmesan",
-    "brie",
-    "camembert",
-    "helado",
-    "ice cream",
-    "miel",
-    "honey",
+    "huevo", "huevos", "egg", "eggs", "leche", "milk", "queso", "cheese",
+    "yogur", "yogurt", "yoghurt", "nata", "cream", "mantequilla", "butter",
+    "kefir", "kéfir", "mozzarella", "parmesano", "parmesan", "brie",
+    "camembert", "helado", "ice cream", "miel", "honey",
 }
 
 FORBIDDEN_LACTOSE_WORDS = {
-    "milk",
-    "leche",
-    "cheese",
-    "queso",
-    "yogurt",
-    "yoghurt",
-    "yogur",
-    "cream",
-    "nata",
-    "butter",
-    "mantequilla",
-    "ice cream",
-    "helado",
-    "mozzarella",
-    "brie",
-    "camembert",
-    "parmesan",
-    "parmesano",
+    "milk", "leche", "cheese", "queso", "yogurt", "yoghurt", "yogur", "cream",
+    "nata", "butter", "mantequilla", "ice cream", "helado", "mozzarella",
+    "brie", "camembert", "parmesan", "parmesano",
 }
 
 SAFE_LACTOSE_PATTERNS = {
-    "sin lactosa",
-    "yogur sin lactosa",
-    "yogurt sin lactosa",
-    "leche sin lactosa",
-    "queso sin lactosa",
-    "bebida vegetal",
-    "bebida de almendra",
-    "bebida de arroz",
-    "bebida de avena sin gluten",
+    "sin lactosa", "yogur sin lactosa", "yogurt sin lactosa", "leche sin lactosa",
+    "queso sin lactosa", "bebida vegetal", "bebida de almendra", "bebida de arroz",
+    "bebida de avena sin gluten", "yogur vegetal",
 }
 
 FORBIDDEN_GLUTEN_WORDS = {
-    "wheat",
-    "trigo",
-    "barley",
-    "cebada",
-    "rye",
-    "centeno",
-    "bread",
-    "pan",
-    "pasta",
-    "flour",
-    "harina",
-    "breadcrumb",
-    "pan rallado",
-    "beer",
-    "cerveza",
-    "couscous",
-    "cuscus",
-    "bulgur",
-    "seitan",
-    "galleta",
-    "galletas",
-    "bizcocho",
-    "croissant",
+    "wheat", "trigo", "barley", "cebada", "rye", "centeno", "bread", "pan",
+    "pasta", "flour", "harina", "breadcrumb", "pan rallado", "beer", "cerveza",
+    "couscous", "cuscus", "cuscús", "bulgur", "seitan", "galleta", "galletas",
+    "bizcocho", "croissant", "wrap",
 }
 
 SAFE_GLUTEN_PATTERNS = {
-    "sin gluten",
-    "pan sin gluten",
-    "avena sin gluten",
-    "copos de avena sin gluten",
-    "copos de maiz sin gluten",
-    "copos de maíz sin gluten",
-    "corn flakes sin gluten",
-    "tortitas sin gluten",
-    "tortillas de maiz",
-    "tortillas de maíz",
-    "arroz",
-    "quinoa",
-    "patata",
-    "maiz",
-    "maíz",
+    "sin gluten", "pan sin gluten", "pasta sin gluten", "wrap sin gluten",
+    "avena sin gluten", "copos de avena sin gluten", "copos de maiz sin gluten",
+    "copos de maíz sin gluten", "corn flakes sin gluten", "tortitas sin gluten",
+    "tortillas de maiz", "tortillas de maíz", "arroz", "quinoa", "patata",
+    "maiz", "maíz",
 }
 
 FORBIDDEN_HIGH_FODMAP_WORDS = {
-    "ajo",
-    "cebolla",
-    "puerro",
-    "coliflor",
-    "manzana",
-    "pera",
-    "sandia",
-    "sandía",
-    "mango",
-    "ciruela",
-    "ciruelas",
-    "garbanzos",
-    "lentejas",
-    "judias",
-    "judías",
-    "setas",
-    "champiñones",
+    "ajo", "cebolla", "puerro", "coliflor", "manzana", "pera", "sandia", "sandía",
+    "mango", "ciruela", "ciruelas", "garbanzos", "lentejas", "judias", "judías",
+    "setas", "champiñones",
 }
 
 SAFE_FODMAP_PATTERNS = {
-    "sin ajo",
-    "sin cebolla",
-    "bajo en fodmaps",
-    "low fodmap",
+    "sin ajo", "sin cebolla", "bajo en fodmaps", "low fodmap",
+    "aceite infusionado con ajo", "cebollino", "tomate en cantidad moderada",
+    "aguacate en pequeña porción",
 }
 
 
@@ -417,6 +287,9 @@ FIELD_ALIASES = {
     "dias_fuera": ["dias fuera de casa", "días fuera de casa", "dias fuera", "días fuera"],
     "etiquetas_perfil": ["etiquetas de perfil detectadas", "etiquetas de perfil", "perfil detectado"],
 }
+
+
+RetryPromptBuilder = Callable[[str, str, str], str]
 
 
 def _normalize_text(value: str) -> str:
@@ -460,10 +333,12 @@ def _extract_field(user_input: str, canonical_field: str) -> str:
     aliases = FIELD_ALIASES.get(canonical_field, [canonical_field])
     normalized_aliases = {_normalize_text(alias) for alias in aliases}
 
-    for line in user_input.splitlines():
+    for line in (user_input or "").splitlines():
         if ":" not in line:
             continue
+
         left, right = line.split(":", 1)
+
         if _normalize_text(left) in normalized_aliases:
             return right.strip()
 
@@ -476,14 +351,12 @@ def _extract_profile_tags(user_input: str) -> list[str]:
         return []
 
     tags = [tag.strip() for tag in raw_tags.split(",") if tag.strip()]
-    normalized_no_detectadas = _normalize_text("No detectadas")
-
     unique_tags: list[str] = []
     seen: set[str] = set()
 
     for tag in tags:
         normalized_tag = _normalize_text(tag)
-        if normalized_tag == normalized_no_detectadas:
+        if normalized_tag == _normalize_text("No detectadas"):
             continue
         if normalized_tag not in seen:
             seen.add(normalized_tag)
@@ -519,12 +392,14 @@ def _contains_forbidden_with_exceptions(
         pattern = rf"\b{re.escape(_normalize_text(term))}\b"
         if re.search(pattern, normalized):
             return True
+
     return False
 
 
 def _infer_rules(user_input: str) -> dict[str, bool]:
     restrictions = _extract_field(user_input, "restricciones")
     preferences = _extract_field(user_input, "preferencias")
+    combined = " ".join([restrictions, preferences, ", ".join(_extract_profile_tags(user_input))])
 
     fish_only = _contains_phrase(
         preferences,
@@ -541,61 +416,41 @@ def _infer_rules(user_input: str) -> dict[str, bool]:
     )
 
     lactose_free = _contains_phrase(
-        restrictions,
-        {
-            "sin lactosa",
-            "lactose free",
-            "lactose-free",
-            "no lactosa",
-        },
+        combined,
+        {"sin lactosa", "lactose free", "lactose-free", "no lactosa"},
     ) or _has_profile_tag(user_input, "sin lactosa")
 
     gluten_free = _contains_phrase(
-        restrictions,
-        {
-            "sin gluten",
-            "gluten free",
-            "gluten-free",
-            "no gluten",
-        },
+        combined,
+        {"sin gluten", "gluten free", "gluten-free", "no gluten"},
     ) or _has_profile_tag(user_input, "sin gluten")
 
-    vegetarian = _contains_phrase(
-        preferences,
-        {
-            "vegetariano",
-            "vegetariana",
-            "vegetarian",
-        },
-    ) or _has_profile_tag(user_input, "vegetariano")
-
     vegan = _contains_phrase(
-        preferences,
-        {
-            "vegano",
-            "vegana",
-            "vegan",
-        },
+        combined,
+        {"vegano", "vegana", "vegan"},
     ) or _has_profile_tag(user_input, "vegano")
 
+    vegetarian = _contains_phrase(
+        combined,
+        {"vegetariano", "vegetariana", "vegetarian"},
+    ) or _has_profile_tag(user_input, "vegetariano")
+
     pescetarian = _contains_phrase(
-        preferences,
-        {
-            "pescetariano",
-            "pescetariana",
-            "pescetarian",
-        },
+        combined,
+        {"pescetariano", "pescetariana", "pescetarian"},
     ) or _has_profile_tag(user_input, "pescetariano")
 
+    if vegan:
+        vegetarian = False
+        pescetarian = False
+        fish_only = False
+    elif vegetarian:
+        pescetarian = False
+        fish_only = False
+
     low_fodmap = _contains_phrase(
-        restrictions,
-        {
-            "low fodmap",
-            "bajo en fodmaps",
-            "baja en fodmaps",
-            "fodmap",
-            "fodmaps",
-        },
+        combined,
+        {"low fodmap", "bajo en fodmaps", "baja en fodmaps", "fodmap", "fodmaps"},
     ) or _has_profile_tag(user_input, "bajo en FODMAPs")
 
     return {
@@ -640,7 +495,7 @@ def _build_context_guidance(user_input: str) -> str:
     if needs_tupper_normalized in {"si", "sí", "yes"}:
         guidance.extend(CONTEXT_KNOWLEDGE["tupper"])
 
-    if has_kitchen_normalized == "acceso limitado" or _has_profile_tag(user_input, "cocina limitada"):
+    if has_kitchen_normalized in {"acceso limitado", "limited", "cocina limitada"} or _has_profile_tag(user_input, "cocina limitada"):
         guidance.extend(CONTEXT_KNOWLEDGE["limited_kitchen"])
     elif has_kitchen_normalized in {"no", "sin cocina"} or _has_profile_tag(user_input, "sin cocina"):
         guidance.extend(CONTEXT_KNOWLEDGE["no_kitchen"])
@@ -694,7 +549,7 @@ def _build_rule_guidance(user_input: str) -> str:
     if rules["low_fodmap"]:
         extra_rules.extend([
             "- Todas las propuestas deben ser compatibles con un enfoque bajo en FODMAPs.",
-            "- Evita ingredientes altos en FODMAPs y mantén el plan suave y práctico.",
+            "- No hagas afirmaciones médicas ni prometas mejora de síntomas.",
         ])
 
     return "\n".join(extra_rules)
@@ -723,34 +578,34 @@ def _build_full_prompt(user_input: str) -> str:
     parts = [
         SYSTEM_PROMPT,
         "",
-        "DATOS DEL CLIENTE:",
+        "DATOS DE LA PERSONA USUARIA:",
         user_input.strip(),
     ]
 
     if rule_guidance:
         parts.extend([
             "",
-            "REGLAS ADICIONALES DERIVADAS DE LOS DATOS DEL CLIENTE:",
+            "REGLAS ADICIONALES DERIVADAS DE LOS DATOS:",
             rule_guidance,
         ])
 
     if profile_guidance:
         parts.extend([
             "",
-            "GUÍA DE PERSONALIZACIÓN BASADA EN ETIQUETAS DE PERFIL:",
+            "GUÍA DE PERSONALIZACIÓN BASADA EN ETIQUETAS:",
             profile_guidance,
         ])
 
     if context_guidance:
         parts.extend([
             "",
-            "GUÍA DE CONTEXTO RELEVANTE:",
+            "GUÍA DE CONTEXTO:",
             context_guidance,
         ])
 
     parts.extend([
         "",
-        "Genera ahora el plan semanal solicitado.",
+        "Genera ahora la propuesta semanal solicitada.",
     ])
 
     return "\n".join(parts).strip()
@@ -768,16 +623,17 @@ SALIDA ANTERIOR INVÁLIDA:
 
 INSTRUCCIONES:
 - Corrige el plan completo.
-- Cumple estrictamente todas las restricciones, preferencias y etiquetas del cliente.
+- Cumple estrictamente todas las restricciones, preferencias y etiquetas.
 - Devuelve SOLO JSON válido.
 - TODO debe estar en español.
 - No añadas explicaciones.
 - Genera de nuevo los 7 días completos.
+- Mantén tono orientativo, no sanitario ni prescriptivo.
 
-DATOS DEL CLIENTE:
+DATOS:
 {user_input.strip()}
 
-Vuelve a generar el plan desde cero.
+Vuelve a generar la propuesta desde cero.
 """.strip()
 
 
@@ -786,31 +642,40 @@ def _validate_plan_item(
     index: int,
     rules: dict[str, bool],
     valid_days: set[str],
-) -> None:
+    expected_day: str,
+) -> dict[str, str]:
     missing = set(REQUIRED_KEYS) - item.keys()
+
     if missing:
         raise ValueError(f"Faltan claves en el día {index}: {', '.join(sorted(missing))}")
 
+    normalized_item: dict[str, str] = {}
+
     for key in REQUIRED_KEYS:
         value = item.get(key)
+
         if not isinstance(value, str) or not value.strip():
             raise ValueError(f"El campo '{key}' del día {index} debe ser un texto no vacío.")
 
-    day_normalized = _normalize_text(item["day"])
+        normalized_item[key] = value.strip()
+
+    day_normalized = _normalize_text(normalized_item["day"])
+    expected_day_normalized = _normalize_text(expected_day)
+
     if day_normalized not in valid_days:
         raise ValueError(f"El valor de 'day' en el día {index} no está en español o no es válido.")
 
+    if day_normalized != expected_day_normalized:
+        normalized_item["day"] = expected_day
+
     full_day_text = " ".join([
-        item["day"],
-        item["breakfast"],
-        item["lunch"],
-        item["dinner"],
+        normalized_item["day"],
+        normalized_item["breakfast"],
+        normalized_item["lunch"],
+        normalized_item["dinner"],
     ])
 
-    if rules["fish_only"] and _contains_forbidden_with_exceptions(
-        full_day_text,
-        FORBIDDEN_MEATS,
-    ):
+    if rules["fish_only"] and _contains_forbidden_with_exceptions(full_day_text, FORBIDDEN_MEATS):
         raise ValueError(f"El plan incumple la preferencia 'solo pescado' en el día {index}.")
 
     if rules["vegetarian"] and (
@@ -826,10 +691,7 @@ def _validate_plan_item(
     ):
         raise ValueError(f"El plan incumple la preferencia vegana en el día {index}.")
 
-    if rules["pescetarian"] and _contains_forbidden_with_exceptions(
-        full_day_text,
-        FORBIDDEN_MEATS,
-    ):
+    if rules["pescetarian"] and _contains_forbidden_with_exceptions(full_day_text, FORBIDDEN_MEATS):
         raise ValueError(f"El plan incumple la preferencia pescetariana en el día {index}.")
 
     if rules["lactose_free"] and _contains_forbidden_with_exceptions(
@@ -853,8 +715,10 @@ def _validate_plan_item(
     ):
         raise ValueError(f"El plan parece incumplir el enfoque 'bajo en FODMAPs' en el día {index}.")
 
+    return normalized_item
 
-def _validate_plan_data(data: Any, user_input: str) -> list[dict]:
+
+def _validate_plan_data(data: Any, user_input: str) -> list[dict[str, str]]:
     if not isinstance(data, list):
         raise ValueError("La salida del modelo no es una lista JSON válida.")
 
@@ -863,16 +727,26 @@ def _validate_plan_data(data: Any, user_input: str) -> list[dict]:
 
     rules = _infer_rules(user_input)
     valid_days = {_normalize_text(day) for day in SPANISH_DAYS}
+    validated: list[dict[str, str]] = []
 
     for index, item in enumerate(data, start=1):
         if not isinstance(item, dict):
             raise ValueError(f"El elemento {index} del plan no es un objeto JSON válido.")
-        _validate_plan_item(item, index, rules, valid_days)
 
-    return data
+        validated.append(
+            _validate_plan_item(
+                item=item,
+                index=index,
+                rules=rules,
+                valid_days=valid_days,
+                expected_day=SPANISH_DAYS[index - 1],
+            )
+        )
+
+    return validated
 
 
-def _parse_and_validate(raw_output: str, user_input: str) -> list[dict]:
+def _parse_and_validate(raw_output: str, user_input: str) -> list[dict[str, str]]:
     clean_output = _clean_json_output(raw_output)
 
     try:
@@ -904,8 +778,10 @@ def _call_gemini(prompt: str, model: str) -> str:
                 contents=prompt,
             )
             raw_output = getattr(response, "text", "") or ""
+
             if not raw_output.strip():
                 raise ValueError("Gemini ha devuelto una respuesta vacía.")
+
             return raw_output
 
         except Exception as exc:
@@ -940,8 +816,10 @@ def _call_openai(prompt: str, model: str) -> str:
                 input=prompt,
             )
             raw_output = getattr(response, "output_text", "") or ""
+
             if not raw_output.strip():
                 raise ValueError("OpenAI ha devuelto una respuesta vacía.")
+
             return raw_output
 
         except Exception as exc:
@@ -968,11 +846,11 @@ def _call_openai(prompt: str, model: str) -> str:
 def _generate_with_provider(
     provider: str,
     prompt: str,
-    retry_prompt_builder,
+    retry_prompt_builder: RetryPromptBuilder,
     user_input: str,
     model: str,
     max_attempts: int,
-) -> tuple[list[dict], str]:
+) -> tuple[list[dict[str, str]], str]:
     last_error = ""
     previous_output = ""
     current_prompt = prompt
@@ -992,6 +870,7 @@ def _generate_with_provider(
             return data, provider
         except ValueError as exc:
             last_error = str(exc)
+
             if attempt == max_attempts:
                 break
 
@@ -1008,10 +887,10 @@ def generate_meal_plan(
     user_input: str,
     gemini_model: str = MODEL_NAME_GEMINI,
     openai_model: str = MODEL_NAME_OPENAI,
-    max_attempts_per_provider: int = 2,
-) -> tuple[list[dict], str]:
+    max_attempts_per_provider: int = DEFAULT_ATTEMPTS_PER_PROVIDER,
+) -> tuple[list[dict[str, str]], str]:
     if not user_input or not user_input.strip():
-        raise ValueError("Los datos del cliente no pueden estar vacíos.")
+        raise ValueError("Los datos de la persona no pueden estar vacíos.")
 
     if max_attempts_per_provider < 1:
         raise ValueError("max_attempts_per_provider debe ser al menos 1.")
@@ -1044,53 +923,53 @@ def generate_meal_plan(
         provider_errors.append(f"OpenAI: {exc}")
 
     raise ValueError(
-        "No se ha podido generar un plan válido con ninguno de los proveedores disponibles. "
+        "No se ha podido generar una propuesta válida con ninguno de los proveedores disponibles. "
         + " | ".join(provider_errors)
     )
 
 
-def get_mock_meal_plan() -> list[dict]:
+def get_mock_meal_plan() -> list[dict[str, str]]:
     return [
         {
             "day": "Lunes",
-            "breakfast": "Avena sin gluten con bebida de almendra y arándanos.",
-            "lunch": "Ensalada de atún con pepino, zanahoria y patata cocida.",
-            "dinner": "Salmón al horno con judías verdes y arroz.",
+            "breakfast": "Avena sin gluten con bebida vegetal y arándanos.",
+            "lunch": "Ensalada de arroz con huevo, pepino y zanahoria.",
+            "dinner": "Tortilla francesa con verduras suaves.",
         },
         {
             "day": "Martes",
             "breakfast": "Huevos revueltos con espinacas y pan sin gluten.",
-            "lunch": "Merluza con quinoa y calabacín a la plancha.",
-            "dinner": "Tortilla francesa con ensalada de tomate y aceitunas.",
+            "lunch": "Quinoa con calabacín y huevo cocido.",
+            "dinner": "Crema de verduras con patata.",
         },
         {
             "day": "Miércoles",
             "breakfast": "Yogur sin lactosa con kiwi y semillas de chía.",
-            "lunch": "Arroz con gambas, zanahoria y espinacas.",
-            "dinner": "Bacalao al vapor con patata cocida y calabaza.",
+            "lunch": "Arroz con zanahoria, espinacas y tortilla francesa.",
+            "dinner": "Patata cocida con ensalada sencilla.",
         },
         {
             "day": "Jueves",
             "breakfast": "Tortitas de avena sin gluten con fresas.",
-            "lunch": "Ensalada templada de quinoa con atún y pepino.",
-            "dinner": "Dorada al horno con boniato y judías verdes.",
+            "lunch": "Ensalada templada de quinoa con huevo y pepino.",
+            "dinner": "Revuelto de huevo con calabacín.",
         },
         {
             "day": "Viernes",
             "breakfast": "Copos de maíz sin gluten con bebida vegetal y plátano firme.",
-            "lunch": "Sardinas con arroz blanco y zanahoria cocida.",
-            "dinner": "Tacos de pescado en tortillas de maíz con lechuga y tomate.",
+            "lunch": "Arroz blanco con verduras suaves y huevo.",
+            "dinner": "Tortillas de maíz con lechuga y tomate.",
         },
         {
             "day": "Sábado",
             "breakfast": "Batido con bebida de almendra, espinacas y frutos rojos.",
-            "lunch": "Ensalada de patata con caballa, pepino y huevo cocido.",
-            "dinner": "Lenguado a la plancha con puré de calabaza.",
+            "lunch": "Ensalada de patata con pepino y huevo cocido.",
+            "dinner": "Crema de calabaza con arroz.",
         },
         {
             "day": "Domingo",
-            "breakfast": "Huevos revueltos con tomate y aguacate.",
-            "lunch": "Paella sencilla de pescado y marisco sin ajo ni cebolla.",
-            "dinner": "Crema de calabacín y zanahoria con filete de merluza.",
+            "breakfast": "Huevos revueltos con tomate y aguacate en pequeña porción.",
+            "lunch": "Arroz sencillo con verduras sin ajo ni cebolla.",
+            "dinner": "Crema de calabacín y zanahoria.",
         },
     ]

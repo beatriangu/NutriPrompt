@@ -23,11 +23,25 @@ from nutriprompt_app.forms import (
     SPECIAL_SITUATION_CHOICES,
     YES_NO_CHOICES,
 )
+
 from nutriprompt_app.models import IAGeneratedResponse
-from nutriprompt_app.services.ai_generator import generate_meal_plan
-from nutriprompt_app.services.profile_classifier import classify_user_profile
-from nutriprompt_app.services.shopping_list_generator import generate_shopping_list
-from .services.fallback_plan import generate_fallback_meal_plan
+
+from nutriprompt_app.services.ai.ai_generator import (
+    generate_meal_plan,
+)
+
+from nutriprompt_app.services.profiles.profile_classifier import (
+    classify_user_profile,
+)
+
+from nutriprompt_app.services.nutrition.shopping_list_generator import (
+    generate_shopping_list,
+)
+
+from nutriprompt_app.services.nutrition.fallback_plan import (
+    generate_fallback_meal_plan,
+)
+
 
 logger = logging.getLogger(__name__)
 
@@ -59,29 +73,49 @@ def _clean_numeric_string(value: Any, default: str = "No especificado") -> str:
     return text or default
 
 
-def _join_choice_labels(values: list[str], mapping: dict[str, str], default: str = "No especificadas") -> str:
+def _join_choice_labels(
+    values: list[str] | None,
+    mapping: dict[str, str],
+    default: str = "No especificadas",
+) -> str:
     if not values:
         return default
+
     labels = [mapping.get(value, value) for value in values]
     return ", ".join(labels)
 
 
-def _label_for_choice(value: str, mapping: dict[str, str], default: str = "No especificado") -> str:
+def _label_for_choice(
+    value: Any,
+    mapping: dict[str, str],
+    default: str = "No especificado",
+) -> str:
     normalized = str(value or "").strip()
+
     if not normalized:
         return default
+
     return mapping.get(normalized, normalized)
 
 
-def _format_profile_tags(profile_tags: list[str]) -> str:
-    return ", ".join(profile_tags) if profile_tags else "No detectadas"
+def _format_profile_tags(profile_tags: list[str] | None) -> str:
+    if not profile_tags:
+        return "No detectadas"
+
+    return ", ".join(profile_tags)
 
 
 def _to_classifier_payload(cleaned_data: dict[str, Any]) -> dict[str, str]:
     return {
         "objetivo": _label_for_choice(cleaned_data.get("objetivo"), GOAL_MAP),
-        "restricciones": _join_choice_labels(cleaned_data.get("restricciones", []), DIET_MAP),
-        "preferencias": _join_choice_labels(cleaned_data.get("preferencias", []), PREFERENCE_MAP, default="No especificadas"),
+        "restricciones": _join_choice_labels(
+            cleaned_data.get("restricciones", []),
+            DIET_MAP,
+        ),
+        "preferencias": _join_choice_labels(
+            cleaned_data.get("preferencias", []),
+            PREFERENCE_MAP,
+        ),
         "presupuesto": str(cleaned_data.get("presupuesto", "")).strip(),
         "meal_context": cleaned_data.get("meal_context", "") or "",
         "special_situation": cleaned_data.get("special_situation", "") or "",
@@ -98,12 +132,10 @@ def _to_display_context(cleaned_data: dict[str, Any]) -> dict[str, str]:
         "restricciones": _join_choice_labels(
             cleaned_data.get("restricciones", []),
             DIET_MAP,
-            default="No especificadas",
         ),
         "preferencias": _join_choice_labels(
             cleaned_data.get("preferencias", []),
             PREFERENCE_MAP,
-            default="No especificadas",
         ),
         "presupuesto": str(cleaned_data.get("presupuesto", "")).strip(),
         "meal_context": _label_for_choice(
@@ -202,30 +234,7 @@ def build_plan_html_table(
 ) -> str:
     normalized_plan = _normalize_plan_data(plan_data)
     rows_html = _build_day_rows(normalized_plan)
-    tags_text = _format_profile_tags(profile_tags or [])
-
-    info_cliente = f"""
-        <section class="client-info">
-            <h1>Plan semanal personalizado</h1>
-            <div class="meta-grid">
-                <div class="meta-item"><span class="label">Cliente</span><span class="value">{escape(_safe_value(nombre))}</span></div>
-                <div class="meta-item"><span class="label">Objetivo</span><span class="value">{escape(_safe_value(objetivo))}</span></div>
-                <div class="meta-item"><span class="label">Restricciones</span><span class="value">{escape(_safe_value(restricciones, "No especificadas"))}</span></div>
-                <div class="meta-item"><span class="label">Preferencias</span><span class="value">{escape(_safe_value(preferencias, "No especificadas"))}</span></div>
-                <div class="meta-item"><span class="label">Presupuesto semanal</span><span class="value">{escape(_clean_numeric_string(presupuesto))}</span></div>
-                <div class="meta-item"><span class="label">Contexto principal</span><span class="value">{escape(_safe_value(meal_context))}</span></div>
-                <div class="meta-item"><span class="label">Situación especial</span><span class="value">{escape(_safe_value(special_situation, "No especificada"))}</span></div>
-                <div class="meta-item"><span class="label">¿Necesita tupper?</span><span class="value">{escape(_safe_value(needs_tupper))}</span></div>
-                <div class="meta-item"><span class="label">Acceso a cocina</span><span class="value">{escape(_safe_value(has_kitchen))}</span></div>
-                <div class="meta-item"><span class="label">Días fuera de casa</span><span class="value">{escape(_clean_numeric_string(days_away))}</span></div>
-                <div class="meta-item" style="grid-column: 1 / -1;"><span class="label">Notas adicionales</span><span class="value">{escape(_safe_value(notas, "No especificadas"))}</span></div>
-                <div class="meta-item" style="grid-column: 1 / -1;"><span class="label">Etiquetas de perfil detectadas</span><span class="value">{escape(tags_text)}</span></div>
-            </div>
-            <p class="disclaimer">
-                Este plan es orientativo y no sustituye el asesoramiento de un profesional sanitario.
-            </p>
-        </section>
-    """
+    tags_text = _format_profile_tags(profile_tags)
 
     return f"""
     <!DOCTYPE html>
@@ -236,17 +245,18 @@ def build_plan_html_table(
         <style>
             @page {{
                 size: A4;
-                margin: 16mm;
+                margin: 12mm;
             }}
 
             :root {{
-                --texto: #24323f;
-                --texto-secundario: #5f6c76;
-                --borde: #d9e2ea;
-                --borde-suave: #e9eff4;
-                --fondo-cabecera: #eef4f8;
-                --fondo-caja: #f8fbfd;
-                --fondo-fila: #fafcfd;
+                --green: #27ae60;
+                --green-dark: #1f8f4f;
+                --text: #24323f;
+                --muted: #5f6c76;
+                --soft: #f6faf8;
+                --border: #dce6ee;
+                --border-soft: #edf2f6;
+                --white: #ffffff;
             }}
 
             * {{
@@ -254,125 +264,334 @@ def build_plan_html_table(
             }}
 
             body {{
-                font-family: Arial, sans-serif;
-                color: var(--texto);
-                font-size: 13px;
-                line-height: 1.5;
                 margin: 0;
+                font-family: Arial, Helvetica, sans-serif;
+                color: var(--text);
+                font-size: 11.5px;
+                line-height: 1.45;
+                background: #ffffff;
+            }}
+
+            .hero {{
+                padding: 18px 20px;
+                margin-bottom: 14px;
+                border-radius: 14px;
+                background: linear-gradient(135deg, #edf9f1 0%, #f5fbff 100%);
+                border: 1px solid var(--border);
+            }}
+
+            .eyebrow {{
+                margin: 0 0 6px;
+                color: var(--green-dark);
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
             }}
 
             h1 {{
-                margin: 0 0 12px 0;
-                color: #1f3b57;
-                font-size: 24px;
-                line-height: 1.2;
+                margin: 0 0 6px;
+                color: #18364f;
+                font-size: 23px;
+                line-height: 1.15;
             }}
 
-            .client-info {{
-                margin-bottom: 22px;
-                padding: 16px;
-                border: 1px solid var(--borde);
-                border-radius: 10px;
-                background: var(--fondo-caja);
+            .hero-text {{
+                margin: 0;
+                color: var(--muted);
+                font-size: 11.5px;
             }}
 
-            .meta-grid {{
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-                margin-top: 10px;
+            .section-title {{
+                margin: 0 0 9px;
+                color: #18364f;
+                font-size: 15px;
+                line-height: 1.25;
+            }}
+
+            .client-card {{
+                padding: 14px;
+                margin-bottom: 14px;
+                border: 1px solid var(--border);
+                border-radius: 13px;
+                background: var(--soft);
+                page-break-inside: avoid;
+            }}
+
+            .meta-table {{
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0 7px;
+                table-layout: fixed;
+            }}
+
+            .meta-table td {{
+                width: 50%;
+                padding: 0;
+                border: none;
+                vertical-align: top;
+            }}
+
+            .meta-table td:first-child {{
+                padding-right: 5px;
+            }}
+
+            .meta-table td:last-child {{
+                padding-left: 5px;
             }}
 
             .meta-item {{
-                border: 1px solid var(--borde-suave);
-                border-radius: 8px;
-                background: #ffffff;
-                padding: 10px;
+                min-height: 54px;
+                padding: 9px 10px;
+                border: 1px solid var(--border-soft);
+                border-radius: 10px;
+                background: var(--white);
+            }}
+
+            .meta-item--full {{
+                min-height: auto;
             }}
 
             .label {{
                 display: block;
-                margin-bottom: 4px;
-                font-size: 11px;
-                font-weight: bold;
+                margin-bottom: 3px;
+                color: var(--muted);
+                font-size: 9px;
+                font-weight: 700;
                 text-transform: uppercase;
-                color: var(--texto-secundario);
-                letter-spacing: 0.02em;
+                letter-spacing: 0.05em;
+                line-height: 1.2;
             }}
 
             .value {{
                 display: block;
-                color: var(--texto);
-                word-wrap: break-word;
+                color: var(--text);
+                font-size: 11.5px;
+                line-height: 1.35;
                 overflow-wrap: break-word;
             }}
 
             .disclaimer {{
-                margin: 14px 0 0;
-                font-size: 11px;
-                color: var(--texto-secundario);
+                margin: 9px 0 0;
+                padding: 8px 10px;
+                border: 1px solid #f1d38a;
+                border-radius: 9px;
+                background: #fff8e8;
+                color: #7a5a00;
+                font-size: 10.5px;
+                line-height: 1.4;
             }}
 
-            table {{
+            .plan-card {{
+                padding: 14px;
+                border: 1px solid var(--border);
+                border-radius: 13px;
+                background: #ffffff;
+            }}
+
+            .plan-table {{
                 width: 100%;
                 border-collapse: collapse;
                 table-layout: fixed;
-                font-size: 12px;
+                font-size: 10.8px;
             }}
 
-            thead {{
+            .plan-table thead {{
                 display: table-header-group;
             }}
 
-            tbody {{
-                display: table-row-group;
-            }}
-
-            tr {{
+            .plan-table tr {{
                 page-break-inside: avoid;
             }}
 
-            th, td {{
-                border: 1px solid var(--borde);
-                padding: 10px;
+            .plan-table th,
+            .plan-table td {{
+                padding: 8px;
+                border: 1px solid var(--border);
                 vertical-align: top;
                 text-align: left;
-                word-wrap: break-word;
+                line-height: 1.35;
                 overflow-wrap: break-word;
             }}
 
-            th {{
-                background-color: var(--fondo-cabecera);
-                color: #1f3b57;
-                font-weight: bold;
+            .plan-table th {{
+                background: #edf6f0;
+                color: #18364f;
+                font-size: 10.5px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
             }}
 
-            tbody tr:nth-child(even) td {{
-                background-color: var(--fondo-fila);
+            .plan-table tbody tr:nth-child(even) td {{
+                background: #fafcfd;
             }}
 
-            th:first-child,
-            td.day-cell {{
+            .plan-table th:nth-child(1),
+            .plan-table td:nth-child(1) {{
                 width: 14%;
-                font-weight: bold;
+            }}
+
+            .plan-table th:nth-child(2),
+            .plan-table td:nth-child(2),
+            .plan-table th:nth-child(3),
+            .plan-table td:nth-child(3),
+            .plan-table th:nth-child(4),
+            .plan-table td:nth-child(4) {{
+                width: 28.66%;
+            }}
+
+            .day-cell {{
+                color: var(--green-dark);
+                font-weight: 700;
+            }}
+
+            .footer-note {{
+                margin-top: 10px;
+                color: var(--muted);
+                font-size: 10px;
+                line-height: 1.4;
             }}
         </style>
     </head>
+
     <body>
-        {info_cliente}
-        <table>
-            <thead>
-                <tr>
-                    <th>Día</th>
-                    <th>Desayuno</th>
-                    <th>Comida</th>
-                    <th>Cena</th>
-                </tr>
-            </thead>
-            <tbody>
-                {rows_html}
-            </tbody>
-        </table>
+        <main class="pdf-page">
+            <section class="hero">
+                <p class="eyebrow">NutriPrompt · Plan personalizado</p>
+                <h1>Plan semanal personalizado</h1>
+                <p class="hero-text">
+                    Plan generado a partir de los datos introducidos en el formulario, combinando lógica estructurada,
+                    preferencias alimentarias y restricciones indicadas.
+                </p>
+            </section>
+
+            <section class="client-card">
+                <h2 class="section-title">Resumen del perfil</h2>
+
+                <table class="meta-table">
+                    <tr>
+                        <td>
+                            <div class="meta-item">
+                                <span class="label">Cliente</span>
+                                <span class="value">{escape(_safe_value(nombre))}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="meta-item">
+                                <span class="label">Objetivo</span>
+                                <span class="value">{escape(_safe_value(objetivo))}</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <div class="meta-item">
+                                <span class="label">Restricciones</span>
+                                <span class="value">{escape(_safe_value(restricciones, "No especificadas"))}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="meta-item">
+                                <span class="label">Preferencias</span>
+                                <span class="value">{escape(_safe_value(preferencias, "No especificadas"))}</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <div class="meta-item">
+                                <span class="label">Presupuesto semanal</span>
+                                <span class="value">{escape(_clean_numeric_string(presupuesto))} €</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="meta-item">
+                                <span class="label">Contexto principal</span>
+                                <span class="value">{escape(_safe_value(meal_context))}</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <div class="meta-item">
+                                <span class="label">Situación especial</span>
+                                <span class="value">{escape(_safe_value(special_situation, "No especificada"))}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="meta-item">
+                                <span class="label">¿Necesita tupper?</span>
+                                <span class="value">{escape(_safe_value(needs_tupper))}</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <div class="meta-item">
+                                <span class="label">Acceso a cocina</span>
+                                <span class="value">{escape(_safe_value(has_kitchen))}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="meta-item">
+                                <span class="label">Días fuera de casa</span>
+                                <span class="value">{escape(_clean_numeric_string(days_away))}</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="2">
+                            <div class="meta-item meta-item--full">
+                                <span class="label">Notas adicionales</span>
+                                <span class="value">{escape(_safe_value(notas, "No especificadas"))}</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="2">
+                            <div class="meta-item meta-item--full">
+                                <span class="label">Etiquetas de perfil detectadas</span>
+                                <span class="value">{escape(tags_text)}</span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <p class="disclaimer">
+                    Este plan es orientativo y no sustituye el asesoramiento de un profesional sanitario o nutricional.
+                </p>
+            </section>
+
+            <section class="plan-card">
+                <h2 class="section-title">Planificación semanal</h2>
+
+                <table class="plan-table">
+                    <thead>
+                        <tr>
+                            <th>Día</th>
+                            <th>Desayuno</th>
+                            <th>Comida</th>
+                            <th>Cena</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows_html}
+                    </tbody>
+                </table>
+
+                <p class="footer-note">
+                    Revisa el plan antes de aplicarlo y ajústalo según tus necesidades reales, rutina diaria,
+                    disponibilidad de alimentos y cualquier indicación profesional.
+                </p>
+            </section>
+        </main>
     </body>
     </html>
     """
@@ -429,13 +648,7 @@ def _generate_plan_data(
             "La generación principal con IA ha fallado. Se usará fallback. Error: %s",
             exc,
         )
-        try:
-            return _run_fallback_plan(classifier_data, profile_tags, texto_cliente)
-        except Exception as fallback_exc:
-            logger.exception("El fallback también ha fallado: %s", fallback_exc)
-            raise ValueError(
-                "No se ha podido generar un plan válido ni con la IA ni con el sistema de respaldo."
-            ) from fallback_exc
+        return _run_fallback_plan(classifier_data, profile_tags, texto_cliente)
 
 
 def _save_plan_files(nombre: str, tabla_html: str) -> dict[str, str]:
@@ -452,7 +665,11 @@ def _save_plan_files(nombre: str, tabla_html: str) -> dict[str, str]:
     pdf_path = output_dir / pdf_filename
 
     html_path.write_text(tabla_html, encoding="utf-8")
-    HTML(string=tabla_html, base_url=str(Path(settings.BASE_DIR))).write_pdf(str(pdf_path))
+
+    HTML(
+        string=tabla_html,
+        base_url=str(Path(settings.BASE_DIR)),
+    ).write_pdf(str(pdf_path))
 
     return {
         "html_filename": html_filename,
@@ -475,9 +692,11 @@ def _classify_profile(classifier_data: dict[str, str]) -> list[str]:
             has_kitchen=classifier_data["has_kitchen"],
             days_away=classifier_data["days_away"],
         )
+
         if not isinstance(profile_tags, list):
             logger.warning("El clasificador ha devuelto un valor no válido. Se usará lista vacía.")
             return []
+
         return profile_tags
 
     except Exception as exc:
@@ -517,6 +736,7 @@ def procesar_plan_directo(request):
     form = NutriPromptForm(request.POST)
 
     if not form.is_valid():
+        logger.warning("Formulario NutriPrompt inválido: %s", form.errors)
         return render(
             request,
             "nutriprompt_app/home.html",
@@ -527,12 +747,13 @@ def procesar_plan_directo(request):
         )
 
     cleaned_data = form.cleaned_data
+
     classifier_data = {
         "nombre": cleaned_data["nombre"],
         **_to_classifier_payload(cleaned_data),
     }
-    display_data = _to_display_context(cleaned_data)
 
+    display_data = _to_display_context(cleaned_data)
     profile_tags = _classify_profile(classifier_data)
     texto_cliente = _build_user_input_text(display_data, profile_tags)
 
@@ -545,17 +766,16 @@ def procesar_plan_directo(request):
 
         try:
             shopping_list = generate_shopping_list(plan_data)
+
             if not isinstance(shopping_list, dict):
-                logger.warning("La lista de la compra no tiene formato dict. Se usará un dict vacío.")
+                logger.warning("La lista de la compra no tiene formato dict.")
                 shopping_list = {}
+
         except Exception as exc:
-            logger.exception(
-                "La generación de la lista de la compra ha fallado. Se usará una vacía. Error: %s",
-                exc,
-            )
+            logger.exception("No se ha podido generar la lista de la compra: %s", exc)
             shopping_list = {}
 
-        tabla_html = build_plan_html_table(
+        tabla_html_pdf = build_plan_html_table(
             plan_data=plan_data,
             nombre=display_data["nombre"],
             objetivo=display_data["objetivo"],
@@ -571,7 +791,12 @@ def procesar_plan_directo(request):
             profile_tags=profile_tags,
         )
 
-        archivos = _save_plan_files(nombre=display_data["nombre"], tabla_html=tabla_html)
+        tabla_html_web = _build_day_rows(plan_data)
+
+        archivos = _save_plan_files(
+            nombre=display_data["nombre"],
+            tabla_html=tabla_html_pdf,
+        )
 
         resultado_guardado = {
             "plan": plan_data,
@@ -586,6 +811,7 @@ def procesar_plan_directo(request):
             paciente=display_data["nombre"],
             entrada_usuario=texto_cliente,
             resultado_ia=json.dumps(resultado_guardado, ensure_ascii=False, indent=2),
+            source_type=source_type,
             html_file=archivos["html_filename"],
             pdf_file=archivos["pdf_filename"],
         )
@@ -605,13 +831,18 @@ def procesar_plan_directo(request):
                 shopping_list=shopping_list,
                 source_type=source_type,
                 archivos=archivos,
-                tabla_html=tabla_html,
+                tabla_html=tabla_html_web,
             ),
         )
 
     except Exception as exc:
         logger.exception("Error al procesar el plan para '%s'.", display_data["nombre"])
-        form.add_error(None, str(exc) or "Ha ocurrido un error inesperado al generar el plan.")
+
+        form.add_error(
+            None,
+            str(exc) or "Ha ocurrido un error inesperado al generar el plan.",
+        )
+
         return render(
             request,
             "nutriprompt_app/home.html",

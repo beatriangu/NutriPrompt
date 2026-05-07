@@ -9,6 +9,8 @@ from typing import Any, Callable
 from django.conf import settings
 from google import genai
 from openai import OpenAI
+from nutriprompt_app.services.ai.gemini_client import call_gemini
+from nutriprompt_app.services.ai.openai_client import call_openai
 
 from nutriprompt_app.services.ai.prompt_builder import (
     build_full_prompt,
@@ -586,82 +588,6 @@ def _is_quota_error(error_message: str) -> bool:
     return "429" in upper or "RESOURCE_EXHAUSTED" in upper or "RATE LIMIT" in upper
 
 
-def _call_gemini(prompt: str, model: str) -> str:
-    client = _get_gemini_client()
-    last_error = ""
-
-    for attempt in range(1, MAX_PROVIDER_RETRIES + 1):
-        try:
-            response = client.models.generate_content(
-                model=model,
-                contents=prompt,
-            )
-            raw_output = getattr(response, "text", "") or ""
-
-            if not raw_output.strip():
-                raise ValueError("Gemini ha devuelto una respuesta vacía.")
-
-            return raw_output
-
-        except Exception as exc:
-            last_error = str(exc)
-
-            if _should_retry_provider_error(last_error) and attempt < MAX_PROVIDER_RETRIES:
-                time.sleep(2)
-                continue
-
-            if _is_quota_error(last_error):
-                raise ValueError("Gemini ha alcanzado temporalmente su límite de uso.") from exc
-
-            if _should_retry_provider_error(last_error):
-                raise ValueError("Gemini está temporalmente saturado. Inténtalo de nuevo en unos minutos.") from exc
-
-            if "404" in last_error or "NOT_FOUND" in last_error.upper():
-                raise ValueError(f"El modelo de Gemini '{model}' no está disponible.") from exc
-
-            raise ValueError(f"No se ha podido generar el plan con Gemini: {last_error}") from exc
-
-    raise ValueError(f"No se ha podido generar el plan con Gemini: {last_error}")
-
-
-def _call_openai(prompt: str, model: str) -> str:
-    client = _get_openai_client()
-    last_error = ""
-
-    for attempt in range(1, MAX_PROVIDER_RETRIES + 1):
-        try:
-            response = client.responses.create(
-                model=model,
-                input=prompt,
-            )
-            raw_output = getattr(response, "output_text", "") or ""
-
-            if not raw_output.strip():
-                raise ValueError("OpenAI ha devuelto una respuesta vacía.")
-
-            return raw_output
-
-        except Exception as exc:
-            last_error = str(exc)
-
-            if _should_retry_provider_error(last_error) and attempt < MAX_PROVIDER_RETRIES:
-                time.sleep(2)
-                continue
-
-            if _is_quota_error(last_error):
-                raise ValueError("OpenAI ha alcanzado temporalmente su límite de uso.") from exc
-
-            if _should_retry_provider_error(last_error):
-                raise ValueError("OpenAI está temporalmente saturado. Inténtalo de nuevo en unos minutos.") from exc
-
-            if "404" in last_error or "NOT_FOUND" in last_error.upper():
-                raise ValueError(f"El modelo de OpenAI '{model}' no está disponible.") from exc
-
-            raise ValueError(f"No se ha podido generar el plan con OpenAI: {last_error}") from exc
-
-    raise ValueError(f"No se ha podido generar el plan con OpenAI: {last_error}")
-
-
 def _generate_with_provider(
     provider: str,
     prompt: str,
@@ -676,9 +602,9 @@ def _generate_with_provider(
 
     for attempt in range(1, max_attempts + 1):
         if provider == "gemini":
-            raw_output = _call_gemini(current_prompt, model)
+            raw_output = call_gemini(current_prompt, model)
         elif provider == "openai":
-            raw_output = _call_openai(current_prompt, model)
+            raw_output = call_openai(current_prompt, model)
         else:
             raise ValueError(f"Proveedor no soportado: {provider}")
 
@@ -721,7 +647,7 @@ def generate_meal_plan(
         return _generate_with_provider(
             provider="gemini",
             prompt=full_prompt,
-            retry_prompt_builder=_build_retry_prompt,
+            retry_prompt_builder=build_retry_prompt,
             user_input=user_input,
             model=gemini_model,
             max_attempts=max_attempts_per_provider,
@@ -733,7 +659,7 @@ def generate_meal_plan(
         return _generate_with_provider(
             provider="openai",
             prompt=full_prompt,
-            retry_prompt_builder=_build_retry_prompt,
+            retry_prompt_builder=build_retry_prompt,
             user_input=user_input,
             model=openai_model,
             max_attempts=max_attempts_per_provider,

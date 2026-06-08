@@ -2,14 +2,14 @@
 {% load static %}
 {% get_media_prefix as media_url %}
 
-{% block title %}NutriPrompt · Generador inteligente de planes semanales{% endblock %}
-{% block meta_description %}NutriPrompt · Crea planes semanales personalizados con una experiencia guiada, visual y profesional.{% endblock %}
+{% block title %}NutriPrompt · AI Nutrition Assistant{% endblock %}
+{% block meta_description %}NutriPrompt · Asistente nutricional con IA para generar planes semanales a partir de formularios, PDFs nutricionales, fotos de despensa o ingredientes.{% endblock %}
 
 {% block extra_head %}
 <style>
     body {
         background:
-            linear-gradient(rgba(8, 16, 22, 0.44), rgba(8, 16, 22, 0.44)),
+            linear-gradient(rgba(8, 16, 22, 0.46), rgba(8, 16, 22, 0.46)),
             url("{{ media_url }}formularios/nutriprompt_fondo.png") no-repeat center center fixed;
         background-size: cover;
     }
@@ -20,32 +20,33 @@
         padding: clamp(1rem, 3vw, 2rem);
         display: flex;
         justify-content: center;
-        align-items: center;
+        align-items: flex-start;
     }
 
     .form-shell {
-        width: min(1080px, 100%);
-        border-radius: 24px;
+        width: min(1160px, 100%);
+        border-radius: 28px;
         background: rgba(255, 255, 255, 0.97);
-        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.24);
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.32);
-        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.38);
+        backdrop-filter: blur(14px);
     }
 
     .hero {
-        padding: clamp(1.4rem, 4vw, 2.4rem);
+        padding: clamp(1.4rem, 4vw, 2.7rem);
         background:
-            linear-gradient(135deg, rgba(39, 174, 96, 0.14), rgba(52, 152, 219, 0.06)),
-            rgba(255, 255, 255, 0.96);
+            radial-gradient(circle at top right, rgba(52, 152, 219, 0.18), transparent 34%),
+            radial-gradient(circle at top left, rgba(39, 174, 96, 0.22), transparent 36%),
+            linear-gradient(135deg, #ffffff 0%, #f4fbf7 48%, #eef7ff 100%);
         border-bottom: 1px solid var(--color-border);
     }
 
     .hero-grid {
         display: grid;
-        grid-template-columns: 1.35fr 0.9fr;
-        gap: 1.5rem;
-        align-items: start;
+        grid-template-columns: 1.35fr 0.85fr;
+        gap: 1.6rem;
+        align-items: stretch;
     }
 
     .eyebrow {
@@ -53,59 +54,60 @@
         align-items: center;
         gap: 0.45rem;
         margin-bottom: 0.85rem;
-        padding: 0.45rem 0.8rem;
+        padding: 0.48rem 0.82rem;
         border-radius: 999px;
-        background: rgba(39, 174, 96, 0.1);
+        background: rgba(39, 174, 96, 0.12);
         color: var(--color-primary-dark);
         font-size: 0.82rem;
-        font-weight: 800;
+        font-weight: 900;
+        letter-spacing: 0.02em;
     }
 
     .hero h1 {
         margin: 0;
-        color: #1b2c39;
-        font-size: clamp(1.95rem, 3vw, 2.8rem);
-        line-height: 1.08;
-        letter-spacing: -0.03em;
+        color: #17364b;
+        font-size: clamp(2.15rem, 4vw, 3.45rem);
+        line-height: 1.02;
+        letter-spacing: -0.055em;
     }
 
     .hero p {
-        max-width: 760px;
+        max-width: 790px;
         margin: 1rem 0 0;
         color: var(--color-muted);
-        font-size: 1rem;
-        line-height: 1.7;
+        font-size: 1.03rem;
+        line-height: 1.75;
     }
 
     .hero-points {
         display: flex;
         flex-wrap: wrap;
         gap: 0.65rem;
-        margin-top: 1.1rem;
+        margin-top: 1.2rem;
     }
 
     .hero-point {
-        padding: 0.58rem 0.85rem;
+        padding: 0.6rem 0.9rem;
         border: 1px solid var(--color-border);
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.92);
         color: #44535e;
         font-size: 0.86rem;
-        font-weight: 700;
+        font-weight: 800;
     }
 
     .hero-side {
-        padding: 1rem;
+        padding: 1.1rem;
         border: 1px solid var(--color-border);
-        border-radius: 18px;
+        border-radius: 22px;
         background: rgba(255, 255, 255, 0.78);
-        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+        box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
     }
 
     .hero-side__title {
-        margin: 0 0 0.65rem;
-        font-size: 0.98rem;
-        font-weight: 800;
+        margin: 0 0 0.75rem;
+        font-size: 1rem;
+        font-weight: 900;
         color: #1f2d3d;
     }
 
@@ -113,31 +115,134 @@
         margin: 0;
         padding-left: 1.1rem;
         color: var(--color-muted);
-        font-size: 0.9rem;
-        line-height: 1.65;
+        font-size: 0.91rem;
+        line-height: 1.7;
     }
 
     .form-body {
-        padding: clamp(1.1rem, 4vw, 2rem);
+        padding: clamp(1.1rem, 4vw, 2.2rem);
     }
 
     .mensaje-error {
         margin-bottom: 1.2rem;
         padding: 0.95rem 1rem;
-        border-radius: 14px;
+        border-radius: 16px;
         border: 1px solid #f3c2cb;
         background: #fdecef;
         color: #8f1d2c;
         font-size: 0.95rem;
         line-height: 1.5;
-        font-weight: 600;
+        font-weight: 700;
+    }
+
+    .smart-intake {
+        margin-bottom: 1.2rem;
+        padding: clamp(1rem, 3vw, 1.45rem);
+        border: 1px solid #dbeaf7;
+        border-radius: 22px;
+        background:
+            radial-gradient(circle at top right, rgba(52, 152, 219, 0.12), transparent 32%),
+            linear-gradient(135deg, #ffffff, #f6fbff);
+        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.07);
+    }
+
+    .smart-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .smart-header h2 {
+        margin: 0;
+        color: #17364b;
+        font-size: 1.35rem;
+        letter-spacing: -0.025em;
+    }
+
+    .smart-header p {
+        margin: 0.35rem 0 0;
+        color: var(--color-muted);
+        line-height: 1.6;
+    }
+
+    .beta-pill {
+        display: inline-flex;
+        padding: 0.48rem 0.78rem;
+        border-radius: 999px;
+        background: #dcfce7;
+        color: #14532d;
+        font-size: 0.78rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        white-space: nowrap;
+    }
+
+    .intake-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.9rem;
+    }
+
+    .intake-card {
+        display: flex;
+        flex-direction: column;
+        min-height: 190px;
+        padding: 1.1rem;
+        border: 1px solid #dcecf7;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.9);
+        text-decoration: none;
+        box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+    .intake-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(39, 174, 96, 0.45);
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.1);
+        text-decoration: none;
+    }
+
+    .intake-icon {
+        width: 48px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 0.9rem;
+        border-radius: 16px;
+        background: linear-gradient(135deg, rgba(39, 174, 96, 0.13), rgba(52, 152, 219, 0.13));
+        font-size: 1.55rem;
+    }
+
+    .intake-card h3 {
+        margin: 0;
+        color: #17364b;
+        font-size: 1rem;
+    }
+
+    .intake-card p {
+        margin: 0.45rem 0 0;
+        color: #657482;
+        font-size: 0.9rem;
+        line-height: 1.55;
+    }
+
+    .intake-card span {
+        margin-top: auto;
+        padding-top: 1rem;
+        color: var(--color-primary-dark);
+        font-size: 0.85rem;
+        font-weight: 900;
     }
 
     .section-card {
         margin-top: 1rem;
-        padding: clamp(1rem, 3vw, 1.35rem);
+        padding: clamp(1rem, 3vw, 1.4rem);
         border: 1px solid var(--color-border);
-        border-radius: 18px;
+        border-radius: 22px;
         background: #fbfcfd;
     }
 
@@ -153,23 +258,23 @@
 
     .section-title h2 {
         margin: 0;
-        font-size: 1.07rem;
-        font-weight: 800;
+        font-size: 1.08rem;
+        font-weight: 900;
         color: #1f2d3d;
     }
 
     .section-title span {
         font-size: 0.82rem;
         color: #7b8893;
-        font-weight: 600;
+        font-weight: 700;
         text-align: right;
     }
 
     .section-intro {
         margin: -0.2rem 0 1rem;
         color: var(--color-muted);
-        font-size: 0.92rem;
-        line-height: 1.6;
+        font-size: 0.93rem;
+        line-height: 1.65;
     }
 
     .grid-2 {
@@ -189,7 +294,7 @@
     .label-main {
         display: block;
         margin-bottom: 0.45rem;
-        font-weight: 700;
+        font-weight: 800;
         color: #243746;
         font-size: 0.95rem;
     }
@@ -199,9 +304,9 @@
     select,
     textarea {
         width: 100%;
-        padding: 0.84rem 0.92rem;
+        padding: 0.86rem 0.94rem;
         border: 1px solid #c9d2db;
-        border-radius: 12px;
+        border-radius: 14px;
         font: inherit;
         color: var(--color-text);
         background: #ffffff;
@@ -231,7 +336,7 @@
 
     .helper-inline {
         padding: 0.78rem 0.9rem;
-        border-radius: 12px;
+        border-radius: 14px;
         background: rgba(39, 174, 96, 0.06);
         border: 1px solid rgba(39, 174, 96, 0.1);
         color: #436056;
@@ -259,14 +364,14 @@
     .choice-card label {
         display: block;
         padding: 1rem;
-        border-radius: 14px;
+        border-radius: 16px;
         border: 1px solid var(--color-border);
         background: #ffffff;
         color: var(--color-text);
         cursor: pointer;
         transition: all 0.22s ease;
         min-height: 100%;
-        font-weight: 700;
+        font-weight: 800;
     }
 
     .choice-card label:hover,
@@ -310,53 +415,15 @@
         color: #44535e;
         cursor: pointer;
         font-size: 0.9rem;
-        font-weight: 700;
+        font-weight: 800;
         line-height: 1;
         transition: all 0.2s ease;
-    }
-
-    .feature-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-
-    .feature-box {
-        padding: 1rem;
-        border: 1px dashed #cfe0d7;
-        border-radius: 14px;
-        background: #fcfefd;
-    }
-
-    .feature-box h3 {
-        margin: 0 0 0.4rem;
-        font-size: 0.95rem;
-        color: #1f2d3d;
-    }
-
-    .feature-box p {
-        margin: 0;
-        color: var(--color-muted);
-        font-size: 0.86rem;
-        line-height: 1.6;
-    }
-
-    .coming-soon {
-        display: inline-flex;
-        margin-top: 0.6rem;
-        padding: 0.38rem 0.65rem;
-        border-radius: 999px;
-        background: #eef6ff;
-        color: #31577a;
-        font-size: 0.76rem;
-        font-weight: 800;
     }
 
     .privacy-box {
         margin-top: 1rem;
         padding: 1rem;
-        border-radius: 14px;
+        border-radius: 16px;
         border: 1px solid #d8e5dc;
         background: #f7faf8;
         color: #4a5a4d;
@@ -385,7 +452,7 @@
         color: #8f1d2c;
         font-size: 0.84rem;
         line-height: 1.5;
-        font-weight: 600;
+        font-weight: 700;
     }
 
     .submit-area {
@@ -397,19 +464,20 @@
     .submit-btn {
         width: 100%;
         border: none;
-        border-radius: 14px;
-        background: linear-gradient(180deg, var(--color-primary), var(--color-primary-dark));
+        border-radius: 16px;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
         color: #ffffff;
-        padding: 1rem;
-        font-size: 1.03rem;
-        font-weight: 800;
+        padding: 1.05rem;
+        font-size: 1.04rem;
+        font-weight: 900;
         cursor: pointer;
         transition: transform 0.08s ease, opacity 0.25s ease, box-shadow 0.25s ease;
-        box-shadow: 0 12px 24px rgba(39, 174, 96, 0.18);
+        box-shadow: 0 14px 28px rgba(39, 174, 96, 0.22);
     }
 
     .submit-btn:hover {
-        box-shadow: 0 14px 28px rgba(39, 174, 96, 0.25);
+        box-shadow: 0 18px 36px rgba(39, 174, 96, 0.28);
+        transform: translateY(-1px);
     }
 
     .submit-btn:active {
@@ -430,23 +498,24 @@
 
     .required-mark {
         color: #b42318;
-        font-weight: 800;
+        font-weight: 900;
     }
 
     @media (max-width: 980px) {
-        .hero-grid {
+        .hero-grid,
+        .intake-grid {
             grid-template-columns: 1fr;
         }
     }
 
     @media (max-width: 720px) {
         .grid-2,
-        .choice-grid,
-        .feature-grid {
+        .choice-grid {
             grid-template-columns: 1fr;
         }
 
-        .section-title {
+        .section-title,
+        .smart-header {
             flex-direction: column;
         }
 
@@ -457,11 +526,11 @@
 
     @media (max-width: 560px) {
         .form-shell {
-            border-radius: 16px;
+            border-radius: 18px;
         }
 
         .hero h1 {
-            font-size: 1.65rem;
+            font-size: 1.8rem;
         }
     }
 </style>
@@ -473,31 +542,31 @@
         <section class="hero">
             <div class="hero-grid">
                 <div>
-                    <div class="eyebrow">✨ NutriPrompt · Generador inteligente</div>
+                    <div class="eyebrow">✨ NutriPrompt · AI Nutrition Assistant</div>
 
-                    <h1>Crea un plan semanal personalizado, claro y fácil de seguir</h1>
+                    <h1>Convierte información real en un plan semanal claro, útil y personalizado</h1>
 
                     <p>
-                        Completa un formulario guiado y obtén una propuesta adaptada a tu objetivo,
-                        tus preferencias, tus restricciones y tu contexto real. Incluye planificación visual,
-                        resumen del perfil, lista de la compra orientativa y descarga en PDF.
+                        NutriPrompt combina formulario guiado, lógica nutricional, generación automática y análisis visual
+                        para ayudarte a crear planes semanales a partir de tus objetivos, restricciones, contexto real,
+                        pautas profesionales o alimentos disponibles en casa.
                     </p>
 
                     <div class="hero-points">
                         <span class="hero-point">Plan semanal personalizado</span>
-                        <span class="hero-point">Resumen inteligente del perfil</span>
-                        <span class="hero-point">Lista de la compra orientativa</span>
-                        <span class="hero-point">Vista web + PDF descargable</span>
+                        <span class="hero-point">PDF profesional</span>
+                        <span class="hero-point">Lista de compra</span>
+                        <span class="hero-point">Smart Intake con IA</span>
                     </div>
                 </div>
 
-                <aside class="hero-side" aria-label="Ventajas de NutriPrompt">
-                    <h2 class="hero-side__title">Qué aporta NutriPrompt</h2>
+                <aside class="hero-side" aria-label="Qué hace NutriPrompt">
+                    <h2 class="hero-side__title">Qué aporta esta demo</h2>
                     <ul class="hero-side__list">
-                        <li>Recoge la información de forma ordenada y fácil de completar.</li>
-                        <li>Reduce errores mediante opciones guiadas y validaciones claras.</li>
-                        <li>Genera un resultado visual, revisable y presentable.</li>
-                        <li>Está preparado para evolucionar con IA, PDFs profesionales y análisis de ingredientes.</li>
+                        <li>Recoge información manual o desde archivos reales.</li>
+                        <li>Interpreta restricciones como gluten, lactosa o FODMAPs.</li>
+                        <li>Genera un resultado visual, revisable y descargable.</li>
+                        <li>Está preparada para integrar PDF, OCR y análisis de despensa.</li>
                     </ul>
                 </aside>
             </div>
@@ -516,6 +585,49 @@
                 </div>
             {% endif %}
 
+            <section class="smart-intake" aria-labelledby="smart-intake-title">
+                <div class="smart-header">
+                    <div>
+                        <h2 id="smart-intake-title">Smart Intake: empieza desde tu contexto real</h2>
+                        <p>
+                            Puedes generar el plan manualmente o apoyarte en archivos reales:
+                            una pauta del nutricionista, una foto de tu nevera/despensa o un producto concreto.
+                        </p>
+                    </div>
+                    <span class="beta-pill">AI Vision Beta</span>
+                </div>
+
+                <div class="intake-grid">
+                    <a href="{% url 'nutriprompt_app:vision_upload' %}" class="intake-card">
+                        <div class="intake-icon">📄</div>
+                        <h3>PDF de dieta o nutricionista</h3>
+                        <p>
+                            Sube una pauta nutricional para extraer restricciones, alimentos recomendados,
+                            alimentos a evitar y objetivos principales.
+                        </p>
+                        <span>Analizar documento →</span>
+                    </a>
+
+                    <a href="{% url 'nutriprompt_app:vision_upload' %}" class="intake-card">
+                        <div class="intake-icon">🏠</div>
+                        <h3>Foto de nevera o despensa</h3>
+                        <p>
+                            Usa una imagen de lo que tienes en casa para orientar el plan y reducir compras innecesarias.
+                        </p>
+                        <span>Analizar alimentos →</span>
+                    </a>
+
+                    <a href="{% url 'nutriprompt_app:vision_upload' %}" class="intake-card">
+                        <div class="intake-icon">🏷️</div>
+                        <h3>Ingrediente o producto concreto</h3>
+                        <p>
+                            Revisa una etiqueta o ingrediente para detectar posibles alertas de gluten, lactosa o FODMAPs.
+                        </p>
+                        <span>Analizar producto →</span>
+                    </a>
+                </div>
+            </section>
+
             <form method="post" action="{% url 'nutriprompt_app:procesar_plan_directo' %}" autocomplete="off" id="plan-form" novalidate>
                 {% csrf_token %}
 
@@ -526,7 +638,7 @@
                     </div>
 
                     <p class="section-intro">
-                        Indica el objetivo principal, el presupuesto aproximado y si necesitas adaptar el plan a días fuera de casa.
+                        Si prefieres hacerlo manualmente, completa los campos principales para generar tu plan.
                     </p>
 
                     <div class="field">
@@ -567,10 +679,6 @@
                             {% endfor %}
                         </div>
 
-                        {% if form.objetivo.help_text %}
-                            <p class="nota-campo">{{ form.objetivo.help_text }}</p>
-                        {% endif %}
-
                         {% for error in form.objetivo.errors %}
                             <div class="field-error">{{ error }}</div>
                         {% endfor %}
@@ -583,10 +691,6 @@
                             </label>
                             {{ form.presupuesto }}
 
-                            {% if form.presupuesto.help_text %}
-                                <p class="nota-campo">{{ form.presupuesto.help_text }}</p>
-                            {% endif %}
-
                             {% for error in form.presupuesto.errors %}
                                 <div class="field-error">{{ error }}</div>
                             {% endfor %}
@@ -597,10 +701,6 @@
                                 {{ form.days_away.label }}
                             </label>
                             {{ form.days_away }}
-
-                            {% if form.days_away.help_text %}
-                                <p class="nota-campo">{{ form.days_away.help_text }}</p>
-                            {% endif %}
 
                             {% for error in form.days_away.errors %}
                                 <div class="field-error">{{ error }}</div>
@@ -616,7 +716,7 @@
                     </div>
 
                     <p class="section-intro">
-                        Marca únicamente lo que deba tenerse en cuenta para que el resultado sea coherente y fácil de aplicar.
+                        Marca lo que deba respetarse siempre. Más adelante estos datos podrán venir automáticamente desde PDF o imagen.
                     </p>
 
                     <div class="field">
@@ -630,10 +730,6 @@
                                 </div>
                             {% endfor %}
                         </div>
-
-                        {% if form.restricciones.help_text %}
-                            <p class="nota-campo">{{ form.restricciones.help_text }}</p>
-                        {% endif %}
 
                         {% for error in form.restricciones.errors %}
                             <div class="field-error">{{ error }}</div>
@@ -652,10 +748,6 @@
                             {% endfor %}
                         </div>
 
-                        {% if form.preferencias.help_text %}
-                            <p class="nota-campo">{{ form.preferencias.help_text }}</p>
-                        {% endif %}
-
                         {% for error in form.preferencias.errors %}
                             <div class="field-error">{{ error }}</div>
                         {% endfor %}
@@ -667,9 +759,10 @@
                         </label>
                         {{ form.notas }}
 
-                        {% if form.notas.help_text %}
-                            <div class="helper-inline">{{ form.notas.help_text }}</div>
-                        {% endif %}
+                        <div class="helper-inline">
+                            Puedes añadir indicaciones como: “usar lo que tengo en casa”, “seguir pauta del nutricionista”,
+                            “evitar ajo y cebolla” o “cenas muy ligeras”.
+                        </div>
 
                         {% for error in form.notas.errors %}
                             <div class="field-error">{{ error }}</div>
@@ -738,32 +831,7 @@
 
                 <section class="section-card">
                     <div class="section-title">
-                        <h2>4. Próximas funcionalidades</h2>
-                        <span>Preparado para seguir creciendo</span>
-                    </div>
-
-                    <div class="feature-grid">
-                        <article class="feature-box">
-                            <h3>Integración con pauta profesional</h3>
-                            <p>
-                                La herramienta podrá apoyarse en indicaciones de un nutricionista para adaptar mejor cada plan.
-                            </p>
-                            <span class="coming-soon">Próximamente</span>
-                        </article>
-
-                        <article class="feature-box">
-                            <h3>Análisis de ingredientes disponibles</h3>
-                            <p>
-                                Permitirá tener en cuenta alimentos que ya tienes en casa para reducir compras innecesarias.
-                            </p>
-                            <span class="coming-soon">Próximamente</span>
-                        </article>
-                    </div>
-                </section>
-
-                <section class="section-card">
-                    <div class="section-title">
-                        <h2>5. Antes de generar</h2>
+                        <h2>4. Antes de generar</h2>
                         <span>Última revisión</span>
                     </div>
 
@@ -787,7 +855,8 @@
                         </button>
 
                         <p class="submit-note">
-                            El resultado incluirá planificación semanal, resumen del contexto, etiquetas detectadas y lista de la compra orientativa.
+                            El resultado incluirá planificación semanal, resumen del perfil, etiquetas detectadas,
+                            lista de la compra orientativa y PDF descargable.
                         </p>
                     </div>
                 </section>
@@ -806,7 +875,7 @@
         if (!form || !button) return;
 
         form.addEventListener("submit", function () {
-            button.textContent = "Generando plan...";
+            button.textContent = "Generando plan inteligente...";
             button.disabled = true;
         });
     })();

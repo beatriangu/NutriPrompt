@@ -4,7 +4,7 @@ import json
 import logging
 from pathlib import Path
 from typing import Any
-
+from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.shortcuts import render
 from django.utils import timezone
@@ -35,11 +35,17 @@ from nutriprompt_app.services.profiles.profile_classifier import (
 )
 
 from nutriprompt_app.services.nutrition.shopping_list_generator import (
+    generate_enriched_shopping_list,
     generate_shopping_list,
+    get_dataset_status,
 )
 
 from nutriprompt_app.services.nutrition.fallback_plan import (
     generate_fallback_meal_plan,
+)
+
+from nutriprompt_app.services.vision.vision_analyzer import (
+    analyze_food_label,
 )
 
 
@@ -48,6 +54,12 @@ logger = logging.getLogger(__name__)
 DEMO_MODE_FALLBACK = True
 RESULTS_SUBDIR = "resultados"
 DEFAULT_USER_LABEL = "Bea"
+VISION_UPLOAD_SUBDIRS = {
+    "product_label": "vision/products",
+    "pantry_image": "vision/pantry",
+    "fridge_image": "vision/fridge",
+    "nutrition_pdf": "vision/nutrition_pdfs",
+}
 
 YES_NO_MAP = dict(YES_NO_CHOICES)
 KITCHEN_MAP = dict(KITCHEN_CHOICES)
@@ -707,11 +719,101 @@ def _classify_profile(classifier_data: dict[str, str]) -> list[str]:
         return []
 
 
+
+def _safe_dataset_status() -> dict[str, Any]:
+    try:
+        status = get_dataset_status()
+
+        if not isinstance(status, dict):
+            return {
+                "dataset_available": False,
+                "total_foods": 0,
+                "dataset_path": "",
+            }
+
+        return status
+
+    except Exception as exc:
+        logger.exception("No se ha podido consultar el estado del dataset nutricional: %s", exc)
+        return {
+            "dataset_available": False,
+            "total_foods": 0,
+            "dataset_path": "",
+        }
+
+
+def _generate_shopping_data(plan_data: list[dict[str, str]]) -> tuple[dict[str, list[str]], dict[str, list[dict[str, Any]]]]:
+    try:
+        shopping_list = generate_shopping_list(plan_data)
+
+        if not isinstance(shopping_list, dict):
+            logger.warning("La lista de la compra básica no tiene formato dict.")
+            shopping_list = {}
+
+    except Exception as exc:
+        logger.exception("No se ha podido generar la lista de la compra básica: %s", exc)
+        shopping_list = {}
+
+    try:
+        enriched_shopping_list = generate_enriched_shopping_list(plan_data)
+
+        if not isinstance(enriched_shopping_list, dict):
+            logger.warning("La lista de la compra enriquecida no tiene formato dict.")
+            enriched_shopping_list = {}
+
+    except Exception as exc:
+        logger.exception("No se ha podido generar la lista enriquecida con dataset Kaggle: %s", exc)
+        enriched_shopping_list = {}
+
+    return shopping_list, enriched_shopping_list
+
+
+def _build_nutrition_insights(
+    enriched_shopping_list: dict[str, list[dict[str, Any]]],
+) -> dict[str, Any]:
+    total_items = 0
+    matched_items = 0
+    highlighted_items: list[dict[str, Any]] = []
+
+    for category, items in enriched_shopping_list.items():
+        for item in items:
+            total_items += 1
+
+            if item.get("has_nutrition_data"):
+                matched_items += 1
+
+                if len(highlighted_items) < 6:
+                    highlighted_items.append(
+                        {
+                            "category": category,
+                            "name": item.get("name", "Alimento"),
+                            "summary": item.get("summary", "Datos nutricionales disponibles."),
+                        }
+                    )
+
+    coverage = round((matched_items / total_items) * 100) if total_items else 0
+
+    return {
+        "dataset_status": _safe_dataset_status(),
+        "total_items": total_items,
+        "matched_items": matched_items,
+        "coverage": coverage,
+        "highlighted_items": highlighted_items,
+    }
+
+
+def _get_vision_upload_subdir(analysis_type: str | None) -> str:
+    normalized_type = str(analysis_type or "product_label").strip()
+    return VISION_UPLOAD_SUBDIRS.get(normalized_type, VISION_UPLOAD_SUBDIRS["product_label"])
+
+
 def _build_result_context(
     *,
     display_data: dict[str, str],
     profile_tags: list[str],
     shopping_list: dict[str, list[str]],
+    enriched_shopping_list: dict[str, list[dict[str, Any]]],
+    nutrition_insights: dict[str, Any],
     source_type: str,
     archivos: dict[str, str],
     tabla_html: str,
@@ -724,6 +826,8 @@ def _build_result_context(
         "source_type": source_type,
         "profile_tags": profile_tags,
         "shopping_list": shopping_list,
+        "enriched_shopping_list": enriched_shopping_list,
+        "nutrition_insights": nutrition_insights,
         "used_fallback": source_type == "fallback",
     }
 
@@ -764,16 +868,8 @@ def procesar_plan_directo(request):
             texto_cliente=texto_cliente,
         )
 
-        try:
-            shopping_list = generate_shopping_list(plan_data)
-
-            if not isinstance(shopping_list, dict):
-                logger.warning("La lista de la compra no tiene formato dict.")
-                shopping_list = {}
-
-        except Exception as exc:
-            logger.exception("No se ha podido generar la lista de la compra: %s", exc)
-            shopping_list = {}
+        shopping_list, enriched_shopping_list = _generate_shopping_data(plan_data)
+        nutrition_insights = _build_nutrition_insights(enriched_shopping_list)
 
         tabla_html_pdf = build_plan_html_table(
             plan_data=plan_data,
@@ -802,6 +898,8 @@ def procesar_plan_directo(request):
             "plan": plan_data,
             "profile_tags": profile_tags,
             "shopping_list": shopping_list,
+            "enriched_shopping_list": enriched_shopping_list,
+            "nutrition_insights": nutrition_insights,
             "source_type": source_type,
         }
 
@@ -829,6 +927,8 @@ def procesar_plan_directo(request):
                 display_data=display_data,
                 profile_tags=profile_tags,
                 shopping_list=shopping_list,
+                enriched_shopping_list=enriched_shopping_list,
+                nutrition_insights=nutrition_insights,
                 source_type=source_type,
                 archivos=archivos,
                 tabla_html=tabla_html_web,
@@ -851,3 +951,165 @@ def procesar_plan_directo(request):
                 "error": str(exc) or "Ha ocurrido un error inesperado al generar el plan.",
             },
         )
+
+
+def vision_upload(request):
+    """
+    NutriPrompt Smart Intake / Vision.
+
+    Multi-context nutrition analysis:
+    - Product labels
+    - Pantry images
+    - Fridge images
+    - Nutrition PDFs
+
+    The system can compare:
+    - Professional nutrition guidance
+    - Available foods
+    - Products / ingredients
+    - Potential incompatibilities
+    """
+
+    context: dict[str, Any] = {
+        "analysis": None,
+        "uploaded_files": [],
+        "compatibility_analysis": None,
+        "error": None,
+    }
+
+    if request.method != "POST":
+        return render(
+            request,
+            "nutriprompt_app/vision/upload.html",
+            context,
+        )
+
+    uploaded_files = request.FILES.getlist("image")
+
+    if not uploaded_files:
+        context["error"] = (
+            "Sube al menos una imagen o documento para analizar."
+        )
+
+        return render(
+            request,
+            "nutriprompt_app/vision/upload.html",
+            context,
+        )
+
+    try:
+        storage = FileSystemStorage()
+
+        pantry_analyses = []
+        fridge_analyses = []
+        product_analyses = []
+        ingredient_analyses = []
+        plan_analysis = None
+
+        uploaded_previews = []
+
+        for uploaded_file in uploaded_files:
+
+            analysis_type = request.POST.get(
+                f"analysis_type_{uploaded_file.name}",
+                "product_label",
+            )
+
+            upload_subdir = _get_vision_upload_subdir(
+                analysis_type,
+            )
+
+            filename = storage.save(
+                f"{upload_subdir}/{uploaded_file.name}",
+                uploaded_file,
+            )
+
+            file_path = storage.path(filename)
+
+            uploaded_previews.append(
+                {
+                    "url": storage.url(filename),
+                    "name": uploaded_file.name,
+                    "analysis_type": analysis_type,
+                }
+            )
+
+            analysis = analyze_food_label(file_path)
+
+            analysis["intake_type"] = analysis_type
+
+            logger.info(
+                "NutriPrompt Vision analysis completed: '%s' (%s)",
+                uploaded_file.name,
+                analysis_type,
+            )
+
+            if analysis_type == "nutrition_pdf":
+                plan_analysis = {
+                    "detected_restrictions": (
+                        analysis.get("detected_restrictions", [])
+                    ),
+                    "detected_goals": (
+                        analysis.get("detected_goals", [])
+                    ),
+                    "summary": (
+                        analysis.get("summary", "")
+                    ),
+                }
+
+            elif analysis_type == "pantry_image":
+                pantry_analyses.append(analysis)
+
+            elif analysis_type == "fridge_image":
+                fridge_analyses.append(analysis)
+
+            elif analysis_type == "ingredient_image":
+                ingredient_analyses.append(analysis)
+
+            else:
+                product_analyses.append(analysis)
+
+        from nutriprompt_app.services.vision.compatibility_analyzer import (
+            analyze_context_compatibility,
+        )
+
+        compatibility_analysis = analyze_context_compatibility(
+            plan_analysis=plan_analysis,
+            pantry_analyses=pantry_analyses,
+            fridge_analyses=fridge_analyses,
+            product_analyses=product_analyses,
+            ingredient_analyses=ingredient_analyses,
+        )
+
+        context.update(
+            {
+                "uploaded_files": uploaded_previews,
+                "compatibility_analysis": compatibility_analysis,
+                "analysis": {
+                    "total_files": len(uploaded_files),
+                    "processed_successfully": True,
+                },
+            }
+        )
+
+        logger.info(
+            "Smart Intake compatibility analysis completed successfully."
+        )
+
+    except Exception as exc:
+        logger.exception(
+            "Error in NutriPrompt Vision compatibility analysis: %s",
+            exc,
+        )
+
+        context["error"] = (
+            "No se ha podido completar el análisis nutricional. "
+            "Prueba con imágenes más claras o archivos compatibles."
+        )
+
+    return render(
+        request,
+        "nutriprompt_app/vision/upload.html",
+        context,
+    )
+

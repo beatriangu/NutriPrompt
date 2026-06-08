@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from django import forms
 
 
@@ -62,13 +64,17 @@ class NutriPromptForm(forms.Form):
         label="Nombre",
         max_length=100,
         required=True,
-        widget=forms.TextInput(attrs={
-            "placeholder": "Ej. Bea Lamiquiz",
-            "class": "form-control",
-            "autocomplete": "name",
-        }),
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Ej. Bea Lamiquiz",
+                "class": "form-control",
+                "autocomplete": "name",
+                "aria-label": "Nombre de la persona para personalizar el plan",
+            }
+        ),
         error_messages={
             "required": "Introduce tu nombre para personalizar el plan.",
+            "max_length": "El nombre no puede superar los 100 caracteres.",
         },
     )
 
@@ -76,10 +82,12 @@ class NutriPromptForm(forms.Form):
         label="Objetivo principal",
         choices=GOAL_CHOICES,
         required=True,
-        widget=forms.RadioSelect(attrs={
-            "class": "form-radio",
-        }),
-        help_text="Elige el objetivo más importante para esta semana.",
+        widget=forms.RadioSelect(
+            attrs={
+                "class": "form-radio",
+            }
+        ),
+        help_text="Elige el objetivo más importante para orientar la propuesta semanal.",
         error_messages={
             "required": "Selecciona un objetivo principal.",
         },
@@ -89,20 +97,27 @@ class NutriPromptForm(forms.Form):
         label="Restricciones alimentarias",
         choices=DIET_CHOICES,
         required=False,
-        widget=forms.CheckboxSelectMultiple(attrs={
-            "class": "form-checkbox",
-        }),
-        help_text="Marca solo las restricciones que deban respetarse siempre.",
+        widget=forms.CheckboxSelectMultiple(
+            attrs={
+                "class": "form-checkbox",
+            }
+        ),
+        help_text=(
+            "Marca solo las restricciones que deban respetarse siempre. "
+            "Si tienes una pauta médica o nutricional, úsala como referencia principal."
+        ),
     )
 
     preferencias = forms.MultipleChoiceField(
         label="Preferencias",
         choices=PREFERENCE_CHOICES,
         required=False,
-        widget=forms.CheckboxSelectMultiple(attrs={
-            "class": "form-checkbox",
-        }),
-        help_text="Ayudan a que el plan sea más realista y fácil de seguir.",
+        widget=forms.CheckboxSelectMultiple(
+            attrs={
+                "class": "form-checkbox",
+            }
+        ),
+        help_text="Ayudan a que el plan sea más realista, práctico y fácil de seguir.",
     )
 
     presupuesto = forms.IntegerField(
@@ -110,14 +125,17 @@ class NutriPromptForm(forms.Form):
         min_value=0,
         max_value=500,
         required=True,
-        widget=forms.NumberInput(attrs={
-            "placeholder": "Ej. 60",
-            "class": "form-control",
-            "inputmode": "numeric",
-            "min": "0",
-            "max": "500",
-        }),
-        help_text="Indica un presupuesto aproximado para adaptar la compra semanal.",
+        widget=forms.NumberInput(
+            attrs={
+                "placeholder": "Ej. 60",
+                "class": "form-control",
+                "inputmode": "numeric",
+                "min": "0",
+                "max": "500",
+                "aria-label": "Presupuesto semanal aproximado en euros",
+            }
+        ),
+        help_text="Indica un presupuesto aproximado para adaptar la lista de la compra.",
         error_messages={
             "required": "Indica tu presupuesto semanal aproximado.",
             "min_value": "El presupuesto no puede ser negativo.",
@@ -130,9 +148,12 @@ class NutriPromptForm(forms.Form):
         label="¿Dónde vas a comer principalmente?",
         choices=MEAL_CONTEXT_CHOICES,
         required=False,
-        widget=forms.Select(attrs={
-            "class": "form-select",
-        }),
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+            }
+        ),
+        help_text="Ayuda a adaptar el plan a comidas en casa, trabajo, viaje o restaurantes.",
     )
 
     special_situation = forms.ChoiceField(
@@ -140,9 +161,12 @@ class NutriPromptForm(forms.Form):
         choices=SPECIAL_SITUATION_CHOICES,
         required=False,
         initial="normal",
-        widget=forms.Select(attrs={
-            "class": "form-select",
-        }),
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+            }
+        ),
+        help_text="Indica si esta semana tiene algún contexto especial.",
     )
 
     days_away = forms.IntegerField(
@@ -151,13 +175,15 @@ class NutriPromptForm(forms.Form):
         max_value=7,
         initial=0,
         required=False,
-        widget=forms.NumberInput(attrs={
-            "placeholder": "Ej. 2",
-            "class": "form-control",
-            "inputmode": "numeric",
-            "min": "0",
-            "max": "7",
-        }),
+        widget=forms.NumberInput(
+            attrs={
+                "placeholder": "Ej. 2",
+                "class": "form-control",
+                "inputmode": "numeric",
+                "min": "0",
+                "max": "7",
+            }
+        ),
         help_text="Útil si necesitas adaptar comidas de trabajo, viajes o cenas fuera.",
         error_messages={
             "min_value": "Los días fuera de casa no pueden ser negativos.",
@@ -170,44 +196,70 @@ class NutriPromptForm(forms.Form):
         label="Acceso a cocina",
         choices=KITCHEN_CHOICES,
         required=False,
-        widget=forms.Select(attrs={
-            "class": "form-select",
-        }),
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+            }
+        ),
+        help_text="Indica si podrás cocinar o solo preparar comidas sencillas.",
     )
 
     needs_tupper = forms.ChoiceField(
         label="¿Necesitas tupper?",
         choices=YES_NO_CHOICES,
         required=False,
-        widget=forms.Select(attrs={
-            "class": "form-select",
-        }),
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+            }
+        ),
+        help_text="Ayuda a proponer comidas transportables y fáciles de organizar.",
     )
 
     notas = forms.CharField(
         label="Notas adicionales",
         required=False,
-        max_length=800,
-        widget=forms.Textarea(attrs={
-            "placeholder": "Ej. Cenas ligeras, poco tiempo para cocinar, prefiero repetir ingredientes...",
-            "class": "form-textarea",
-            "rows": 4,
-        }),
-        help_text="Añade aquí cualquier matiz que no hayas podido marcar arriba.",
-    )
-
-    accept_privacy = forms.BooleanField(
-        label="He leído la información de privacidad y entiendo que el plan tiene carácter orientativo.",
-        required=True,
-        widget=forms.CheckboxInput(attrs={
-            "class": "form-check-input",
-        }),
+        max_length=1000,
+        widget=forms.Textarea(
+            attrs={
+                "placeholder": (
+                    "Ej. Cenas ligeras, poco tiempo para cocinar, usar lo que tengo en casa, "
+                    "evitar ajo y cebolla, seguir pauta del nutricionista..."
+                ),
+                "class": "form-textarea",
+                "rows": 4,
+            }
+        ),
+        help_text=(
+            "Añade aquí matices importantes. Si tienes indicaciones de un profesional, "
+            "puedes resumirlas para que la propuesta las tenga en cuenta."
+        ),
         error_messages={
-            "required": "Debes aceptar la información de privacidad antes de generar el plan.",
+            "max_length": "Las notas no pueden superar los 1000 caracteres.",
         },
     )
 
-    def clean_nombre(self):
+    accept_privacy = forms.BooleanField(
+        label=(
+            "He leído la información de privacidad y entiendo que NutriPrompt genera "
+            "una propuesta orientativa que no sustituye el asesoramiento de un profesional "
+            "sanitario o nutricional."
+        ),
+        required=True,
+        widget=forms.CheckboxInput(
+            attrs={
+                "class": "form-check-input",
+            }
+        ),
+        error_messages={
+            "required": (
+                "Debes aceptar que el plan es orientativo y no sustituye el asesoramiento "
+                "de un profesional sanitario o nutricional."
+            ),
+        },
+    )
+
+    def clean_nombre(self) -> str:
         nombre = self.cleaned_data.get("nombre", "").strip()
 
         if len(nombre) < 2:
@@ -215,7 +267,7 @@ class NutriPromptForm(forms.Form):
 
         return nombre
 
-    def clean_days_away(self):
+    def clean_days_away(self) -> int:
         days_away = self.cleaned_data.get("days_away")
 
         if days_away in (None, ""):
@@ -229,11 +281,11 @@ class NutriPromptForm(forms.Form):
 
         return days_away
 
-    def clean_notas(self):
+    def clean_notas(self) -> str:
         notas = self.cleaned_data.get("notas", "")
         return notas.strip()
 
-    def clean(self):
+    def clean(self) -> dict:
         cleaned_data = super().clean()
 
         restricciones = set(cleaned_data.get("restricciones") or [])

@@ -1,6 +1,15 @@
 from __future__ import annotations
 
+import re
+import unicodedata
 from typing import Callable
+
+
+try:
+    from nutriprompt_app.services.rag.rag_context_builder import build_rag_context
+except Exception:
+    build_rag_context = None
+
 
 SYSTEM_PROMPT = """
 Actúa como un asistente de organización semanal de comidas.
@@ -36,6 +45,13 @@ REGLAS OBLIGATORIAS:
 - Si el perfil indica poco tiempo para cocinar, prioriza recetas rápidas y de baja elaboración.
 - Si no puedes cumplir una condición exactamente, adáptate sin incumplir ninguna restricción principal.
 
+USO DEL CONTEXTO RAG:
+- Si se proporciona CONTEXTO NUTRICIONAL RECUPERADO, úsalo como apoyo prioritario.
+- No contradigas las reglas recuperadas.
+- Si una regla recuperada indica riesgo alto, evita ese alimento o sugiere una alternativa prudente.
+- No presentes el contexto recuperado como diagnóstico ni como recomendación sanitaria.
+- El contexto recuperado sirve para mejorar la coherencia del plan, no para dar consejo médico.
+
 FORMATO DE SALIDA:
 Devuelve SOLO un JSON válido con esta estructura exacta:
 
@@ -55,7 +71,7 @@ Antes de responder, verifica internamente que:
 - El JSON es válido.
 - Hay exactamente 7 días.
 - Los días están en este orden: Lunes, Martes, Miércoles, Jueves, Viernes, Sábado, Domingo.
-- No aparecen ingredientes prohibidos según restricciones, preferencias y etiquetas detectadas.
+- No aparecen ingredientes prohibidos según restricciones, preferencias, etiquetas detectadas ni contexto recuperado.
 """.strip()
 
 
@@ -182,82 +198,6 @@ PROFILE_TAG_GUIDANCE = {
 }
 
 
-SPANISH_DAYS = [
-    "Lunes",
-    "Martes",
-    "Miércoles",
-    "Jueves",
-    "Viernes",
-    "Sábado",
-    "Domingo",
-]
-
-REQUIRED_KEYS = ("day", "breakfast", "lunch", "dinner")
-
-
-FORBIDDEN_MEATS = {
-    "chicken", "pollo", "turkey", "pavo", "beef", "ternera", "res", "vacuno",
-    "pork", "cerdo", "lamb", "cordero", "duck", "pato", "ham", "jamon", "jamón",
-    "bacon", "tocino", "sausage", "sausages", "salchicha", "salchichas",
-    "meatball", "meatballs", "albondiga", "albondigas", "albóndiga", "albóndigas",
-    "burger", "hamburguesa", "chorizo", "morcilla", "mortadela", "pepperoni",
-    "prosciutto", "fiambre", "carne", "meat",
-}
-
-FORBIDDEN_FISH_AND_SEAFOOD = {
-    "fish", "pescado", "atun", "atún", "salmon", "salmón", "merluza", "bacalao",
-    "sardina", "sardinas", "caballa", "dorada", "lubina", "lenguado", "marisco",
-    "mariscos", "gamba", "gambas", "langostino", "langostinos", "mejillon",
-    "mejillón", "mejillones", "calamar", "calamares", "pulpo",
-}
-
-FORBIDDEN_ANIMAL_PRODUCTS_FOR_VEGAN = {
-    "huevo", "huevos", "egg", "eggs", "leche", "milk", "queso", "cheese",
-    "yogur", "yogurt", "yoghurt", "nata", "cream", "mantequilla", "butter",
-    "kefir", "kéfir", "mozzarella", "parmesano", "parmesan", "brie",
-    "camembert", "helado", "ice cream", "miel", "honey",
-}
-
-FORBIDDEN_LACTOSE_WORDS = {
-    "milk", "leche", "cheese", "queso", "yogurt", "yoghurt", "yogur", "cream",
-    "nata", "butter", "mantequilla", "ice cream", "helado", "mozzarella",
-    "brie", "camembert", "parmesan", "parmesano",
-}
-
-SAFE_LACTOSE_PATTERNS = {
-    "sin lactosa", "yogur sin lactosa", "yogurt sin lactosa", "leche sin lactosa",
-    "queso sin lactosa", "bebida vegetal", "bebida de almendra", "bebida de arroz",
-    "bebida de avena sin gluten", "yogur vegetal",
-}
-
-FORBIDDEN_GLUTEN_WORDS = {
-    "wheat", "trigo", "barley", "cebada", "rye", "centeno", "bread", "pan",
-    "pasta", "flour", "harina", "breadcrumb", "pan rallado", "beer", "cerveza",
-    "couscous", "cuscus", "cuscús", "bulgur", "seitan", "galleta", "galletas",
-    "bizcocho", "croissant", "wrap",
-}
-
-SAFE_GLUTEN_PATTERNS = {
-    "sin gluten", "pan sin gluten", "pasta sin gluten", "wrap sin gluten",
-    "avena sin gluten", "copos de avena sin gluten", "copos de maiz sin gluten",
-    "copos de maíz sin gluten", "corn flakes sin gluten", "tortitas sin gluten",
-    "tortillas de maiz", "tortillas de maíz", "arroz", "quinoa", "patata",
-    "maiz", "maíz",
-}
-
-FORBIDDEN_HIGH_FODMAP_WORDS = {
-    "ajo", "cebolla", "puerro", "coliflor", "manzana", "pera", "sandia", "sandía",
-    "mango", "ciruela", "ciruelas", "garbanzos", "lentejas", "judias", "judías",
-    "setas", "champiñones",
-}
-
-SAFE_FODMAP_PATTERNS = {
-    "sin ajo", "sin cebolla", "bajo en fodmaps", "low fodmap",
-    "aceite infusionado con ajo", "cebollino", "tomate en cantidad moderada",
-    "aguacate en pequeña porción",
-}
-
-
 FIELD_ALIASES = {
     "nombre": ["nombre", "cliente"],
     "objetivo": ["objetivo"],
@@ -273,6 +213,18 @@ FIELD_ALIASES = {
 }
 
 
+SPANISH_DAYS = [
+    "Lunes",
+    "Martes",
+    "Miércoles",
+    "Jueves",
+    "Viernes",
+    "Sábado",
+    "Domingo",
+]
+
+REQUIRED_KEYS = ("day", "breakfast", "lunch", "dinner")
+
 RetryPromptBuilder = Callable[[str, str, str], str]
 
 
@@ -282,20 +234,6 @@ def _normalize_text(value: str) -> str:
     value = "".join(char for char in value if not unicodedata.combining(char))
     value = re.sub(r"\s+", " ", value)
     return value
-
-
-def _get_gemini_client() -> genai.Client:
-    api_key = getattr(settings, "GOOGLE_API_KEY", None)
-    if not api_key:
-        raise ValueError("GOOGLE_API_KEY no está configurada.")
-    return genai.Client(api_key=api_key)
-
-
-def _get_openai_client() -> OpenAI:
-    api_key = getattr(settings, "OPENAI_API_KEY", None)
-    if not api_key:
-        raise ValueError("OPENAI_API_KEY no está configurada.")
-    return OpenAI(api_key=api_key)
 
 
 def _clean_json_output(raw_output: str) -> str:
@@ -342,6 +280,7 @@ def _extract_profile_tags(user_input: str) -> list[str]:
         normalized_tag = _normalize_text(tag)
         if normalized_tag == _normalize_text("No detectadas"):
             continue
+
         if normalized_tag not in seen:
             seen.add(normalized_tag)
             unique_tags.append(tag)
@@ -356,34 +295,17 @@ def _contains_phrase(text: str, phrases: set[str] | list[str]) -> bool:
 
 def _has_profile_tag(user_input: str, target_tag: str) -> bool:
     target_normalized = _normalize_text(target_tag)
-    return any(_normalize_text(tag) == target_normalized for tag in _extract_profile_tags(user_input))
-
-
-def _contains_forbidden_with_exceptions(
-    text: str,
-    forbidden_terms: set[str],
-    safe_patterns: set[str] | None = None,
-) -> bool:
-    normalized = _normalize_text(text)
-    safe_patterns = safe_patterns or set()
-
-    for safe in safe_patterns:
-        normalized = normalized.replace(_normalize_text(safe), " ")
-
-    normalized = re.sub(r"\s+", " ", normalized).strip()
-
-    for term in forbidden_terms:
-        pattern = rf"\b{re.escape(_normalize_text(term))}\b"
-        if re.search(pattern, normalized):
-            return True
-
-    return False
+    return any(
+        _normalize_text(tag) == target_normalized
+        for tag in _extract_profile_tags(user_input)
+    )
 
 
 def _infer_rules(user_input: str) -> dict[str, bool]:
     restrictions = _extract_field(user_input, "restricciones")
     preferences = _extract_field(user_input, "preferencias")
-    combined = " ".join([restrictions, preferences, ", ".join(_extract_profile_tags(user_input))])
+    profile_tags = ", ".join(_extract_profile_tags(user_input))
+    combined = " ".join([restrictions, preferences, profile_tags])
 
     fish_only = _contains_phrase(
         preferences,
@@ -424,6 +346,11 @@ def _infer_rules(user_input: str) -> dict[str, bool]:
         {"pescetariano", "pescetariana", "pescetarian"},
     ) or _has_profile_tag(user_input, "pescetariano")
 
+    low_fodmap = _contains_phrase(
+        combined,
+        {"low fodmap", "bajo en fodmaps", "baja en fodmaps", "fodmap", "fodmaps"},
+    ) or _has_profile_tag(user_input, "bajo en FODMAPs")
+
     if vegan:
         vegetarian = False
         pescetarian = False
@@ -431,11 +358,6 @@ def _infer_rules(user_input: str) -> dict[str, bool]:
     elif vegetarian:
         pescetarian = False
         fish_only = False
-
-    low_fodmap = _contains_phrase(
-        combined,
-        {"low fodmap", "bajo en fodmaps", "baja en fodmaps", "fodmap", "fodmaps"},
-    ) or _has_profile_tag(user_input, "bajo en FODMAPs")
 
     return {
         "fish_only": fish_only,
@@ -499,30 +421,38 @@ def build_rule_guidance(user_input: str) -> str:
     extra_rules: list[str] = []
 
     if rules["fish_only"]:
-        extra_rules.extend([
-            "- La preferencia 'solo pescado' es una regla estricta.",
-            "- Solo puedes usar pescado y marisco como proteína animal.",
-            "- No incluyas pollo, pavo, ternera, cerdo, cordero ni carnes procesadas.",
-        ])
+        extra_rules.extend(
+            [
+                "- La preferencia 'solo pescado' es una regla estricta.",
+                "- Solo puedes usar pescado y marisco como proteína animal.",
+                "- No incluyas pollo, pavo, ternera, cerdo, cordero ni carnes procesadas.",
+            ]
+        )
 
     if rules["vegetarian"]:
-        extra_rules.extend([
-            "- La preferencia vegetariana es una regla estricta.",
-            "- No incluyas carne, pescado ni marisco.",
-        ])
+        extra_rules.extend(
+            [
+                "- La preferencia vegetariana es una regla estricta.",
+                "- No incluyas carne, pescado ni marisco.",
+            ]
+        )
 
     if rules["vegan"]:
-        extra_rules.extend([
-            "- La preferencia vegana es una regla estricta.",
-            "- No incluyas carne, pescado, marisco, huevos, lácteos, miel ni productos de origen animal.",
-        ])
+        extra_rules.extend(
+            [
+                "- La preferencia vegana es una regla estricta.",
+                "- No incluyas carne, pescado, marisco, huevos, lácteos, miel ni productos de origen animal.",
+            ]
+        )
 
     if rules["pescetarian"]:
-        extra_rules.extend([
-            "- La preferencia pescetariana es una regla estricta.",
-            "- No incluyas carne.",
-            "- Puedes usar pescado y marisco como proteína animal.",
-        ])
+        extra_rules.extend(
+            [
+                "- La preferencia pescetariana es una regla estricta.",
+                "- No incluyas carne.",
+                "- Puedes usar pescado y marisco como proteína animal.",
+            ]
+        )
 
     if rules["lactose_free"]:
         extra_rules.append("- Todas las propuestas deben ser sin lactosa.")
@@ -531,10 +461,13 @@ def build_rule_guidance(user_input: str) -> str:
         extra_rules.append("- Todas las propuestas deben ser sin gluten.")
 
     if rules["low_fodmap"]:
-        extra_rules.extend([
-            "- Todas las propuestas deben ser compatibles con un enfoque bajo en FODMAPs.",
-            "- No hagas afirmaciones médicas ni prometas mejora de síntomas.",
-        ])
+        extra_rules.extend(
+            [
+                "- Todas las propuestas deben ser compatibles con un enfoque bajo en FODMAPs.",
+                "- Evita especialmente ajo y cebolla salvo que se indique una alternativa segura como aceite infusionado.",
+                "- No hagas afirmaciones médicas ni prometas mejora de síntomas.",
+            ]
+        )
 
     return "\n".join(extra_rules)
 
@@ -554,10 +487,46 @@ def build_profile_guidance(user_input: str) -> str:
     return "\n".join(unique_guidance)
 
 
+def build_rag_query(user_input: str) -> str:
+    relevant_fields = [
+        _extract_field(user_input, "objetivo"),
+        _extract_field(user_input, "restricciones"),
+        _extract_field(user_input, "preferencias"),
+        _extract_field(user_input, "contexto_principal"),
+        _extract_field(user_input, "situacion_especial"),
+        _extract_field(user_input, "acceso_cocina"),
+        ", ".join(_extract_profile_tags(user_input)),
+        user_input,
+    ]
+
+    query = " ".join(item for item in relevant_fields if item)
+    return query.strip()
+
+
+def build_retrieved_nutrition_context(user_input: str) -> str:
+    if build_rag_context is None:
+        return ""
+
+    query = build_rag_query(user_input)
+    if not query:
+        return ""
+
+    try:
+        context = build_rag_context(query=query, top_k=5)
+    except Exception:
+        return ""
+
+    if not context:
+        return ""
+
+    return context.strip()
+
+
 def build_full_prompt(user_input: str) -> str:
     context_guidance = build_context_guidance(user_input)
     rule_guidance = build_rule_guidance(user_input)
     profile_guidance = build_profile_guidance(user_input)
+    rag_context = build_retrieved_nutrition_context(user_input)
 
     parts = [
         SYSTEM_PROMPT,
@@ -566,56 +535,97 @@ def build_full_prompt(user_input: str) -> str:
         user_input.strip(),
     ]
 
+    if rag_context:
+        parts.extend(
+            [
+                "",
+                "CONTEXTO NUTRICIONAL RECUPERADO MEDIANTE RAG:",
+                rag_context,
+                "",
+                "INSTRUCCIONES PARA USAR EL CONTEXTO RECUPERADO:",
+                "- Usa estas reglas como apoyo para evitar contradicciones.",
+                "- Prioriza las reglas con nivel de riesgo alto.",
+                "- Si un alimento aparece como potencialmente problemático, evita incluirlo en el plan.",
+                "- No menciones el sistema RAG en la respuesta final.",
+            ]
+        )
+
     if rule_guidance:
-        parts.extend([
-            "",
-            "REGLAS ADICIONALES DERIVADAS DE LOS DATOS:",
-            rule_guidance,
-        ])
+        parts.extend(
+            [
+                "",
+                "REGLAS ADICIONALES DERIVADAS DE LOS DATOS:",
+                rule_guidance,
+            ]
+        )
 
     if profile_guidance:
-        parts.extend([
-            "",
-            "GUÍA DE PERSONALIZACIÓN BASADA EN ETIQUETAS:",
-            profile_guidance,
-        ])
+        parts.extend(
+            [
+                "",
+                "GUÍA DE PERSONALIZACIÓN BASADA EN ETIQUETAS:",
+                profile_guidance,
+            ]
+        )
 
     if context_guidance:
-        parts.extend([
-            "",
-            "GUÍA DE CONTEXTO:",
-            context_guidance,
-        ])
+        parts.extend(
+            [
+                "",
+                "GUÍA DE CONTEXTO:",
+                context_guidance,
+            ]
+        )
 
-    parts.extend([
-        "",
-        "Genera ahora la propuesta semanal solicitada.",
-    ])
+    parts.extend(
+        [
+            "",
+            "Genera ahora la propuesta semanal solicitada.",
+        ]
+    )
 
     return "\n".join(parts).strip()
 
 
 def build_retry_prompt(user_input: str, previous_output: str, validation_error: str) -> str:
-    return f"""
-El intento anterior fue inválido y debes corregirlo.
+    rag_context = build_retrieved_nutrition_context(user_input)
 
-ERROR DETECTADO:
-{validation_error}
+    parts = [
+        "El intento anterior fue inválido y debes corregirlo.",
+        "",
+        "ERROR DETECTADO:",
+        validation_error,
+        "",
+        "SALIDA ANTERIOR INVÁLIDA:",
+        previous_output,
+        "",
+        "INSTRUCCIONES:",
+        "- Corrige el plan completo.",
+        "- Cumple estrictamente todas las restricciones, preferencias, etiquetas y contexto recuperado.",
+        "- Devuelve SOLO JSON válido.",
+        "- TODO debe estar en español.",
+        "- No añadas explicaciones.",
+        "- Genera de nuevo los 7 días completos.",
+        "- Mantén tono orientativo, no sanitario ni prescriptivo.",
+    ]
 
-SALIDA ANTERIOR INVÁLIDA:
-{previous_output}
+    if rag_context:
+        parts.extend(
+            [
+                "",
+                "CONTEXTO NUTRICIONAL RECUPERADO MEDIANTE RAG:",
+                rag_context,
+            ]
+        )
 
-INSTRUCCIONES:
-- Corrige el plan completo.
-- Cumple estrictamente todas las restricciones, preferencias y etiquetas.
-- Devuelve SOLO JSON válido.
-- TODO debe estar en español.
-- No añadas explicaciones.
-- Genera de nuevo los 7 días completos.
-- Mantén tono orientativo, no sanitario ni prescriptivo.
+    parts.extend(
+        [
+            "",
+            "DATOS:",
+            user_input.strip(),
+            "",
+            "Vuelve a generar la propuesta desde cero.",
+        ]
+    )
 
-DATOS:
-{user_input.strip()}
-
-Vuelve a generar la propuesta desde cero.
-""".strip()
+    return "\n".join(parts).strip()

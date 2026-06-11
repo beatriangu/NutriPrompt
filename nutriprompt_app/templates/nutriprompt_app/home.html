@@ -2,8 +2,8 @@
 {% load static %}
 {% get_media_prefix as media_url %}
 
-{% block title %}NutriPrompt · AI Nutrition Assistant{% endblock %}
-{% block meta_description %}NutriPrompt · Asistente nutricional con IA para generar planes semanales a partir de formularios, PDFs nutricionales, fotos de despensa o ingredientes.{% endblock %}
+{% block title %}NutriPrompt · Asistente nutricional con IA{% endblock %}
+{% block meta_description %}NutriPrompt genera planes semanales personalizados a partir de formularios, PDFs nutricionales, fotos de despensa, nevera o ingredientes mediante IA, OCR, RAG y reglas de compatibilidad.{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -79,7 +79,8 @@
         line-height: 1.75;
     }
 
-    .hero-points {
+    .hero-points,
+    .hero-actions {
         display: flex;
         flex-wrap: wrap;
         gap: 0.65rem;
@@ -94,6 +95,35 @@
         color: #44535e;
         font-size: 0.86rem;
         font-weight: 800;
+    }
+
+    .hero-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0.72rem 1rem;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 900;
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .hero-action:hover {
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .hero-action--primary {
+        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        color: #ffffff;
+        box-shadow: 0 14px 28px rgba(39, 174, 96, 0.22);
+    }
+
+    .hero-action--secondary {
+        background: #ffffff;
+        color: #17364b;
+        border: 1px solid var(--color-border);
     }
 
     .hero-side {
@@ -326,20 +356,15 @@
         min-height: 120px;
     }
 
-    .nota-campo,
     .helper-inline {
         margin-top: 0.42rem;
-        font-size: 0.84rem;
-        line-height: 1.55;
-        color: #73808c;
-    }
-
-    .helper-inline {
         padding: 0.78rem 0.9rem;
         border-radius: 14px;
         background: rgba(39, 174, 96, 0.06);
         border: 1px solid rgba(39, 174, 96, 0.1);
         color: #436056;
+        font-size: 0.84rem;
+        line-height: 1.55;
     }
 
     .choice-grid {
@@ -542,13 +567,13 @@
         <section class="hero">
             <div class="hero-grid">
                 <div>
-                    <div class="eyebrow">✨ NutriPrompt · AI Nutrition Assistant</div>
+                    <div class="eyebrow">✨ NutriPrompt · Asistente nutricional con IA</div>
 
                     <h1>Convierte información real en un plan semanal claro, útil y personalizado</h1>
 
                     <p>
-                        NutriPrompt combina formulario guiado, lógica nutricional, generación automática y análisis visual
-                        para ayudarte a crear planes semanales a partir de tus objetivos, restricciones, contexto real,
+                        NutriPrompt combina formulario guiado, reglas nutricionales, RAG, generación automática y análisis visual
+                        para ayudarte a crear planes semanales a partir de objetivos, restricciones, contexto real,
                         pautas profesionales o alimentos disponibles en casa.
                     </p>
 
@@ -556,7 +581,17 @@
                         <span class="hero-point">Plan semanal personalizado</span>
                         <span class="hero-point">PDF profesional</span>
                         <span class="hero-point">Lista de compra</span>
-                        <span class="hero-point">Smart Intake con IA</span>
+                        <span class="hero-point">OCR y análisis visual</span>
+                    </div>
+
+                    <div class="hero-actions" aria-label="Accesos principales">
+                        <a href="{% url 'nutriprompt_app:vision_upload' %}" class="hero-action hero-action--primary">
+                            Abrir NutriPrompt Vision
+                        </a>
+
+                        <a href="{% url 'nutriprompt_app:dashboard' %}" class="hero-action hero-action--secondary">
+                            Ver dashboard técnico
+                        </a>
                     </div>
                 </div>
 
@@ -565,8 +600,8 @@
                     <ul class="hero-side__list">
                         <li>Recoge información manual o desde archivos reales.</li>
                         <li>Interpreta restricciones como gluten, lactosa o FODMAPs.</li>
+                        <li>Recupera reglas relevantes antes de generar el prompt.</li>
                         <li>Genera un resultado visual, revisable y descargable.</li>
-                        <li>Está preparada para integrar PDF, OCR y análisis de despensa.</li>
                     </ul>
                 </aside>
             </div>
@@ -591,16 +626,16 @@
                         <h2 id="smart-intake-title">Smart Intake: empieza desde tu contexto real</h2>
                         <p>
                             Puedes generar el plan manualmente o apoyarte en archivos reales:
-                            una pauta del nutricionista, una foto de tu nevera/despensa o un producto concreto.
+                            una pauta profesional, una foto de nevera/despensa o un producto concreto.
                         </p>
                     </div>
-                    <span class="beta-pill">AI Vision Beta</span>
+                    <span class="beta-pill">NutriPrompt Vision · Beta</span>
                 </div>
 
                 <div class="intake-grid">
                     <a href="{% url 'nutriprompt_app:vision_upload' %}" class="intake-card">
                         <div class="intake-icon">📄</div>
-                        <h3>PDF de dieta o nutricionista</h3>
+                        <h3>PDF de dieta o pauta profesional</h3>
                         <p>
                             Sube una pauta nutricional para extraer restricciones, alimentos recomendados,
                             alimentos a evitar y objetivos principales.
@@ -760,7 +795,7 @@
                         {{ form.notas }}
 
                         <div class="helper-inline">
-                            Puedes añadir indicaciones como: “usar lo que tengo en casa”, “seguir pauta del nutricionista”,
+                            Puedes añadir indicaciones como: “usar lo que tengo en casa”, “seguir una pauta profesional”,
                             “evitar ajo y cebolla” o “cenas muy ligeras”.
                         </div>
 

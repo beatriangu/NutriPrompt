@@ -1,0 +1,742 @@
+{% extends "nutriprompt_app/base.html" %}
+
+{% block title %}NutriPrompt Vision · Análisis nutricional inteligente{% endblock %}
+
+{% block meta_description %}
+NutriPrompt Vision interpreta etiquetas, despensas, neveras y pautas nutricionales usando OCR, IA y análisis nutricional inteligente.
+{% endblock %}
+
+{% block content %}
+<section class="vision-wrapper">
+
+  <section class="vision-hero glass-card">
+    <div class="hero-background"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        ✨ Visión nutricional IA · OCR · Análisis inteligente
+      </div>
+
+      <h1>
+        NutriPrompt
+        <span>Vision</span>
+      </h1>
+
+      <p class="hero-description">
+        Interpreta etiquetas, despensas, ingredientes y pautas nutricionales mediante OCR,
+        reglas inteligentes y análisis asistido por IA.
+      </p>
+
+      <div class="hero-tags">
+        <span>OCR</span>
+        <span>IA nutricional</span>
+        <span>Inteligencia alimentaria</span>
+        <span>Accesibilidad</span>
+        <span>PDF listo para analizar</span>
+        <span>Datos nutricionales Kaggle</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="vision-capabilities">
+
+    <article class="capability-card glass-card">
+      <div class="capability-icon">🧠</div>
+      <h2>Interpretación inteligente</h2>
+      <p>
+        Detecta ingredientes sensibles, restricciones y señales nutricionales relevantes.
+      </p>
+    </article>
+
+    <article class="capability-card glass-card">
+      <div class="capability-icon">📸</div>
+      <h2>Análisis visual</h2>
+      <p>
+        Analiza fotos de productos, despensa, nevera o ingredientes concretos.
+      </p>
+    </article>
+
+    <article class="capability-card glass-card">
+      <div class="capability-icon">📄</div>
+      <h2>Pautas nutricionales</h2>
+      <p>
+        Preparado para interpretar PDFs y recomendaciones profesionales.
+      </p>
+    </article>
+
+    <article class="capability-card glass-card">
+      <div class="capability-icon">♿</div>
+      <h2>Diseño accesible</h2>
+      <p>
+        Pensado para facilitar la comprensión visual y nutricional.
+      </p>
+    </article>
+
+  </section>
+
+  <section class="upload-panel glass-card">
+
+    <div class="upload-header">
+      <div>
+        <p class="eyebrow">Análisis nutricional con IA</p>
+        <h2>Sube contenido nutricional</h2>
+
+        <p class="upload-description">
+          Puedes subir una etiqueta, una foto de despensa, ingredientes,
+          nevera o una pauta nutricional. NutriPrompt analizará el contenido
+          de forma orientativa combinando OCR, reglas y lógica asistida por IA.
+        </p>
+      </div>
+
+      <div class="status-pill">
+        Smart Intake · Beta
+      </div>
+    </div>
+
+    {% if error %}
+      <div class="alert-box alert-error" role="alert">
+        <div class="alert-icon">⚠️</div>
+        <div>
+          <strong>No se ha podido procesar correctamente</strong>
+          <p>{{ error }}</p>
+        </div>
+      </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="upload-form">
+      {% csrf_token %}
+
+      <div class="analysis-selector">
+
+        <label class="selector-card">
+          <input type="radio" name="analysis_type" value="product_label" checked>
+
+          <div class="selector-content">
+            <span class="selector-icon">🏷️</span>
+            <strong>Etiqueta</strong>
+            <small>Detecta posibles ingredientes sensibles.</small>
+          </div>
+        </label>
+
+        <label class="selector-card">
+          <input type="radio" name="analysis_type" value="pantry_image">
+
+          <div class="selector-content">
+            <span class="selector-icon">🥫</span>
+            <strong>Despensa</strong>
+            <small>Identifica alimentos disponibles.</small>
+          </div>
+        </label>
+
+        <label class="selector-card">
+          <input type="radio" name="analysis_type" value="fridge_image">
+
+          <div class="selector-content">
+            <span class="selector-icon">🧊</span>
+            <strong>Nevera</strong>
+            <small>Analiza ingredientes frescos.</small>
+          </div>
+        </label>
+
+        <label class="selector-card">
+          <input type="radio" name="analysis_type" value="nutrition_pdf">
+
+          <div class="selector-content">
+            <span class="selector-icon">📄</span>
+            <strong>Pauta PDF</strong>
+            <small>Extrae restricciones y objetivos.</small>
+          </div>
+        </label>
+
+      </div>
+
+      <label class="upload-zone" for="image">
+        <div class="upload-zone-inner">
+
+          <div class="upload-icon">
+            ⬆️
+          </div>
+
+          <h3>Arrastra o selecciona un archivo</h3>
+
+          <p>
+            Formatos admitidos: JPG, PNG, WEBP, AVIF o PDF.
+          </p>
+
+          <div class="upload-mini-tags">
+            <span>OCR</span>
+            <span>IA</span>
+            <span>Nutrición</span>
+            <span>Visión</span>
+          </div>
+
+          <input
+            id="image"
+            type="file"
+            name="image"
+            accept="image/*,.pdf"
+            required
+          >
+        </div>
+      </label>
+
+      <button type="submit" class="analyze-button">
+        ✨ Analizar con NutriPrompt Vision
+      </button>
+    </form>
+  </section>
+
+  {% if uploaded_image_url or analysis %}
+    <section class="results-grid">
+
+      {% if uploaded_image_url %}
+        <article class="result-card glass-card">
+          <div class="result-header">
+            <p class="eyebrow">Contenido procesado</p>
+            <h2>Vista previa</h2>
+          </div>
+
+          <img
+            src="{{ uploaded_image_url }}"
+            alt="Imagen subida para análisis nutricional"
+            class="preview-image"
+          >
+        </article>
+      {% endif %}
+
+      {% if analysis %}
+        <article class="result-card glass-card">
+
+          <div class="result-header">
+            <p class="eyebrow">Resultado IA</p>
+            <h2>Interpretación nutricional</h2>
+          </div>
+
+          {% if analysis.fodmap_analysis.risk == "high" %}
+            <div class="risk-box risk-high">
+              <div class="risk-top">
+                <span class="risk-badge">⚠️ Atención</span>
+                <strong>Posibles restricciones relevantes detectadas</strong>
+              </div>
+
+              <p>
+                {{ analysis.fodmap_analysis.message }}
+              </p>
+            </div>
+
+          {% elif analysis.fodmap_analysis.risk == "medium_high" %}
+            <div class="risk-box risk-medium">
+              <div class="risk-top">
+                <span class="risk-badge">🔎 Revisar</span>
+                <strong>Ingredientes sensibles detectados</strong>
+              </div>
+
+              <p>
+                {{ analysis.fodmap_analysis.message }}
+              </p>
+            </div>
+
+          {% else %}
+            <div class="risk-box risk-safe">
+              <div class="risk-top">
+                <span class="risk-badge">✅ Sin alerta evidente</span>
+                <strong>No se han detectado señales problemáticas claras</strong>
+              </div>
+
+              <p>
+                {{ analysis.fodmap_analysis.message }}
+              </p>
+            </div>
+          {% endif %}
+
+          {% if analysis.fodmap_analysis.detected_ingredients %}
+            <div class="ingredients-section">
+              <h3>Ingredientes o señales detectadas</h3>
+
+              <div class="ingredient-list">
+                {% for ingredient in analysis.fodmap_analysis.detected_ingredients %}
+                  <span>{{ ingredient }}</span>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+
+        </article>
+
+        <article class="result-card glass-card full-width">
+          <div class="result-header">
+            <p class="eyebrow">OCR · Texto interpretado</p>
+            <h2>Lectura detectada</h2>
+          </div>
+
+          {% if analysis.extracted_text %}
+            <pre class="ocr-text">{{ analysis.extracted_text }}</pre>
+          {% else %}
+            <div class="empty-box">
+              No se ha podido extraer texto correctamente.
+              Prueba con mejor iluminación, enfoque o una imagen más cercana.
+            </div>
+          {% endif %}
+        </article>
+      {% endif %}
+    </section>
+  {% endif %}
+
+  <section class="disclaimer-box">
+    <strong>Importante:</strong>
+    NutriPrompt genera una interpretación orientativa basada en OCR,
+    reglas nutricionales y lógica asistida por IA.
+    No sustituye el criterio de un profesional sanitario o nutricional.
+  </section>
+
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+
+  .vision-wrapper {
+    width: min(100% - 2rem, 1380px);
+    margin-inline: auto;
+    padding: clamp(1.5rem, 3vw, 3rem) 0 4rem;
+  }
+
+  .vision-hero {
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    padding: clamp(2rem, 5vw, 4rem);
+    border-radius: 34px;
+  }
+
+  .hero-background {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at top right, rgba(52, 152, 219, 0.22), transparent 28%),
+      radial-gradient(circle at left center, rgba(39, 174, 96, 0.18), transparent 34%),
+      linear-gradient(135deg, rgba(255,255,255,0.94), rgba(247,250,252,0.96));
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    padding: 0.6rem 1rem;
+    border-radius: 999px;
+    margin-bottom: 1rem;
+    background: rgba(39, 174, 96, 0.14);
+    color: #166534;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .vision-hero h1 {
+    margin: 0;
+    font-size: clamp(3rem, 9vw, 6rem);
+    line-height: 0.9;
+    letter-spacing: -0.08em;
+    color: #172033;
+  }
+
+  .vision-hero h1 span {
+    background: linear-gradient(135deg, #27ae60, #3498db);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-description {
+    max-width: 760px;
+    margin-top: 1.2rem;
+    color: #607080;
+    font-size: 1.15rem;
+    line-height: 1.8;
+  }
+
+  .hero-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-top: 1.5rem;
+  }
+
+  .hero-tags span {
+    padding: 0.6rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.82);
+    border: 1px solid rgba(210,220,230,0.7);
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: #334155;
+  }
+
+  .vision-capabilities {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .capability-card {
+    padding: 1.3rem;
+    border-radius: 24px;
+  }
+
+  .capability-icon {
+    font-size: 2rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .capability-card h2 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: #172033;
+  }
+
+  .capability-card p {
+    margin-top: 0.6rem;
+    color: #64748b;
+    line-height: 1.6;
+  }
+
+  .upload-panel {
+    margin-bottom: 1.5rem;
+    padding: clamp(1.4rem, 4vw, 2.4rem);
+    border-radius: 30px;
+  }
+
+  .upload-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+  }
+
+  .eyebrow {
+    margin: 0 0 0.4rem;
+    color: #16a34a;
+    font-size: 0.76rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .upload-header h2,
+  .result-header h2 {
+    margin: 0;
+    color: #172033;
+  }
+
+  .upload-description {
+    margin-top: 0.6rem;
+    max-width: 720px;
+    color: #64748b;
+    line-height: 1.7;
+  }
+
+  .status-pill {
+    padding: 0.7rem 1rem;
+    border-radius: 999px;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 0.8rem;
+    font-weight: 900;
+    white-space: nowrap;
+  }
+
+  .analysis-selector {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .selector-card {
+    cursor: pointer;
+  }
+
+  .selector-card input {
+    display: none;
+  }
+
+  .selector-content {
+    height: 100%;
+    padding: 1rem;
+    border-radius: 22px;
+    border: 1px solid rgba(210,220,230,0.7);
+    background: rgba(255,255,255,0.7);
+    transition: all 0.2s ease;
+  }
+
+  .selector-card input:checked + .selector-content {
+    border-color: #27ae60;
+    background: linear-gradient(135deg, rgba(39,174,96,0.12), rgba(52,152,219,0.10));
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(39,174,96,0.12);
+  }
+
+  .selector-icon {
+    display: block;
+    margin-bottom: 0.6rem;
+    font-size: 1.8rem;
+  }
+
+  .selector-content strong {
+    display: block;
+    color: #172033;
+  }
+
+  .selector-content small {
+    display: block;
+    margin-top: 0.25rem;
+    color: #64748b;
+    line-height: 1.45;
+  }
+
+  .upload-zone {
+    display: block;
+    margin-bottom: 1rem;
+    cursor: pointer;
+  }
+
+  .upload-zone-inner {
+    display: grid;
+    place-items: center;
+    min-height: 320px;
+    padding: 2rem;
+    text-align: center;
+    border-radius: 32px;
+    border: 2px dashed rgba(39,174,96,0.35);
+    background:
+      linear-gradient(135deg, rgba(39,174,96,0.08), rgba(52,152,219,0.08)),
+      rgba(255,255,255,0.72);
+    transition: all 0.25s ease;
+  }
+
+  .upload-zone:hover .upload-zone-inner {
+    transform: translateY(-2px);
+    border-color: #27ae60;
+    background:
+      linear-gradient(135deg, rgba(39,174,96,0.14), rgba(52,152,219,0.12)),
+      rgba(255,255,255,0.92);
+  }
+
+  .upload-icon {
+    font-size: 3rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .upload-zone-inner h3 {
+    margin: 0;
+    color: #172033;
+    font-size: 1.4rem;
+  }
+
+  .upload-zone-inner p {
+    margin-top: 0.7rem;
+    color: #64748b;
+  }
+
+  .upload-mini-tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .upload-mini-tags span {
+    padding: 0.45rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.82);
+    border: 1px solid rgba(210,220,230,0.7);
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .upload-zone input {
+    margin-top: 1.2rem;
+  }
+
+  .analyze-button {
+    border: 0;
+    padding: 1rem 1.4rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #27ae60, #3498db);
+    color: white;
+    font-size: 1rem;
+    font-weight: 900;
+    box-shadow: 0 20px 40px rgba(39,174,96,0.22);
+  }
+
+  .analyze-button:hover {
+    transform: translateY(-1px);
+  }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .result-card {
+    padding: 1.5rem;
+    border-radius: 28px;
+  }
+
+  .result-header {
+    margin-bottom: 1rem;
+  }
+
+  .preview-image {
+    border-radius: 22px;
+    border: 1px solid rgba(220,230,240,0.7);
+  }
+
+  .risk-box {
+    padding: 1.2rem;
+    border-radius: 24px;
+    margin-bottom: 1rem;
+  }
+
+  .risk-top {
+    margin-bottom: 0.7rem;
+  }
+
+  .risk-badge {
+    display: inline-flex;
+    margin-bottom: 0.45rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .risk-high {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+  }
+
+  .risk-medium {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+  }
+
+  .risk-safe {
+    background: #ecfdf5;
+    border: 1px solid #bbf7d0;
+  }
+
+  .ingredients-section h3 {
+    margin-bottom: 0.8rem;
+    color: #172033;
+  }
+
+  .ingredient-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .ingredient-list span {
+    padding: 0.55rem 0.85rem;
+    border-radius: 999px;
+    background: rgba(39,174,96,0.12);
+    color: #166534;
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+
+  .ocr-text {
+    max-height: 420px;
+    overflow: auto;
+    padding: 1.2rem;
+    border-radius: 22px;
+    background: #f8fafc;
+    border: 1px solid rgba(220,230,240,0.8);
+    color: #172033;
+    white-space: pre-wrap;
+    line-height: 1.7;
+  }
+
+  .empty-box {
+    padding: 1rem;
+    border-radius: 18px;
+    background: #f8fafc;
+    color: #64748b;
+  }
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+
+  .alert-box {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 20px;
+  }
+
+  .alert-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+  }
+
+  .alert-icon {
+    font-size: 1.4rem;
+  }
+
+  .disclaimer-box {
+    margin-top: 1.5rem;
+    padding: 1rem 1.2rem;
+    border-radius: 22px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #92400e;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 1080px) {
+
+    .vision-capabilities,
+    .analysis-selector,
+    .results-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 760px) {
+
+    .vision-capabilities,
+    .analysis-selector,
+    .results-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .upload-header {
+      flex-direction: column;
+    }
+
+    .analyze-button {
+      width: 100%;
+    }
+
+    .vision-hero h1 {
+      font-size: 3.2rem;
+    }
+  }
+
+</style>
+{% endblock %}

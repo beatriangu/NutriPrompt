@@ -1,6 +1,8 @@
 # 🥦 NutriPrompt
 
-> AI-powered nutrition intelligence platform that combines Prompt Engineering, Retrieval-Augmented Generation (RAG), OCR workflows and nutrition compatibility analysis to transform structured user data into personalized weekly nutrition plans.
+> **AI-powered nutrition intelligence platform built with Django, Prompt Engineering, Retrieval-Augmented Generation (RAG), OCR workflows and multi-provider AI orchestration.**
+>
+> NutriPrompt demonstrates how modern AI products can combine structured user data, domain knowledge, retrieval systems and intelligent orchestration to generate contextualized, explainable and actionable outputs.
 
 ![NutriPrompt Banner](nutriprompt.png)
 
@@ -9,31 +11,90 @@
 ![OpenAI](https://img.shields.io/badge/OpenAI-API-black)
 ![Gemini](https://img.shields.io/badge/Gemini-AI-orange)
 ![OCR](https://img.shields.io/badge/OCR-Vision-purple)
-![RAG](https://img.shields.io/badge/RAG-Nutrition%20Knowledge-red)
+![RAG](https://img.shields.io/badge/RAG-Knowledge%20Retrieval-red)
 
 ---
 
 # ✨ Overview
 
-NutriPrompt is an AI-powered nutrition workflow platform designed to demonstrate how modern intelligent applications combine structured data, domain knowledge and AI orchestration to generate consistent, contextualized outputs.
+NutriPrompt is an AI-powered nutrition workflow platform designed to showcase the architecture behind intelligent, production-oriented AI applications.
 
-Rather than generating content directly from a prompt, NutriPrompt enriches every request with nutrition rules, dietary restrictions, OCR-extracted information and compatibility analysis.
+Instead of sending user input directly to a language model, NutriPrompt enriches every request through multiple intelligence layers:
 
-The result is a more controlled and explainable AI workflow.
+* Structured data collection
+* Nutrition knowledge retrieval (RAG)
+* OCR document analysis
+* Compatibility validation
+* Prompt Engineering
+* Multi-provider AI orchestration
+
+The result is a more reliable, explainable and context-aware AI workflow.
+
+---
+
+# 📸 Product Walkthrough
+
+## Home · Smart Nutrition Intake
+
+NutriPrompt transforms structured user information into personalized nutrition plans using Prompt Engineering, RAG retrieval and AI orchestration.
+
+![Home](docs/screenshots/home.png)
+
+---
+
+## Vision Module · OCR + Nutrition Intelligence
+
+NutriPrompt Vision can analyze:
+
+* Product labels
+* Pantry inventories
+* Fridge contents
+* Nutrition PDFs
+
+Combining OCR, nutrition rules and AI-assisted interpretation.
+
+![Vision](docs/screenshots/vision.png)
+
+---
+
+## Intelligence Dashboard · System Overview
+
+A product-oriented dashboard designed to explain the complete AI workflow.
+
+### Dashboard Overview
+
+![Dashboard Overview](docs/screenshots/dashboard-top.png)
+
+### AI Workflow Pipeline
+
+![Dashboard Pipeline](docs/screenshots/dashboard-pipeline.png)
+
+---
+
+## Generated Nutrition Plan
+
+The final output includes:
+
+* Weekly meal planning
+* User profile summary
+* Smart shopping list
+* Downloadable PDF
+
+![Generated Plan](docs/screenshots/result-plan.png)
 
 ---
 
 # 🎯 Problem
 
-Generating nutrition plans with AI is not simply a text generation problem.
+Generating personalized nutrition plans with AI is not simply a text generation problem.
 
-A reliable system must be able to:
+A robust solution must be able to:
 
-* Understand user goals and dietary restrictions
-* Interpret nutrition forms and documents
-* Detect potentially conflicting ingredients
-* Incorporate domain knowledge consistently
-* Generate structured outputs suitable for real workflows
+* Understand user goals and restrictions
+* Interpret nutrition documents and forms
+* Detect conflicting ingredients
+* Apply domain knowledge consistently
+* Generate structured outputs suitable for real-world workflows
 
 Large Language Models alone do not guarantee this consistency.
 
@@ -46,17 +107,17 @@ NutriPrompt introduces a layered AI architecture that combines:
 * Prompt Engineering
 * Retrieval-Augmented Generation (RAG)
 * OCR-based information extraction
-* Rule-based nutrition intelligence
+* Nutrition knowledge systems
 * Compatibility analysis
 * Multi-provider AI orchestration
 
-This allows the platform to generate personalized plans while reducing contradictions and improving contextual consistency.
+This approach improves contextual consistency, explainability and reliability.
 
 ---
 
 # 🧠 Core Capabilities
 
-### Personalized Nutrition Planning
+## Personalized Nutrition Planning
 
 Generate structured weekly plans based on:
 
@@ -66,21 +127,21 @@ Generate structured weekly plans based on:
 * Budget considerations
 * Lifestyle context
 
-### Nutrition Knowledge Retrieval (RAG)
+## Nutrition Knowledge Retrieval (RAG)
 
-Before generating a response, NutriPrompt retrieves relevant nutrition rules from its knowledge base.
+Before generation, NutriPrompt retrieves relevant nutrition rules from its knowledge base.
 
-Examples:
+Examples include:
 
 * Low FODMAP guidance
-* Gluten-free guidance
-* Lactose-free guidance
-* Planning recommendations
+* Gluten-free recommendations
+* Lactose-free recommendations
+* Meal planning guidance
 * Shopping logic
 
-This context is injected into the prompt to improve consistency and reduce hallucinations.
+This retrieved context is injected into the generation workflow to improve consistency and reduce hallucinations.
 
-### OCR & Nutrition Intelligence
+## OCR & Nutrition Intelligence
 
 The platform can analyze:
 
@@ -89,11 +150,11 @@ The platform can analyze:
 * Pantry inventories
 * Fridge contents
 
-OCR extraction is combined with nutrition rules to identify ingredients that may require review.
+OCR extraction is combined with nutrition rules and compatibility analysis to provide contextual insights.
 
-### Compatibility Analysis
+## Compatibility Analysis
 
-NutriPrompt compares:
+NutriPrompt evaluates:
 
 * User restrictions
 * Retrieved nutrition rules
@@ -108,7 +169,7 @@ to identify potential incompatibilities before generating recommendations.
 ```text
 User Input
       ↓
-Django Forms
+Structured Forms
       ↓
 Profile Analysis
       ↓
@@ -139,14 +200,15 @@ This project showcases practical implementation of:
 
 * Prompt Engineering
 * Retrieval-Augmented Generation (RAG)
+* OCR Pipelines
 * Multi-provider AI orchestration
-* OCR pipelines
-* Rule-based reasoning
 * Structured AI outputs
-* Nutrition compatibility systems
-* Product-oriented AI architecture
-* Resilient fallback workflows
-* Explainable AI pipelines
+* Rule-based reasoning
+* Compatibility engines
+* Explainable AI workflows
+* Service-oriented architecture
+* Product-oriented AI design
+* Resilient fallback systems
 
 ---
 
@@ -162,12 +224,12 @@ OpenAI Fallback
 Structured Mock Generation
 ```
 
-This guarantees:
+Benefits:
 
 * Stable demonstrations
-* Consistent user experience
 * Graceful degradation
-* Continuous workflow execution
+* Provider independence
+* Consistent user experience
 
 ---
 
@@ -222,6 +284,12 @@ Current automated validation includes:
 python manage.py test
 ```
 
+Current suite:
+
+```text
+17 automated tests passing
+```
+
 ---
 
 # 🛠 Installation
@@ -260,7 +328,7 @@ NutriPrompt provides informational guidance only.
 
 It does not replace professional medical, nutritional or healthcare advice.
 
-Any recommendation generated by the system should be reviewed by qualified professionals when appropriate.
+Recommendations generated by the platform should always be reviewed by qualified professionals when appropriate.
 
 ---
 
@@ -280,7 +348,8 @@ If you find the project interesting:
 
 ⭐ Star the repository
 🤝 Connect on LinkedIn
-💬 Share feedback or ideas
+💬 Share feedback, ideas or improvements
+
 
 
 

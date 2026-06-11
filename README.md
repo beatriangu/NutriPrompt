@@ -1,6 +1,6 @@
 # 🥦 NutriPrompt
 
-> AI-powered nutrition intelligence platform combining Prompt Engineering, OCR, computer vision workflows and structured AI orchestration.
+> AI-powered nutrition intelligence platform that combines Prompt Engineering, Retrieval-Augmented Generation (RAG), OCR workflows and nutrition compatibility analysis to transform structured user data into personalized weekly nutrition plans.
 
 ![NutriPrompt Banner](nutriprompt.png)
 
@@ -9,125 +9,125 @@
 ![OpenAI](https://img.shields.io/badge/OpenAI-API-black)
 ![Gemini](https://img.shields.io/badge/Gemini-AI-orange)
 ![OCR](https://img.shields.io/badge/OCR-Vision-purple)
-![Prompt Engineering](https://img.shields.io/badge/AI-Prompt%20Engineering-red)
+![RAG](https://img.shields.io/badge/RAG-Nutrition%20Knowledge-red)
 
 ---
 
-# 🚀 NutriPrompt Vision
+# ✨ Overview
 
-NutriPrompt is an AI-powered nutrition workflow platform designed to simulate how modern intelligent SaaS systems process:
+NutriPrompt is an AI-powered nutrition workflow platform designed to demonstrate how modern intelligent applications combine structured data, domain knowledge and AI orchestration to generate consistent, contextualized outputs.
 
-* Structured nutrition forms
-* OCR document interpretation
-* Food label analysis
-* Pantry and fridge recognition
-* AI-generated meal planning
-* Compatibility analysis between dietary plans and available foods
+Rather than generating content directly from a prompt, NutriPrompt enriches every request with nutrition rules, dietary restrictions, OCR-extracted information and compatibility analysis.
 
-The project combines:
+The result is a more controlled and explainable AI workflow.
+
+---
+
+# 🎯 Problem
+
+Generating nutrition plans with AI is not simply a text generation problem.
+
+A reliable system must be able to:
+
+* Understand user goals and dietary restrictions
+* Interpret nutrition forms and documents
+* Detect potentially conflicting ingredients
+* Incorporate domain knowledge consistently
+* Generate structured outputs suitable for real workflows
+
+Large Language Models alone do not guarantee this consistency.
+
+---
+
+# 💡 Solution
+
+NutriPrompt introduces a layered AI architecture that combines:
 
 * Prompt Engineering
-* AI orchestration
-* OCR pipelines
-* Nutrition intelligence
-* Rule-based reasoning
-* Structured outputs
-* Product-oriented UX
+* Retrieval-Augmented Generation (RAG)
+* OCR-based information extraction
+* Rule-based nutrition intelligence
+* Compatibility analysis
+* Multi-provider AI orchestration
+
+This allows the platform to generate personalized plans while reducing contradictions and improving contextual consistency.
 
 ---
 
-# ✨ Core Product Vision
+# 🧠 Core Capabilities
 
-NutriPrompt is evolving beyond simple meal generation.
+### Personalized Nutrition Planning
 
-The goal is to create an intelligent nutrition assistant capable of understanding:
+Generate structured weekly plans based on:
 
-✅ What the user should eat
-✅ What the user already has available
-✅ What products are compatible with the nutritional plan
-✅ What ingredients may conflict with dietary restrictions
+* User objectives
+* Dietary restrictions
+* Food preferences
+* Budget considerations
+* Lifestyle context
 
----
+### Nutrition Knowledge Retrieval (RAG)
 
-# 🧠 Main Features
+Before generating a response, NutriPrompt retrieves relevant nutrition rules from its knowledge base.
 
-| Feature                           | Description                                                        |
-| --------------------------------- | ------------------------------------------------------------------ |
-| 🧠 Prompt Engineering             | Dynamic prompt generation from structured nutrition forms          |
-| 🤖 Multi-AI Architecture          | Gemini + OpenAI resilient orchestration                            |
-| 📄 OCR Nutrition Vision           | Extracts information from labels, products and nutrition documents |
-| 🧊 Pantry & Fridge Analysis       | Detects available foods from uploaded images                       |
-| ⚠️ Nutrition Compatibility Engine | Compares foods against nutritional restrictions                    |
-| 📊 Structured JSON Outputs        | AI responses normalized into structured data                       |
-| 📄 PDF Export                     | Printable nutrition plans                                          |
-| 🛒 Smart Shopping Logic           | Generates contextual shopping suggestions                          |
-| 🎨 AI Product UX                  | Modern responsive interface with AI workflows                      |
-| 🧱 Resilient System Design        | Graceful degradation and fallback flows                            |
+Examples:
 
----
+* Low FODMAP guidance
+* Gluten-free guidance
+* Lactose-free guidance
+* Planning recommendations
+* Shopping logic
 
-# 🧠 Smart Intake Compatibility System
+This context is injected into the prompt to improve consistency and reduce hallucinations.
 
-NutriPrompt can combine multiple sources simultaneously:
+### OCR & Nutrition Intelligence
 
-```text
-Nutrition PDF
-      +
-Pantry / Fridge Images
-      +
-Product Labels
-      ↓
-AI Compatibility Analysis
-      ↓
-Contextual Nutrition Guidance
-```
+The platform can analyze:
 
-Example workflow:
+* Nutrition PDFs
+* Product labels
+* Pantry inventories
+* Fridge contents
 
-```text
-PDF:
-- Low FODMAP
-- Lactose free
+OCR extraction is combined with nutrition rules to identify ingredients that may require review.
 
-Fridge:
-- Chicken
-- Rice
-- Yogurt
+### Compatibility Analysis
 
-Product:
-- Onion soup
+NutriPrompt compares:
 
-Result:
-⚠️ Onion soup may not be compatible
-✅ Chicken and rice appear compatible
-💡 Suggest lactose-free alternatives
-```
+* User restrictions
+* Retrieved nutrition rules
+* OCR-detected ingredients
+
+to identify potential incompatibilities before generating recommendations.
 
 ---
 
-# 🧩 System Architecture
+# 🏗 System Architecture
 
 ```text
 User Input
-    ↓
+      ↓
 Django Forms
-    ↓
+      ↓
+Profile Analysis
+      ↓
+RAG Knowledge Retrieval
+      ↓
 Prompt Builder
-    ↓
+      ↓
 Gemini API
-    ↓ (fallback)
+      ↓ (Fallback)
 OpenAI API
-    ↓
-Structured JSON
-    ↓
+      ↓
+Structured JSON Output
+      ↓
 Nutrition Rules Engine
-    ↓
-OCR + Vision Analysis
-    ↓
+      ↓
 Compatibility Analysis
-    ↓
+      ↓
 HTML Rendering
-    ↓
+      ↓
 PDF Generation
 ```
 
@@ -135,101 +135,96 @@ PDF Generation
 
 # 🧠 AI Engineering Concepts Demonstrated
 
-This project demonstrates practical implementation of:
+This project showcases practical implementation of:
 
 * Prompt Engineering
-* AI orchestration
+* Retrieval-Augmented Generation (RAG)
+* Multi-provider AI orchestration
 * OCR pipelines
+* Rule-based reasoning
 * Structured AI outputs
-* Backend architecture with Django
-* Product-oriented AI development
-* Resilient fallback systems
-* Nutrition rule engines
-* Computer vision workflows
-* Multi-context AI reasoning
-* AI-assisted UX design
-
----
-
-# 📸 Vision Module
-
-NutriPrompt Vision supports:
-
-✅ Product labels
-✅ Pantry images
-✅ Fridge analysis
-✅ Nutrition PDFs
-✅ OCR text extraction
-✅ Nutrition alerts
-✅ Restriction compatibility analysis
-
-Supported analysis categories:
-
-* Low FODMAP
-* Lactose-free
-* Gluten-free
-* Ingredient warnings
-* Nutritional compatibility checks
-
----
-
-# 📊 Kaggle Nutrition Dataset Integration
-
-NutriPrompt integrates nutrition datasets to enrich food analysis and future recommendation systems.
-
-Current integration includes:
-
-* Food nutritional values
-* Macronutrients
-* Sodium analysis
-* Fiber analysis
-* Nutrition density
-
-Dataset source:
-
-* Kaggle Food Nutrition Dataset
+* Nutrition compatibility systems
+* Product-oriented AI architecture
+* Resilient fallback workflows
+* Explainable AI pipelines
 
 ---
 
 # ⚡ Resilient AI Orchestration
 
-NutriPrompt uses a resilient provider architecture:
+NutriPrompt implements a fault-tolerant generation workflow:
 
 ```text
 Gemini API
-   ↓
+      ↓
 OpenAI Fallback
-   ↓
-Structured Mock Mode
+      ↓
+Structured Mock Generation
 ```
 
 This guarantees:
 
-* Stable demos
-* Reliable UX
+* Stable demonstrations
+* Consistent user experience
 * Graceful degradation
-* Continuous workflow generation
+* Continuous workflow execution
 
 ---
 
-# ⚙️ Tech Stack
+# ⚙️ Technology Stack
 
-| Layer           | Technology              |
-| --------------- | ----------------------- |
-| Backend         | Django                  |
-| Language        | Python 3.13             |
-| AI Providers    | Gemini API + OpenAI API |
-| OCR             | Tesseract OCR           |
-| Frontend        | HTML + CSS              |
-| PDF Engine      | WeasyPrint              |
-| Data Handling   | JSON                    |
-| AI Methodology  | Prompt Engineering      |
-| Nutrition Logic | Rule-based analysis     |
-| Vision Pipeline | OCR + AI analysis       |
+| Layer        | Technology              |
+| ------------ | ----------------------- |
+| Backend      | Django                  |
+| Language     | Python 3.13             |
+| AI Providers | Gemini API + OpenAI API |
+| Retrieval    | Custom Nutrition RAG    |
+| OCR          | Tesseract OCR           |
+| Data         | JSON                    |
+| PDF          | WeasyPrint              |
+| Frontend     | HTML + CSS              |
+| Testing      | Django Test Framework   |
+| Architecture | Service-Oriented Design |
 
 ---
 
-# 🛠️ Installation
+# 📁 Project Structure
+
+```text
+nutriprompt_app/
+├── services/
+│   ├── ai/
+│   ├── nutrition/
+│   ├── profiles/
+│   ├── rag/
+│   ├── vision/
+│   └── presentation/
+├── templates/
+├── tests/
+└── views.py
+```
+
+---
+
+# 🧪 Test Coverage
+
+Current automated validation includes:
+
+* Prompt generation
+* JSON parsing
+* Knowledge base loading
+* RAG retrieval
+* Context building
+* Prompt enrichment
+* Compatibility workflows
+
+```bash
+python manage.py test
+```
+
+---
+
+# 🛠 Installation
 
 ```bash
 git clone https://github.com/beatriangu/NutriPrompt.git
@@ -245,20 +240,7 @@ pip install -r requirements.txt
 
 ---
 
-# 🔐 Environment Variables
-
-Create a `.env` file:
-
-```env
-GOOGLE_API_KEY=your_api_key
-OPENAI_API_KEY=your_api_key
-DJANGO_SECRET_KEY=your_secret_key
-DEBUG=True
-```
-
----
-
-# ▶️ Run the Project
+# ▶️ Run
 
 ```bash
 python manage.py runserver
@@ -272,55 +254,19 @@ http://127.0.0.1:8000/
 
 ---
 
-# 🧪 Demo Mode
-
-NutriPrompt includes resilient fallback generation for demos and portfolio presentations.
-
-```python
-DEMO_MODE_FALLBACK = True
-```
-
-This ensures stable outputs even if AI providers fail.
-
----
-
-# 📁 Project Structure
-
-```text
-NutriPrompt/
-├── nutriprompt_app/
-│   ├── services/
-│   │   ├── ai/
-│   │   ├── nutrition/
-│   │   ├── vision/
-│   │   └── presentation/
-│   ├── templates/
-│   ├── tests/
-│   ├── views.py
-│   └── ...
-├── nutriprompt_web/
-├── media/
-├── data/
-├── docs/
-├── static/
-└── README.md
-```
-
----
-
 # ⚠️ Disclaimer
 
 NutriPrompt provides informational guidance only.
 
 It does not replace professional medical, nutritional or healthcare advice.
 
-Any nutritional recommendation generated by the system should be reviewed by qualified professionals whenever necessary.
+Any recommendation generated by the system should be reviewed by qualified professionals when appropriate.
 
 ---
 
 # 👩‍💻 Author
 
-## Bea Lamiquiz
+**Bea Lamiquiz**
 
 🌐 Portfolio: https://bchill.net
 💻 GitHub: https://github.com/beatriangu
@@ -330,11 +276,12 @@ Any nutritional recommendation generated by the system should be reviewed by qua
 
 # ⭐ Support
 
-If you like the project:
+If you find the project interesting:
 
 ⭐ Star the repository
 🤝 Connect on LinkedIn
 💬 Share feedback or ideas
+
 
 
 

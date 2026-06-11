@@ -2,11 +2,12 @@
 {% load static %}
 {% get_media_prefix as media_url %}
 
-{% block title %}NutriPrompt · Plan generado con IA{% endblock %}
-{% block meta_description %}Resultado del plan semanal personalizado generado con NutriPrompt: planificación visual, datos nutricionales, lista de la compra y descarga en PDF.{% endblock %}
+{% block title %}NutriPrompt · Plan semanal generado{% endblock %}
+{% block meta_description %}Resultado del plan semanal personalizado generado con NutriPrompt: planificación visual, resumen del perfil, lista de la compra y descarga en PDF.{% endblock %}
 {% block robots %}noindex, nofollow{% endblock %}
 
 {% block extra_head %}
+
 <style>
     body {
         background:
@@ -22,12 +23,12 @@
     }
 
     .result-shell {
-        background: rgba(255, 255, 255, 0.96);
+        overflow: hidden;
         border: 1px solid rgba(255, 255, 255, 0.62);
-        border-radius: 30px;
+        border-radius: 32px;
+        background: rgba(255, 255, 255, 0.96);
         box-shadow: 0 30px 90px rgba(15, 23, 42, 0.24);
         backdrop-filter: blur(14px);
-        overflow: hidden;
     }
 
     .result-inner {
@@ -37,14 +38,14 @@
     .result-hero {
         position: relative;
         overflow: hidden;
-        padding: clamp(1.5rem, 3vw, 2.5rem);
         margin-bottom: 1.35rem;
-        border-radius: 26px;
+        padding: clamp(1.5rem, 3vw, 2.5rem);
+        border: 1px solid #edf3f6;
+        border-radius: 28px;
         background:
             radial-gradient(circle at top right, rgba(52, 152, 219, 0.20), transparent 34%),
             radial-gradient(circle at top left, rgba(39, 174, 96, 0.22), transparent 36%),
             linear-gradient(135deg, #ffffff 0%, #f4fbf7 48%, #eef7ff 100%);
-        border: 1px solid #edf3f6;
         box-shadow: 0 16px 40px rgba(15, 23, 42, 0.10);
     }
 
@@ -53,8 +54,8 @@
         position: absolute;
         right: -70px;
         top: -80px;
-        width: 210px;
-        height: 210px;
+        width: 220px;
+        height: 220px;
         border-radius: 999px;
         background: rgba(39, 174, 96, 0.13);
     }
@@ -78,7 +79,7 @@
     }
 
     .result-hero__title {
-        max-width: 920px;
+        max-width: 940px;
         margin: 0;
         color: #17364b;
         font-size: clamp(2rem, 4vw, 3.35rem);
@@ -87,7 +88,7 @@
     }
 
     .result-hero__text {
-        max-width: 820px;
+        max-width: 840px;
         margin: 0.85rem 0 0;
         color: #657482;
         font-size: 1.03rem;
@@ -98,11 +99,11 @@
         display: flex;
         gap: 0.7rem;
         align-items: flex-start;
-        max-width: 900px;
+        max-width: 920px;
         margin-top: 1.15rem;
         padding: 1rem;
         border: 1px solid #f1d38a;
-        border-radius: 17px;
+        border-radius: 18px;
         background: #fff8e8;
         color: #765700;
         font-size: 0.94rem;
@@ -111,7 +112,7 @@
 
     .insight-strip {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 0.9rem;
         margin-bottom: 1.25rem;
     }
@@ -119,7 +120,7 @@
     .insight-card {
         padding: 1rem;
         border: 1px solid #dcecf7;
-        border-radius: 20px;
+        border-radius: 22px;
         background: linear-gradient(180deg, #ffffff, #f8fcff);
         box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
     }
@@ -152,9 +153,9 @@
     }
 
     .result-card {
-        background: rgba(255, 255, 255, 0.985);
         border: 1px solid rgba(221, 232, 238, 0.92);
-        border-radius: 24px;
+        border-radius: 26px;
+        background: rgba(255, 255, 255, 0.985);
         box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
     }
 
@@ -198,18 +199,18 @@
         justify-content: center;
         min-height: 44px;
         padding: 0.8rem 1.1rem;
-        border-radius: 14px;
         border: 1px solid transparent;
-        font-weight: 900;
+        border-radius: 14px;
         font-size: 0.94rem;
-        text-decoration: none;
+        font-weight: 900;
         line-height: 1;
+        text-decoration: none;
         transition: transform 0.12s ease, box-shadow 0.2s ease, background 0.2s ease;
     }
 
     .btn:hover {
-        text-decoration: none;
         transform: translateY(-1px);
+        text-decoration: none;
     }
 
     .btn--neutral {
@@ -227,7 +228,7 @@
         margin-top: 1rem;
         overflow-x: auto;
         border: 1px solid #dde8ee;
-        border-radius: 20px;
+        border-radius: 22px;
         background: #ffffff;
         box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
     }
@@ -245,9 +246,9 @@
         top: 0;
         z-index: 1;
         padding: 1rem;
+        border-bottom: 1px solid #dde8ee;
         background: linear-gradient(135deg, #eaf7ef, #eef7ff);
         color: #17364b;
-        border-bottom: 1px solid #dde8ee;
         text-align: left;
         font-size: 0.82rem;
         font-weight: 950;
@@ -289,9 +290,9 @@
         gap: 0.65rem;
         margin-top: 1rem;
         padding: 1rem;
+        border: 1px solid #dcecf7;
         border-radius: 18px;
         background: #f7fbff;
-        border: 1px solid #dcecf7;
         color: #496275;
         font-size: 0.93rem;
         line-height: 1.65;
@@ -326,7 +327,7 @@
     .shopping-card {
         padding: 1rem;
         border: 1px solid #dbeaf7;
-        border-radius: 20px;
+        border-radius: 22px;
         background: linear-gradient(180deg, #ffffff, #f8fcff);
         box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
     }
@@ -348,10 +349,10 @@
 
     .shopping-item {
         padding: 0.75rem;
+        border: 1px solid #dbeaf7;
         border-radius: 16px;
         background: #eef7ff;
         color: #31546d;
-        border: 1px solid #dbeaf7;
     }
 
     .shopping-item__name {
@@ -405,8 +406,8 @@
         align-items: center;
         gap: 0.45rem;
         padding: 0.52rem 0.82rem;
-        border-radius: 999px;
         border: 1px solid transparent;
+        border-radius: 999px;
         font-size: 0.82rem;
         font-weight: 900;
         white-space: nowrap;
@@ -566,225 +567,232 @@
         }
     }
 </style>
+
 {% endblock %}
 
 {% block content %}
+
 <div class="result-page">
     <div class="result-shell">
         <div class="result-inner">
             <header class="result-hero" aria-labelledby="page-title">
                 <div class="result-hero__content">
-                    <div class="result-hero__eyebrow">✨ Plan generado con NutriPrompt AI</div>
+                    <div class="result-hero__eyebrow">✨ Plan generado con NutriPrompt</div>
 
-                    <h1 id="page-title" class="result-hero__title">
-                        Plan semanal personalizado{% if nombre %} para {{ nombre }}{% endif %}
-                    </h1>
+```
+                <h1 id="page-title" class="result-hero__title">
+                    Plan semanal personalizado{% if nombre %} para {{ nombre }}{% endif %}
+                </h1>
 
-                    <p class="result-hero__text">
-                        Propuesta organizada a partir de tu objetivo, preferencias, restricciones, presupuesto,
-                        contexto real y reglas nutricionales asistidas por IA.
-                    </p>
+                <p class="result-hero__text">
+                    Propuesta organizada a partir de tu objetivo, preferencias, restricciones, presupuesto,
+                    contexto real y reglas nutricionales asistidas por IA.
+                </p>
 
-                    <div class="result-alert" role="note" aria-label="Aviso importante">
-                        <span aria-hidden="true">⚠️</span>
-                        <span>
-                            Este plan es orientativo y no sustituye el asesoramiento de un profesional sanitario o nutricional.
-                            Si tienes una pauta profesional, debe prevalecer sobre cualquier sugerencia automática.
-                        </span>
-                    </div>
+                <div class="result-alert" role="note" aria-label="Aviso importante">
+                    <span aria-hidden="true">⚠️</span>
+                    <span>
+                        Este plan es orientativo y no sustituye el asesoramiento de un profesional sanitario o nutricional.
+                        Si tienes una pauta profesional, debe prevalecer sobre cualquier sugerencia automática.
+                    </span>
                 </div>
-            </header>
+            </div>
+        </header>
 
-            <section class="insight-strip" aria-label="Resumen inteligente">
-                <article class="insight-card">
-                    <span class="insight-card__label">Motor</span>
-                    <div class="insight-card__value">IA + reglas nutricionales</div>
-                </article>
-                <article class="insight-card">
-                    <span class="insight-card__label">Salida</span>
-                    <div class="insight-card__value">Web + PDF profesional</div>
-                </article>
-                <article class="insight-card">
-                    <span class="insight-card__label">Datos</span>
-                    <div class="insight-card__value">Dataset nutricional integrado</div>
-                </article>
-            </section>
+        <section class="insight-strip" aria-label="Resumen del sistema">
+            <article class="insight-card">
+                <span class="insight-card__label">Motor</span>
+                <div class="insight-card__value">IA + reglas nutricionales</div>
+            </article>
 
-            <div class="result-grid">
-                <section class="stack">
-                    <section class="result-card result-card--padded" aria-labelledby="plan-title">
-                        <div class="section-header">
-                            <div>
-                                <h2 id="plan-title" class="section-title">Tu planificación semanal</h2>
-                                <p class="section-text">
-                                    Consulta el plan por días y úsalo como una base flexible que puedes adaptar a tu rutina real.
-                                </p>
-                            </div>
+            <article class="insight-card">
+                <span class="insight-card__label">Salida</span>
+                <div class="insight-card__value">Vista web + PDF descargable</div>
+            </article>
 
-                            <nav class="actions" aria-label="Acciones del plan">
-                                <a href="{% url 'nutriprompt_app:home' %}" class="btn btn--neutral">
-                                    ← Crear otro plan
-                                </a>
+            <article class="insight-card">
+                <span class="insight-card__label">Soporte</span>
+                <div class="insight-card__value">Lista de compra orientativa</div>
+            </article>
+        </section>
 
-                                {% if pdf_url %}
-                                    <a href="{{ pdf_url }}" class="btn btn--primary" download target="_blank" rel="noopener noreferrer">
-                                        📄 Descargar PDF
-                                    </a>
-                                {% endif %}
-                            </nav>
+        <div class="result-grid">
+            <section class="stack">
+                <section class="result-card result-card--padded" aria-labelledby="plan-title">
+                    <div class="section-header">
+                        <div>
+                            <h2 id="plan-title" class="section-title">Tu planificación semanal</h2>
+                            <p class="section-text">
+                                Consulta el plan por días y úsalo como una base flexible que puedes adaptar a tu rutina real.
+                            </p>
                         </div>
 
-                        <div class="table-shell" aria-label="Tabla del plan semanal">
-                            <table class="plan-table">
-                                <thead>
+                        <nav class="actions" aria-label="Acciones del plan">
+                            <a href="{% url 'nutriprompt_app:home' %}" class="btn btn--neutral">
+                                ← Crear otro plan
+                            </a>
+
+                            {% if pdf_url %}
+                                <a href="{{ pdf_url }}" class="btn btn--primary" download target="_blank" rel="noopener noreferrer">
+                                    📄 Descargar PDF
+                                </a>
+                            {% endif %}
+                        </nav>
+                    </div>
+
+                    <div class="table-shell" aria-label="Tabla del plan semanal">
+                        <table class="plan-table">
+                            <thead>
+                                <tr>
+                                    <th>Día</th>
+                                    <th>Desayuno</th>
+                                    <th>Comida</th>
+                                    <th>Cena</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if tabla_html %}
+                                    {{ tabla_html|safe }}
+                                {% else %}
                                     <tr>
-                                        <th>Día</th>
-                                        <th>Desayuno</th>
-                                        <th>Comida</th>
-                                        <th>Cena</th>
+                                        <td colspan="4">
+                                            <div class="empty-state">No se ha podido generar el plan correctamente.</div>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {% if tabla_html %}
-                                        {{ tabla_html|safe }}
-                                    {% else %}
-                                        <tr>
-                                            <td colspan="4">
-                                                <div class="empty-state">No se ha podido generar el plan correctamente.</div>
-                                            </td>
-                                        </tr>
-                                    {% endif %}
-                                </tbody>
-                            </table>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if html_url %}
+                        <div class="meta-links">
+                            <a href="{{ html_url }}" target="_blank" rel="noopener noreferrer" class="text-link">
+                                Ver versión HTML guardada
+                            </a>
                         </div>
+                    {% endif %}
 
-                        {% if html_url %}
-                            <div class="meta-links">
-                                <a href="{{ html_url }}" target="_blank" rel="noopener noreferrer" class="text-link">
-                                    Ver versión HTML guardada
-                                </a>
-                            </div>
-                        {% endif %}
-
-                        <div class="helper-copy">
-                            <p><strong>Consejo:</strong> revisa el plan antes de aplicarlo y ajústalo según tus necesidades reales.</p>
-                            <p><strong>Sugerencia:</strong> úsalo como guía práctica y flexible, no como una pauta cerrada.</p>
-                        </div>
-                    </section>
-
-                    <section class="result-card result-card--padded" aria-labelledby="shopping-title">
-                        <h2 id="shopping-title" class="section-title">🛒 Lista de la compra inteligente</h2>
-
-                        <p class="section-text">
-                            Ingredientes agrupados automáticamente. Cuando hay datos disponibles, NutriPrompt añade una lectura nutricional orientativa.
-                        </p>
-
-                        {% if shopping_list %}
-                            <div class="shopping-grid">
-                                {% for category, items in shopping_list.items %}
-                                    <article class="shopping-card">
-                                        <h3 class="shopping-card__title">{{ category }}</h3>
-
-                                        {% if items %}
-                                            <ul class="shopping-list">
-                                                {% for item in items %}
-                                                    <li class="shopping-item">
-                                                        <div class="shopping-item__name">
-                                                            {% if item.name %}
-                                                                <span>{{ item.name }}</span>
-                                                                {% if item.has_nutrition_data %}
-                                                                    <span class="data-pill">Data</span>
-                                                                {% else %}
-                                                                    <span class="data-pill data-pill--muted">Manual</span>
-                                                                {% endif %}
-                                                            {% else %}
-                                                                <span>{{ item|capfirst }}</span>
-                                                                <span class="data-pill data-pill--muted">Base</span>
-                                                            {% endif %}
-                                                        </div>
-
-                                                        {% if item.summary %}
-                                                            <div class="shopping-item__summary">{{ item.summary }}</div>
-                                                        {% endif %}
-                                                    </li>
-                                                {% endfor %}
-                                            </ul>
-                                        {% else %}
-                                            <p class="section-text">Sin elementos en esta categoría.</p>
-                                        {% endif %}
-                                    </article>
-                                {% endfor %}
-                            </div>
-
-                            <div class="shopping-note">
-                                Ajusta esta lista según lo que ya tengas en casa, cantidades reales, marcas preferidas y cualquier indicación profesional.
-                            </div>
-                        {% else %}
-                            <div class="empty-state">
-                                No se ha generado lista de la compra para este plan.
-                            </div>
-                        {% endif %}
-                    </section>
+                    <div class="helper-copy">
+                        <p><strong>Consejo:</strong> revisa el plan antes de aplicarlo y ajústalo según tus necesidades reales.</p>
+                        <p><strong>Sugerencia:</strong> úsalo como guía práctica y flexible, no como una pauta cerrada.</p>
+                    </div>
                 </section>
 
-                <aside class="stack" aria-labelledby="summary-title">
-                    <section class="result-card result-card--padded">
-                        <div class="section-header">
-                            <div>
-                                <h2 id="summary-title" class="section-title">Resumen del plan</h2>
-                                <p class="section-text">Información clave utilizada para generar esta propuesta.</p>
-                            </div>
+                <section class="result-card result-card--padded" aria-labelledby="shopping-title">
+                    <h2 id="shopping-title" class="section-title">🛒 Lista de la compra inteligente</h2>
 
-                            {% if source_type == "mock" %}
-                                <span class="status-badge status-badge--mock">Modo demo</span>
-                            {% elif source_type == "fallback" %}
-                                <span class="status-badge status-badge--fallback">Motor nutricional</span>
-                            {% elif source_type == "openai" %}
-                                <span class="status-badge status-badge--openai">IA · OpenAI</span>
-                            {% elif source_type == "gemini" %}
-                                <span class="status-badge status-badge--ai">IA · Gemini</span>
-                            {% else %}
-                                <span class="status-badge status-badge--ai">Generación automática</span>
-                            {% endif %}
+                    <p class="section-text">
+                        Ingredientes agrupados automáticamente para facilitar la planificación. Ajusta cantidades y productos según lo que ya tengas en casa.
+                    </p>
+
+                    {% if shopping_list %}
+                        <div class="shopping-grid">
+                            {% for category, items in shopping_list.items %}
+                                <article class="shopping-card">
+                                    <h3 class="shopping-card__title">{{ category }}</h3>
+
+                                    {% if items %}
+                                        <ul class="shopping-list">
+                                            {% for item in items %}
+                                                <li class="shopping-item">
+                                                    <div class="shopping-item__name">
+                                                        {% if item.name %}
+                                                            <span>{{ item.name }}</span>
+                                                            {% if item.has_nutrition_data %}
+                                                                <span class="data-pill">Datos</span>
+                                                            {% else %}
+                                                                <span class="data-pill data-pill--muted">Manual</span>
+                                                            {% endif %}
+                                                        {% else %}
+                                                            <span>{{ item|capfirst }}</span>
+                                                            <span class="data-pill data-pill--muted">Base</span>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    {% if item.summary %}
+                                                        <div class="shopping-item__summary">{{ item.summary }}</div>
+                                                    {% endif %}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <p class="section-text">Sin elementos en esta categoría.</p>
+                                    {% endif %}
+                                </article>
+                            {% endfor %}
                         </div>
 
-                        <div class="summary-grid">
-                            <article class="summary-item">
-                                <span class="summary-item__label">Cliente</span>
-                                <div class="summary-item__value">{{ nombre|default:"No especificado" }}</div>
-                            </article>
+                        <div class="shopping-note">
+                            Ajusta esta lista según lo que ya tengas, cantidades reales, marcas preferidas y cualquier indicación profesional.
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            No se ha generado lista de la compra para este plan.
+                        </div>
+                    {% endif %}
+                </section>
+            </section>
 
-                            <article class="summary-item">
-                                <span class="summary-item__label">Resultado</span>
-                                <div class="summary-item__value">Plan semanal estructurado de comidas</div>
-                            </article>
-
-                            <article class="summary-item">
-                                <span class="summary-item__label">Formato</span>
-                                <div class="summary-item__value">Vista web + PDF descargable</div>
-                            </article>
+            <aside class="stack" aria-labelledby="summary-title">
+                <section class="result-card result-card--padded">
+                    <div class="section-header">
+                        <div>
+                            <h2 id="summary-title" class="section-title">Resumen del plan</h2>
+                            <p class="section-text">Información clave utilizada para generar esta propuesta.</p>
                         </div>
 
-                        {% if profile_tags %}
-                            <div class="tag-list" aria-label="Etiquetas del perfil">
-                                {% for tag in profile_tags %}
-                                    <span class="tag">{{ tag }}</span>
-                                {% endfor %}
-                            </div>
+                        {% if source_type == "mock" %}
+                            <span class="status-badge status-badge--mock">Modo demo</span>
+                        {% elif source_type == "fallback" %}
+                            <span class="status-badge status-badge--fallback">Motor nutricional</span>
+                        {% elif source_type == "openai" %}
+                            <span class="status-badge status-badge--openai">IA · OpenAI</span>
+                        {% elif source_type == "gemini" %}
+                            <span class="status-badge status-badge--ai">IA · Gemini</span>
                         {% else %}
-                            <div class="info-box">
-                                No se han detectado etiquetas específicas para este perfil.
-                            </div>
+                            <span class="status-badge status-badge--ai">Generación automática</span>
                         {% endif %}
+                    </div>
 
-                        <div class="info-box">
-                            NutriPrompt combina formulario estructurado, reglas de validación, generación automática,
-                            dataset nutricional y análisis visual para crear una propuesta coherente y revisable.
+                    <div class="summary-grid">
+                        <article class="summary-item">
+                            <span class="summary-item__label">Cliente</span>
+                            <div class="summary-item__value">{{ nombre|default:"No especificado" }}</div>
+                        </article>
+
+                        <article class="summary-item">
+                            <span class="summary-item__label">Resultado</span>
+                            <div class="summary-item__value">Plan semanal estructurado de comidas</div>
+                        </article>
+
+                        <article class="summary-item">
+                            <span class="summary-item__label">Formato</span>
+                            <div class="summary-item__value">Vista web + PDF descargable</div>
+                        </article>
+                    </div>
+
+                    {% if profile_tags %}
+                        <div class="tag-list" aria-label="Etiquetas del perfil">
+                            {% for tag in profile_tags %}
+                                <span class="tag">{{ tag }}</span>
+                            {% endfor %}
                         </div>
-                    </section>
-                </aside>
-            </div>
+                    {% else %}
+                        <div class="info-box">
+                            No se han detectado etiquetas específicas para este perfil.
+                        </div>
+                    {% endif %}
+
+                    <div class="info-box">
+                        NutriPrompt combina formulario estructurado, reglas de validación, RAG, generación automática
+                        y lista de compra para crear una propuesta coherente y revisable.
+                    </div>
+                </section>
+            </aside>
         </div>
     </div>
+</div>
+```
+
 </div>
 {% endblock %}

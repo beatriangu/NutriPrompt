@@ -3,8 +3,7 @@
 > **AI-powered nutrition intelligence platform built with Django, Prompt Engineering, Retrieval-Augmented Generation (RAG), OCR workflows and multi-provider AI orchestration.**
 >
 > NutriPrompt demonstrates how modern AI products can combine structured user data, domain knowledge, retrieval systems and intelligent orchestration to generate contextualized, explainable and actionable outputs.
-
-![NutriPrompt Banner](nutriprompt.png)
+![NutriPrompt Banner](docs/screenshots/banner.png)
 
 ![Python](https://img.shields.io/badge/Python-3.13-blue)
 ![Django](https://img.shields.io/badge/Django-5.x-green)

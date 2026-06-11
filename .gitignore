@@ -1,11 +1,16 @@
 # =========================================================
+
 # NutriPrompt · Professional .gitignore
+
 # =========================================================
 
 # =========================================================
+
 # Python
+
 # =========================================================
-__pycache__/
+
+**pycache**/
 *.py[cod]
 *$py.class
 *.so
@@ -13,8 +18,11 @@ __pycache__/
 *.pyo
 
 # =========================================================
-# Virtual environments
+
+# Virtual Environments
+
 # =========================================================
+
 venv/
 .venv/
 env/
@@ -23,55 +31,74 @@ env.bak/
 venv.bak/
 
 # =========================================================
+
 # Django
+
 # =========================================================
+
 db.sqlite3
 *.sqlite3
 
-# Django collected static
 staticfiles/
 
 # =========================================================
-# Environment variables / secrets
+
+# Environment Variables / Secrets
+
 # =========================================================
+
 .env
 *.env
 .env.local
 .env.production
 
 # =========================================================
+
 # Logs
+
 # =========================================================
+
 *.log
 logs/
 
 # =========================================================
-# macOS / Linux / Windows
+
+# macOS / Windows
+
 # =========================================================
+
 .DS_Store
 Thumbs.db
 desktop.ini
 
 # =========================================================
-# IDE / Editors
+
+# IDEs / Editors
+
 # =========================================================
+
 .vscode/
 .idea/
 
-# Vim
 *.swp
 *.swo
 
 # =========================================================
-# Temporary / backup files
+
+# Temporary / Backup Files
+
 # =========================================================
+
 *.tmp
 *.bak
 *.temp
 
 # =========================================================
-# Python packaging
+
+# Python Packaging
+
 # =========================================================
+
 build/
 dist/
 .eggs/
@@ -79,102 +106,151 @@ dist/
 pip-wheel-metadata/
 
 # =========================================================
-# Testing / coverage
+
+# Testing / Coverage
+
 # =========================================================
+
 .pytest_cache/
 .coverage
 htmlcov/
 .cache/
 
 # =========================================================
+
 # Jupyter
+
 # =========================================================
+
 .ipynb_checkpoints/
 
 # =========================================================
-# AI / ML / Data Science
+
+# AI / Machine Learning
+
 # =========================================================
 
-# HuggingFace / Transformers
+# HuggingFace
+
 .cache/huggingface/
 huggingface_cache/
 
-# Starlit / LLM cache
+# LLM cache
+
 starlit_cache/
 
-# Tensorflow / Torch temp
+# Model weights
+
 *.ckpt
 *.pt
 *.pth
 
 # =========================================================
-# Kaggle / datasets raw
+
+# Data Files
+
 # =========================================================
+
+# Raw datasets
+
 data/raw/
 data/interim/
+
+# Processed datasets
+
+# (Keep ignored if generated automatically)
+
 data/processed/
 
-# Optional:
-# Keep only docs/examples tracked
-# !data/README.md
-
-# =========================================================
-# Media uploads (generated dynamically)
 # =========================================================
 
-# Generated plans
+# Media Uploads (Generated Content)
+
+# =========================================================
+
+# Generated nutrition plans
+
 media/resultados/
 
 # OCR uploads
+
 media/vision/
 
-# Sensitive forms
+# Uploaded forms
+
 media/formularios/
 
 # =========================================================
-# PDFs / generated exports
-# =========================================================
-*.pdf
-*.html
 
-# EXCEPT documentation examples
+# Generated Documents
+
+# =========================================================
+
+# Generated PDFs
+
+*.pdf
+
+# Generated HTML exports only
+
+media/resultados/*.html
+
+# Keep documentation examples
+
 !docs/**/*.pdf
 !docs/**/*.html
 
 # =========================================================
-# Experimental / local files
+
+# Experimental / Local Files
+
 # =========================================================
+
 prompt_generado.txt
 debug_output.txt
 scratch.py
 
 # =========================================================
-# Node / frontend (future-proof)
+
+# Frontend (Future)
+
 # =========================================================
+
 node_modules/
 
 # =========================================================
-# OS generated archives
+
+# Archives
+
 # =========================================================
+
 *.zip
 *.tar
 *.gz
 
 # =========================================================
-# WeasyPrint temp
+
+# WeasyPrint
+
 # =========================================================
+
 weasyprint_cache/
 
 # =========================================================
-# NutriPrompt AI generated outputs
+
+# AI Generated Outputs
+
 # =========================================================
+
 ai_outputs/
 ocr_outputs/
 vision_outputs/
 
 # =========================================================
-# Keep important project structure
+
+# Keep Project Structure
+
 # =========================================================
+
 !media/.gitkeep
 !data/.gitkeep
-docs/data/.gitkeep
+!docs/data/.gitkeep

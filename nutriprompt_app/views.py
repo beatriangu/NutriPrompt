@@ -835,7 +835,11 @@ def _build_result_context(
 def procesar_plan_directo(request):
     if request.method != "POST":
         form = NutriPromptForm()
-        return render(request, "nutriprompt_app/home.html", {"form": form})
+        return render(
+            request,
+            "nutriprompt_app/home.html",
+            {"form": form}
+        )
 
     form = NutriPromptForm(request.POST)
 

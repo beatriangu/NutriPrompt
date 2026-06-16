@@ -569,19 +569,19 @@
                 <div>
                     <div class="eyebrow">✨ NutriPrompt · Asistente nutricional con IA</div>
 
-                    <h1>Convierte información real en un plan semanal claro, útil y personalizado</h1>
+                    <h1>Transforma datos nutricionales reales en planes semanales inteligentes y personalizados</h1>
 
                     <p>
-                        NutriPrompt combina formulario guiado, reglas nutricionales, RAG, generación automática y análisis visual
-                        para ayudarte a crear planes semanales a partir de objetivos, restricciones, contexto real,
-                        pautas profesionales o alimentos disponibles en casa.
+                        NutriPrompt combina formularios guiados, reglas nutricionales, Retrieval-Augmented Generation (RAG),
+                        análisis OCR y orquestación multi-IA para transformar objetivos, restricciones y contexto real
+                        en planes nutricionales fiables, explicables y adaptados a tu realidad.
                     </p>
 
                     <div class="hero-points">
                         <span class="hero-point">Plan semanal personalizado</span>
                         <span class="hero-point">PDF profesional</span>
-                        <span class="hero-point">Lista de compra</span>
-                        <span class="hero-point">OCR y análisis visual</span>
+                        <span class="hero-point">Lista inteligente de compra</span>
+                        <span class="hero-point">OCR + análisis visual</span>
                     </div>
 
                     <div class="hero-actions" aria-label="Accesos principales">
@@ -590,18 +590,19 @@
                         </a>
 
                         <a href="{% url 'nutriprompt_app:dashboard' %}" class="hero-action hero-action--secondary">
-                            Ver dashboard técnico
+                            Ver arquitectura IA
                         </a>
                     </div>
                 </div>
 
                 <aside class="hero-side" aria-label="Qué hace NutriPrompt">
-                    <h2 class="hero-side__title">Qué aporta esta demo</h2>
+                    <h2 class="hero-side__title">Qué hace NutriPrompt por ti</h2>
                     <ul class="hero-side__list">
-                        <li>Recoge información manual o desde archivos reales.</li>
+                        <li>Recoge contexto manual o desde fuentes reales: PDF, imágenes o etiquetas.</li>
                         <li>Interpreta restricciones como gluten, lactosa o FODMAPs.</li>
-                        <li>Recupera reglas relevantes antes de generar el prompt.</li>
-                        <li>Genera un resultado visual, revisable y descargable.</li>
+                        <li>Recupera reglas nutricionales antes de construir el contexto del modelo.</li>
+                        <li>Detecta incompatibilidades antes de recomendar.</li>
+                        <li>Genera planes estructurados, revisables y exportables en PDF.</li>
                     </ul>
                 </aside>
             </div>
@@ -623,13 +624,13 @@
             <section class="smart-intake" aria-labelledby="smart-intake-title">
                 <div class="smart-header">
                     <div>
-                        <h2 id="smart-intake-title">Smart Intake: empieza desde tu contexto real</h2>
+                        <h2 id="smart-intake-title">Smart Intake · Construye el plan desde tu contexto real</h2>
                         <p>
                             Puedes generar el plan manualmente o apoyarte en archivos reales:
                             una pauta profesional, una foto de nevera/despensa o un producto concreto.
                         </p>
                     </div>
-                    <span class="beta-pill">NutriPrompt Vision · Beta</span>
+                    <span class="beta-pill">NutriPrompt Vision · OCR Intelligence</span>
                 </div>
 
                 <div class="intake-grid">
@@ -637,8 +638,8 @@
                         <div class="intake-icon">📄</div>
                         <h3>PDF de dieta o pauta profesional</h3>
                         <p>
-                            Sube una pauta nutricional para extraer restricciones, alimentos recomendados,
-                            alimentos a evitar y objetivos principales.
+                            Sube una pauta nutricional para extraer restricciones detectadas,
+                            alimentos recomendados, incompatibilidades y objetivos nutricionales.
                         </p>
                         <span>Analizar documento →</span>
                     </a>
@@ -656,7 +657,8 @@
                         <div class="intake-icon">🏷️</div>
                         <h3>Ingrediente o producto concreto</h3>
                         <p>
-                            Revisa una etiqueta o ingrediente para detectar posibles alertas de gluten, lactosa o FODMAPs.
+                            Analiza etiquetas o ingredientes para detectar incompatibilidades nutricionales,
+                            alérgenos o señales sensibles.
                         </p>
                         <span>Analizar producto →</span>
                     </a>
@@ -872,7 +874,7 @@
 
                     <div class="privacy-box">
                         Los datos introducidos se utilizan únicamente para generar una propuesta nutricional personalizada.
-                        Esta herramienta tiene carácter orientativo y no sustituye la valoración de un profesional sanitario o nutricional.
+                        Esta herramienta es un sistema de apoyo nutricional basado en IA y no sustituye la valoración de un profesional sanitario o nutricional.
                     </div>
 
                     <label class="checkbox-group" for="{{ form.accept_privacy.id_for_label }}">
@@ -891,7 +893,7 @@
 
                         <p class="submit-note">
                             El resultado incluirá planificación semanal, resumen del perfil, etiquetas detectadas,
-                            lista de la compra orientativa y PDF descargable.
+                            lista inteligente de la compra y PDF descargable.
                         </p>
                     </div>
                 </section>

@@ -6,7 +6,7 @@
 <style>
     .dashboard-page {
         min-height: 100vh;
-        padding: clamp(1.5rem, 4vw, 3rem);
+        padding: clamp(0.8rem, 2vw, 1.5rem);
         background:
             radial-gradient(circle at top left, rgba(39, 174, 96, 0.18), transparent 32%),
             radial-gradient(circle at top right, rgba(52, 152, 219, 0.16), transparent 30%),
@@ -22,9 +22,9 @@
     .dashboard-hero {
         display: grid;
         grid-template-columns: 1.3fr 0.7fr;
-        gap: 1.5rem;
+        gap: 1rem;
         align-items: stretch;
-        margin-bottom: 1.5rem;
+        margin-bottom: 0.8rem;
     }
 
     .hero-card,
@@ -32,26 +32,26 @@
     .metric-card,
     .panel {
         border: 1px solid rgba(204, 218, 224, 0.9);
-        border-radius: 28px;
+        border-radius: 24px;
         background: rgba(255, 255, 255, 0.88);
-        box-shadow: 0 24px 70px rgba(28, 60, 72, 0.10);
+        box-shadow: 0 18px 40px rgba(28, 60, 72, 0.08);
         backdrop-filter: blur(14px);
     }
 
     .hero-card {
-        padding: clamp(1.6rem, 4vw, 2.4rem);
+        padding: clamp(1rem, 2vw, 1.4rem);
     }
 
     .eyebrow {
         display: inline-flex;
-        gap: 0.45rem;
+        gap: 0.35rem;
         align-items: center;
-        margin-bottom: 1rem;
-        padding: 0.45rem 0.8rem;
+        margin-bottom: 0.7rem;
+        padding: 0.35rem 0.7rem;
         border-radius: 999px;
         background: #eaf8ef;
         color: #1f8f4f;
-        font-size: 0.78rem;
+        font-size: 0.72rem;
         font-weight: 800;
         letter-spacing: 0.08em;
         text-transform: uppercase;
@@ -61,46 +61,40 @@
         margin: 0;
         max-width: 760px;
         color: #14324a;
-        font-size: clamp(2.1rem, 5vw, 4.2rem);
-        line-height: 0.98;
-        letter-spacing: -0.06em;
+        font-size: clamp(1.7rem, 4vw, 3rem);
+        line-height: 1;
+        letter-spacing: -0.05em;
     }
 
     .hero-description {
         max-width: 720px;
-        margin: 1.1rem 0 0;
+        margin: 0.7rem 0 0;
         color: #5f6c76;
-        font-size: 1.02rem;
-        line-height: 1.7;
+        font-size: 0.92rem;
+        line-height: 1.5;
     }
 
     .hero-actions {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.8rem;
-        margin-top: 1.4rem;
+        gap: 0.6rem;
+        margin-top: 1rem;
     }
 
     .dashboard-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 44px;
-        padding: 0.75rem 1rem;
+        min-height: 40px;
+        padding: 0.65rem 0.9rem;
         border-radius: 999px;
         text-decoration: none;
-        font-weight: 800;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .dashboard-btn:hover {
-        transform: translateY(-2px);
+        font-weight: 700;
     }
 
     .dashboard-btn.primary {
         background: linear-gradient(135deg, #27ae60, #1f8f4f);
         color: #fff;
-        box-shadow: 0 14px 30px rgba(39, 174, 96, 0.25);
     }
 
     .dashboard-btn.secondary {
@@ -113,7 +107,7 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        padding: 1.5rem;
+        padding: 1rem;
         overflow: hidden;
         position: relative;
     }
@@ -121,151 +115,156 @@
     .status-card::after {
         content: "";
         position: absolute;
-        right: -50px;
-        bottom: -50px;
-        width: 170px;
-        height: 170px;
+        right: -40px;
+        bottom: -40px;
+        width: 120px;
+        height: 120px;
         border-radius: 50%;
-        background: rgba(39, 174, 96, 0.13);
+        background: rgba(39, 174, 96, 0.10);
     }
 
     .status-pill {
         width: fit-content;
-        padding: 0.45rem 0.8rem;
+        padding: 0.35rem 0.7rem;
         border-radius: 999px;
         background: #eaf8ef;
         color: #1f8f4f;
-        font-size: 0.8rem;
+        font-size: 0.72rem;
         font-weight: 800;
     }
 
     .status-card strong {
         display: block;
-        margin-top: 1rem;
+        margin-top: 0.6rem;
         color: #14324a;
-        font-size: 2.1rem;
+        font-size: 1.7rem;
         line-height: 1;
     }
 
     .status-card span {
         display: block;
-        margin-top: 0.5rem;
+        margin-top: 0.35rem;
         color: #70808d;
-        line-height: 1.5;
+        line-height: 1.4;
+        font-size: 0.88rem;
     }
 
     .metrics-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 1rem;
-        margin-bottom: 1rem;
+        gap: 0.7rem;
+        margin-bottom: 0.7rem;
     }
 
     .metric-card {
-        padding: 1.25rem;
+        padding: 0.9rem;
     }
 
     .metric-icon {
         display: grid;
         place-items: center;
-        width: 42px;
-        height: 42px;
-        margin-bottom: 1rem;
-        border-radius: 16px;
+        width: 36px;
+        height: 36px;
+        margin-bottom: 0.7rem;
+        border-radius: 14px;
         background: #f0f7f3;
-        font-size: 1.35rem;
+        font-size: 1.1rem;
     }
 
     .metric-card p {
         margin: 0;
         color: #70808d;
-        font-size: 0.9rem;
+        font-size: 0.82rem;
         font-weight: 700;
     }
 
     .metric-card strong {
         display: block;
-        margin-top: 0.35rem;
+        margin-top: 0.2rem;
         color: #14324a;
-        font-size: 2rem;
+        font-size: 1.6rem;
         letter-spacing: -0.04em;
     }
 
     .dashboard-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 1rem;
+        gap: 0.8rem;
     }
 
     .panel {
-        padding: clamp(1.25rem, 3vw, 1.6rem);
+        padding: clamp(0.9rem, 2vw, 1.2rem);
     }
 
     .panel h2 {
-        margin: 0 0 0.5rem;
+        margin: 0 0 0.35rem;
         color: #14324a;
-        font-size: 1.25rem;
+        font-size: 1.05rem;
         letter-spacing: -0.02em;
     }
 
     .panel-lead {
-        margin: 0 0 1.2rem;
+        margin: 0 0 0.8rem;
         color: #70808d;
-        line-height: 1.6;
+        line-height: 1.45;
+        font-size: 0.88rem;
     }
 
     .pipeline {
         display: grid;
-        gap: 0.65rem;
+        gap: 0.45rem;
     }
 
     .pipeline-step {
         display: flex;
-        gap: 0.75rem;
+        gap: 0.65rem;
         align-items: center;
-        padding: 0.85rem 0.95rem;
+        padding: 0.55rem 0.75rem;
         border: 1px solid #edf2f6;
-        border-radius: 18px;
+        border-radius: 14px;
         background: #fbfdfc;
     }
 
     .step-dot {
         display: grid;
         place-items: center;
-        width: 34px;
-        height: 34px;
+        width: 30px;
+        height: 30px;
         flex: 0 0 auto;
-        border-radius: 12px;
+        border-radius: 10px;
         background: linear-gradient(135deg, #eaf8ef, #eef7ff);
         color: #1f8f4f;
         font-weight: 900;
+        font-size: 0.85rem;
     }
 
     .pipeline-step strong {
         display: block;
         color: #203040;
+        font-size: 0.9rem;
     }
 
     .pipeline-step span {
         display: block;
-        margin-top: 0.15rem;
+        margin-top: 0.1rem;
         color: #70808d;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
     }
 
     .capabilities {
         display: grid;
-        gap: 0.7rem;
+        gap: 0.45rem;
     }
 
     .capability {
         display: flex;
         justify-content: space-between;
         gap: 1rem;
-        padding: 0.9rem 1rem;
-        border-radius: 18px;
+        padding: 0.55rem 0.75rem;
+        border-radius: 14px;
         background: #fbfdfc;
         border: 1px solid #edf2f6;
+        font-size: 0.88rem;
     }
 
     .capability strong {
@@ -284,13 +283,13 @@
     .architecture-map {
         display: grid;
         grid-template-columns: repeat(6, minmax(0, 1fr));
-        gap: 0.8rem;
-        margin-top: 1.2rem;
+        gap: 0.6rem;
+        margin-top: 0.8rem;
     }
 
     .architecture-node {
-        padding: 1rem;
-        border-radius: 20px;
+        padding: 0.7rem;
+        border-radius: 14px;
         background: linear-gradient(180deg, #ffffff, #f7fbf9);
         border: 1px solid #e3edf1;
         text-align: center;
@@ -299,14 +298,15 @@
     .architecture-node b {
         display: block;
         color: #14324a;
-        font-size: 0.95rem;
+        font-size: 0.85rem;
     }
 
     .architecture-node small {
         display: block;
-        margin-top: 0.35rem;
+        margin-top: 0.2rem;
         color: #70808d;
-        line-height: 1.4;
+        line-height: 1.3;
+        font-size: 0.72rem;
     }
 
     @media (max-width: 980px) {
@@ -335,192 +335,14 @@
         }
 
         .dashboard-hero h1 {
-            font-size: 2.25rem;
+            font-size: 2rem;
         }
     }
 </style>
 
 <main class="dashboard-page">
     <div class="dashboard-shell">
-        <section class="dashboard-hero">
-            <div class="hero-card">
-                <div class="eyebrow">🥦 NutriPrompt Intelligence Dashboard</div>
-                <h1>AI nutrition workflows, explained visually.</h1>
-                <p class="hero-description">
-                    A product-style dashboard that summarizes NutriPrompt’s core AI pipeline:
-                    structured forms, RAG retrieval, OCR analysis, compatibility checks,
-                    multi-provider generation and PDF export.
-                </p>
-
-                <div class="hero-actions">
-                    <a class="dashboard-btn primary" href="{% url 'nutriprompt_app:home' %}">
-                        Generate a plan
-                    </a>
-                    <a class="dashboard-btn secondary" href="{% url 'nutriprompt_app:vision_upload' %}">
-                        Open Vision module
-                    </a>
-                </div>
-            </div>
-
-            <aside class="status-card">
-                <div>
-                    <div class="status-pill">System status</div>
-                    <strong>{{ ai_status }}</strong>
-                    <span>
-                        Gemini/OpenAI orchestration with fallback mode, structured JSON validation
-                        and protected demo flow.
-                    </span>
-                </div>
-            </aside>
-        </section>
-
-        <section class="metrics-grid">
-            <article class="metric-card">
-                <div class="metric-icon">📄</div>
-                <p>Plans generated</p>
-                <strong>{{ plans_generated }}</strong>
-            </article>
-
-            <article class="metric-card">
-                <div class="metric-icon">🧠</div>
-                <p>RAG rules active</p>
-                <strong>{{ rag_rules }}</strong>
-            </article>
-
-            <article class="metric-card">
-                <div class="metric-icon">✅</div>
-                <p>Automated tests</p>
-                <strong>{{ tests_passed }}</strong>
-            </article>
-
-            <article class="metric-card">
-                <div class="metric-icon">🔎</div>
-                <p>Vision modules</p>
-                <strong>4</strong>
-            </article>
-        </section>
-
-        <section class="dashboard-grid">
-            <article class="panel">
-                <h2>AI workflow pipeline</h2>
-                <p class="panel-lead">
-                    NutriPrompt does not send user input directly to an AI model.
-                    It enriches the request with rules, context and compatibility signals.
-                </p>
-
-                <div class="pipeline">
-                    <div class="pipeline-step">
-                        <div class="step-dot">1</div>
-                        <div>
-                            <strong>Structured form</strong>
-                            <span>Goals, restrictions, preferences and real-life context.</span>
-                        </div>
-                    </div>
-
-                    <div class="pipeline-step">
-                        <div class="step-dot">2</div>
-                        <div>
-                            <strong>RAG retrieval</strong>
-                            <span>Relevant nutrition rules are retrieved before prompt generation.</span>
-                        </div>
-                    </div>
-
-                    <div class="pipeline-step">
-                        <div class="step-dot">3</div>
-                        <div>
-                            <strong>Prompt builder</strong>
-                            <span>Context, rules and profile tags are merged into a controlled prompt.</span>
-                        </div>
-                    </div>
-
-                    <div class="pipeline-step">
-                        <div class="step-dot">4</div>
-                        <div>
-                            <strong>AI orchestration</strong>
-                            <span>Gemini first, OpenAI fallback, structured mock mode for demos.</span>
-                        </div>
-                    </div>
-
-                    <div class="pipeline-step">
-                        <div class="step-dot">5</div>
-                        <div>
-                            <strong>Output rendering</strong>
-                            <span>JSON normalized into HTML, shopping logic and downloadable PDF.</span>
-                        </div>
-                    </div>
-                </div>
-            </article>
-
-            <article class="panel">
-                <h2>Product capabilities</h2>
-                <p class="panel-lead">
-                    Each capability is implemented as a separate service layer to keep the project
-                    scalable, testable and easy to explain.
-                </p>
-
-                <div class="capabilities">
-                    <div class="capability">
-                        <strong>Prompt Engineering</strong>
-                        <span>Active</span>
-                    </div>
-                    <div class="capability">
-                        <strong>Nutrition RAG Layer</strong>
-                        <span>Active</span>
-                    </div>
-                    <div class="capability">
-                        <strong>OCR Vision Intake</strong>
-                        <span>Active</span>
-                    </div>
-                    <div class="capability">
-                        <strong>Compatibility Engine</strong>
-                        <span>Active</span>
-                    </div>
-                    <div class="capability">
-                        <strong>PDF Export</strong>
-                        <span>Active</span>
-                    </div>
-                    <div class="capability">
-                        <strong>Automated Tests</strong>
-                        <span>17 OK</span>
-                    </div>
-                </div>
-            </article>
-
-            <article class="panel full-width">
-                <h2>Service-oriented architecture</h2>
-                <p class="panel-lead">
-                    The backend is organized into focused service modules instead of placing all logic
-                    inside Django views.
-                </p>
-
-                <div class="architecture-map">
-                    <div class="architecture-node">
-                        <b>ai/</b>
-                        <small>Prompt builder, providers, JSON parser and validation.</small>
-                    </div>
-                    <div class="architecture-node">
-                        <b>rag/</b>
-                        <small>Knowledge base, retrieval and context building.</small>
-                    </div>
-                    <div class="architecture-node">
-                        <b>vision/</b>
-                        <small>OCR, label reading and compatibility analysis.</small>
-                    </div>
-                    <div class="architecture-node">
-                        <b>nutrition/</b>
-                        <small>Fallback plans, meal rules and shopping logic.</small>
-                    </div>
-                    <div class="architecture-node">
-                        <b>profiles/</b>
-                        <small>User profile classification and contextual tags.</small>
-                    </div>
-                    <div class="architecture-node">
-                        <b>presentation/</b>
-                        <small>Output cleanup, HTML rendering and PDF presentation.</small>
-                    </div>
-                </div>
-            </article>
-        </section>
+        {{ block.super }}
     </div>
 </main>
 {% endblock %}

@@ -95,14 +95,6 @@ p {
     line-height: 1.35;
 }
 
-.np-mini-label {
-    color: #64748b;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-}
-
 [data-testid="stVerticalBlock"] {
     gap: 0.28rem;
 }
@@ -151,6 +143,30 @@ div[data-testid="stTable"] th {
 }
 </style>
 """, unsafe_allow_html=True)
+
+
+SESSION_KEYS = (
+    "profile",
+    "context",
+    "warnings",
+    "plan",
+    "prompt",
+    "generated_at",
+    "messages",
+    "input_name",
+    "input_age",
+    "input_goal",
+    "input_budget",
+    "input_activity",
+    "input_symptoms",
+    "input_restrictions",
+    "input_preferences",
+)
+
+
+def clear_results():
+    for key in SESSION_KEYS:
+        st.session_state.pop(key, None)
 
 
 def build_retrieved_context(restrictions):
@@ -296,6 +312,11 @@ Demo técnica basada en el flujo real de NutriPrompt. No sustituye consejo médi
 </div>
 """, unsafe_allow_html=True)
 
+if st.button("🔄 Reset demo", use_container_width=True):
+    clear_results()
+    st.success("✅ Demo reiniciada correctamente")
+    st.rerun()
+
 tab1, tab2, tab3, tab4, tab5 = st.tabs(
     [
         "🏠 Intake",
@@ -312,22 +333,48 @@ with tab1:
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        name = st.text_input("Nombre", "Laura")
-        age = st.number_input("Edad", 16, 99, 34)
+        name = st.text_input(
+            "Nombre",
+            value="",
+            placeholder="Ej. Laura",
+            key="input_name",
+        )
+        age = st.number_input(
+            "Edad",
+            min_value=16,
+            max_value=99,
+            value=34,
+            key="input_age",
+        )
 
     with col2:
         goal = st.selectbox(
             "Objetivo principal",
             ["Mejora digestiva", "Pérdida de peso", "Mantenimiento", "Ganancia muscular"],
+            index=0,
+            key="input_goal",
         )
-        budget = st.selectbox("Presupuesto semanal", ["Bajo", "Medio", "Alto"], index=1)
+        budget = st.selectbox(
+            "Presupuesto semanal",
+            ["Bajo", "Medio", "Alto"],
+            index=1,
+            key="input_budget",
+        )
 
     with col3:
-        activity = st.slider("Nivel de actividad física", 1, 5, 3)
+        activity = st.slider(
+            "Nivel de actividad física",
+            min_value=1,
+            max_value=5,
+            value=3,
+            key="input_activity",
+        )
         symptoms = st.text_area(
             "Síntomas o contexto",
-            "Digestiones pesadas por la tarde",
+            value="",
+            placeholder="Ej. Digestiones pesadas por la tarde",
             height=70,
+            key="input_symptoms",
         )
 
     col4, col5 = st.columns(2)
@@ -336,26 +383,28 @@ with tab1:
         restrictions = st.multiselect(
             "Restricciones alimentarias",
             ["Low FODMAP", "Sin gluten", "Sin lactosa", "Vegetariano", "Vegano"],
-            default=["Low FODMAP", "Sin lactosa"],
+            default=[],
+            key="input_restrictions",
         )
 
     with col5:
         preferences = st.multiselect(
             "Preferencias",
             ["Recetas rápidas", "Batch cooking", "Comida mediterránea", "Alta proteína"],
-            default=["Recetas rápidas", "Batch cooking"],
+            default=[],
+            key="input_preferences",
         )
 
     if st.button("🚀 Generate intelligent nutrition plan"):
         profile = {
-            "name": name,
+            "name": name or "Demo user",
             "age": age,
             "goal": goal,
             "budget": budget,
             "activity": activity,
             "restrictions": restrictions,
             "preferences": preferences,
-            "symptoms": symptoms,
+            "symptoms": symptoms or "No additional symptoms provided.",
         }
 
         context = build_retrieved_context(restrictions)

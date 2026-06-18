@@ -33,7 +33,7 @@ to deliver **more reliable, grounded and operational AI outputs**.
 
 ### Public Streamlit Demo
 
-**👉 https://YOUR-STREAMLIT-URL.streamlit.app**
+**👉 (https://nutriprompt-live.streamlit.app)**
 
 This public technical demo exposes NutriPrompt’s internal workflow in a recruiter-friendly format:
 

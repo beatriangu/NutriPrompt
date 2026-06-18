@@ -5,51 +5,110 @@ import streamlit as st
 
 
 st.set_page_config(
-    page_title="NutriPrompt Demo",
+    page_title="NutriPrompt · Demo IA",
     page_icon="🥦",
     layout="wide",
 )
 
 
-def init_state() -> None:
-    defaults = {
-        "plan_generated": False,
-        "name": "Laura",
-        "goal": "Mejora digestiva",
-        "budget": "Medio",
-        "activity": 3,
-        "context": "Digestiones pesadas por la tarde",
-        "restrictions": ["Low FODMAP", "Sin lactosa"],
-        "preferences": ["Recetas rápidas", "Batch cooking"],
-    }
+# =========================================================
+# Estado limpio
+# =========================================================
 
-    for key, value in defaults.items():
-        st.session_state.setdefault(key, value)
+DEFAULT_STATE = {
+    "plan_generated": False,
+    "alias": "",
+    "age": None,
+    "goal": None,
+    "budget": None,
+    "activity": 3,
+    "context": "",
+    "restrictions": [],
+    "preferences": [],
+    "chat_messages": [],
+}
+
+
+def init_state() -> None:
+    for key, value in DEFAULT_STATE.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
 
 
 def reset_demo() -> None:
-    st.session_state.clear()
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
     st.rerun()
 
 
-def build_demo_plan() -> pd.DataFrame:
-    name = st.session_state.get("name", "Laura")
-    restrictions = ", ".join(st.session_state.get("restrictions", [])) or "sin restricciones específicas"
+# =========================================================
+# Datos demo
+# =========================================================
 
-    return pd.DataFrame(
-        [
+def build_demo_plan() -> pd.DataFrame:
+    restrictions = st.session_state.get("restrictions", [])
+
+    if "Vegano" in restrictions:
+        meals = [
+            ["Lunes", "Avena con plátano y chía", "Bowl de arroz con tofu y verduras suaves", "Crema de calabacín con garbanzos"],
+            ["Martes", "Yogur vegetal con fruta", "Quinoa con verduras y proteína vegetal", "Tortilla vegana de harina de garbanzo"],
+            ["Miércoles", "Tostadas sin gluten con aguacate", "Arroz con tofu marinado", "Sopa de verduras y semillas"],
+            ["Jueves", "Batido vegetal con fruta", "Patata cocida con verduras y hummus suave", "Salteado de tofu con calabacín"],
+            ["Viernes", "Pudding de chía", "Tupper de arroz con verduras", "Cena ligera de crema vegetal"],
+        ]
+    else:
+        meals = [
             ["Lunes", "Yogur sin lactosa con fruta", "Arroz con pollo y verduras suaves", "Tortilla con espinacas"],
             ["Martes", "Avena sin gluten con plátano", "Pasta sin gluten con pavo", "Crema de verduras y huevo"],
             ["Miércoles", "Tostadas sin gluten", "Quinoa con pollo", "Pescado con patata cocida"],
             ["Jueves", "Batido suave de fruta", "Bowl de arroz y verduras", "Revuelto con calabacín"],
             ["Viernes", "Yogur sin lactosa con nueces", "Tupper de pollo y arroz", "Cena ligera con tortilla"],
-        ],
-        columns=["Día", "Desayuno", "Comida", "Cena"],
+        ]
+
+    return pd.DataFrame(meals, columns=["Día", "Desayuno", "Comida", "Cena"])
+
+
+def get_detected_ingredients() -> list[str]:
+    return [
+        "Harina de trigo",
+        "Leche en polvo",
+        "Cebolla en polvo",
+        "Azúcar",
+        "Sal",
+    ]
+
+
+# =========================================================
+# UI helpers
+# =========================================================
+
+def card(title: str, body: str, icon: str = "✅") -> None:
+    st.markdown(
+        f"""
+        <div style="
+            padding: 1.1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 1rem;
+            background: #ffffff;
+            min-height: 135px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+        ">
+            <div style="font-size:1.8rem;">{icon}</div>
+            <h4 style="margin:.4rem 0 .3rem 0;">{title}</h4>
+            <p style="color:#64748b; margin:0;">{body}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 
 def show_header() -> None:
-    st.title("🥦 NutriPrompt")
+    st.markdown(
+        """
+        <h1 style="font-size:3rem; margin-bottom:.2rem;">🥦 NutriPrompt</h1>
+        """,
+        unsafe_allow_html=True,
+    )
 
     st.markdown(
         """
@@ -60,314 +119,456 @@ def show_header() -> None:
             border: 1px solid #d8eadf;
             margin-bottom: 1rem;
         ">
-            <h3 style="margin-bottom:.5rem;">AI-powered nutrition intelligence platform</h3>
+            <h3 style="margin-bottom:.5rem;">Demo pública de inteligencia nutricional con IA</h3>
             <p style="font-size:1rem; margin-bottom:1rem;">
-                Prompt Engineering · RAG · OCR · Multi-provider AI orchestration · Compatibility analysis
+                Formulario inteligente · RAG · OCR · análisis de compatibilidad · orquestación multi-modelo
             </p>
-            <span style="background:#f4f6f8;padding:.4rem .8rem;border-radius:999px;margin-right:.4rem;">Django product</span>
-            <span style="background:#f4f6f8;padding:.4rem .8rem;border-radius:999px;margin-right:.4rem;">Streamlit public demo</span>
-            <span style="background:#f4f6f8;padding:.4rem .8rem;border-radius:999px;margin-right:.4rem;">RAG workflow</span>
-            <span style="background:#f4f6f8;padding:.4rem .8rem;border-radius:999px;">OCR-ready</span>
+            <span style="background:#f4f6f8;padding:.4rem .8rem;border-radius:999px;margin-right:.4rem;">Producto principal en Django</span>
+            <span style="background:#f4f6f8;padding:.4rem .8rem;border-radius:999px;margin-right:.4rem;">Demo pública en Streamlit</span>
+            <span style="background:#f4f6f8;padding:.4rem .8rem;border-radius:999px;margin-right:.4rem;">RAG explicado</span>
+            <span style="background:#f4f6f8;padding:.4rem .8rem;border-radius:999px;">OCR simulado</span>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
     st.warning(
-        "Demo técnica basada en el flujo real de NutriPrompt. "
-        "No sustituye consejo médico o nutricional profesional."
+        "Demo técnica. No sustituye asesoramiento médico, sanitario o nutricional profesional. "
+        "La IA no conoce tu nevera ni tus dramas digestivos reales."
     )
+
+
+def show_demo_status() -> None:
+    if st.session_state.get("plan_generated"):
+        st.success("✅ Plan demo generado. Puedes revisarlo en **✅ Plan generado**.")
+    else:
+        st.info("Empieza en **🏠 Intake**, rellena el perfil ficticio y genera el plan.")
+
+
+# =========================================================
+# Tabs
+# =========================================================
+
+def intro_tab() -> None:
+    st.header("Qué puedes probar en esta demo")
+
+    st.markdown(
+        """
+        NutriPrompt muestra cómo una aplicación de IA puede transformar datos de entrada en una salida
+        estructurada, explicable y revisable. No es magia: es producto, reglas y prompts bien pensados.
+        """
+    )
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        card("1. Intake", "Recoge objetivos, restricciones, preferencias y contexto real.", "🏠")
+
+    with col2:
+        card("2. Flujo IA", "Explica cómo se combinan RAG, prompt builder y fallback.", "🧠")
+
+    with col3:
+        card("3. Vision / OCR", "Simula lectura de etiquetas e ingredientes conflictivos.", "📄")
+
+    with col4:
+        card("4. Plan", "Genera una planificación semanal demo y revisable.", "✅")
+
+    st.markdown("---")
+
+    col_a, col_b = st.columns(2)
+
+    with col_a:
+        st.markdown(
+            """
+            ### Producto principal: Django
+
+            - Arquitectura real
+            - Servicios separados
+            - Tests
+            - PDF
+            - RAG
+            - OCR
+            - Fallback Gemini/OpenAI
+            """
+        )
+
+    with col_b:
+        st.markdown(
+            """
+            ### Demo pública: Streamlit
+
+            - Fácil de probar
+            - Sin instalación
+            - Pensada para LinkedIn
+            - Explica el flujo
+            - Reduce fricción
+            - Permite recibir feedback
+            """
+        )
 
 
 def intake_tab() -> None:
     st.header("Smart Nutrition Intake")
-    st.caption("Completa un perfil ficticio y genera una propuesta demo basada en reglas, RAG y análisis de compatibilidad.")
+    st.caption("Completa un perfil ficticio. La demo no guarda datos personales ni llama a APIs externas.")
 
-    col1, col2, col3 = st.columns(3)
+    with st.form("intake_form", clear_on_submit=False):
+        col1, col2, col3 = st.columns(3)
 
-    with col1:
-        name = st.text_input("Nombre", value=st.session_state["name"])
-        age = st.number_input("Edad", min_value=18, max_value=90, value=34)
+        with col1:
+            alias = st.text_input(
+                "¿Cómo te llaman en casa?",
+                value=st.session_state.get("alias", ""),
+                placeholder="Ej. La jefa del tupper, Txiki, Mamá tengo hambre..."
+            )
 
-    with col2:
-        goal = st.selectbox(
-            "Objetivo principal",
-            ["Mejora digestiva", "Organizar comidas", "Comer más equilibrado", "Ganar energía"],
-            index=["Mejora digestiva", "Organizar comidas", "Comer más equilibrado", "Ganar energía"].index(
-                st.session_state["goal"]
-            ),
+            age = st.number_input(
+                "Edad",
+                min_value=18,
+                max_value=90,
+                value=st.session_state.get("age"),
+                placeholder="Ej. 34, aunque tu espalda diga 57"
+            )
+
+        with col2:
+            goals = [
+                "Mejora digestiva",
+                "Organizar comidas",
+                "Comer más equilibrado",
+                "Ganar energía",
+            ]
+
+            current_goal = st.session_state.get("goal")
+            goal_index = goals.index(current_goal) if current_goal in goals else None
+
+            goal = st.selectbox(
+                "Objetivo principal",
+                goals,
+                index=goal_index,
+                placeholder="Elige tu misión nutricional"
+            )
+
+            budgets = ["Ajustado", "Medio", "Flexible"]
+            current_budget = st.session_state.get("budget")
+            budget_index = budgets.index(current_budget) if current_budget in budgets else None
+
+            budget = st.selectbox(
+                "Presupuesto semanal",
+                budgets,
+                index=budget_index,
+                placeholder="Desde supervivencia hasta me-lo-merezco"
+            )
+
+        with col3:
+            activity = st.slider(
+                "Nivel de actividad física",
+                min_value=1,
+                max_value=5,
+                value=st.session_state.get("activity", 3),
+                help="1 = sofá premium · 5 = persona que sube escaleras por gusto"
+            )
+
+            context = st.text_area(
+                "Síntomas, rutina o contexto",
+                value=st.session_state.get("context", ""),
+                placeholder="Ej. como fuera, tengo poco tiempo, digestiones pesadas, vivo a base de café y esperanza..."
+            )
+
+        restrictions = st.multiselect(
+            "Restricciones alimentarias",
+            ["Low FODMAP", "Sin lactosa", "Sin gluten", "Vegetariano", "Vegano"],
+            default=st.session_state.get("restrictions", []),
+            placeholder="Marca lo que haya que respetar"
         )
-        budget = st.selectbox(
-            "Presupuesto semanal",
-            ["Ajustado", "Medio", "Flexible"],
-            index=["Ajustado", "Medio", "Flexible"].index(st.session_state["budget"]),
+
+        preferences = st.multiselect(
+            "Preferencias",
+            ["Recetas rápidas", "Batch cooking", "Tupper", "Cenas ligeras", "Presupuesto ajustado"],
+            default=st.session_state.get("preferences", []),
+            placeholder="Lo que haría que no abandones al tercer día"
         )
 
-    with col3:
-        activity = st.slider("Nivel de actividad física", 1, 5, st.session_state["activity"])
-        context = st.text_area("Síntomas o contexto", value=st.session_state["context"])
+        st.markdown("### Antes de generar")
+        st.caption(
+            "La salida se genera en modo demo. Flujo: datos → reglas → compatibilidad → plan estructurado."
+        )
 
-    restrictions = st.multiselect(
-        "Restricciones alimentarias",
-        ["Low FODMAP", "Sin lactosa", "Sin gluten", "Vegetariano", "Vegano"],
-        default=st.session_state["restrictions"],
-    )
+        col_button, col_reset = st.columns([2, 1])
 
-    preferences = st.multiselect(
-        "Preferencias",
-        ["Recetas rápidas", "Batch cooking", "Tupper", "Cenas ligeras", "Presupuesto ajustado"],
-        default=st.session_state["preferences"],
-    )
+        with col_button:
+            submitted = st.form_submit_button("🚀 Generar plan inteligente", use_container_width=True)
 
-    col_button, col_reset = st.columns([1, 1])
+        with col_reset:
+            reset_clicked = st.form_submit_button("🧹 Cliente nuevo", use_container_width=True)
 
-    with col_button:
-        if st.button("🚀 Generar plan inteligente", use_container_width=True):
-            st.session_state["plan_generated"] = True
-            st.session_state["name"] = name
-            st.session_state["goal"] = goal
-            st.session_state["budget"] = budget
-            st.session_state["activity"] = activity
-            st.session_state["context"] = context
-            st.session_state["restrictions"] = restrictions
-            st.session_state["preferences"] = preferences
+    if reset_clicked:
+        reset_demo()
 
-            st.success("✅ Plan generado correctamente. Abre la pestaña **✅ Plan** para ver el resultado.")
+    if submitted:
+        missing = []
 
-    with col_reset:
-        if st.button("🔄 Reiniciar demo", use_container_width=True):
-            reset_demo()
+        if not alias.strip():
+            missing.append("cómo te llaman en casa")
+        if age is None:
+            missing.append("edad")
+        if goal is None:
+            missing.append("objetivo")
+        if budget is None:
+            missing.append("presupuesto")
 
-    if st.session_state.get("plan_generated"):
-        st.info("Tu plan demo ya está preparado. Ve a la pestaña **✅ Plan** para revisarlo.")
+        if missing:
+            st.error("Falta completar: " + ", ".join(missing) + ". La IA no adivina tanto, todavía.")
+            return
+
+        st.session_state["plan_generated"] = True
+        st.session_state["alias"] = alias.strip()
+        st.session_state["age"] = age
+        st.session_state["goal"] = goal
+        st.session_state["budget"] = budget
+        st.session_state["activity"] = activity
+        st.session_state["context"] = context.strip()
+        st.session_state["restrictions"] = restrictions
+        st.session_state["preferences"] = preferences
+        st.session_state["chat_messages"] = []
+
+        st.success("✅ Plan generado. Abre la pestaña **✅ Plan generado** para verlo.")
+
+    show_demo_status()
 
 
 def workflow_tab() -> None:
-    st.header("AI Workflow Pipeline")
-    st.caption("Así se transforma un perfil de usuario en una salida estructurada y explicable.")
+    st.header("Flujo de IA explicado")
+    st.caption("NutriPrompt no lanza el formulario sin control al modelo. Primero ordena, contextualiza y valida.")
 
     steps = [
-        ("1. User Input", "Structured profile, restrictions and symptoms"),
-        ("2. Profile Analysis", "Normalize goals, activity and dietary constraints"),
-        ("3. RAG Retrieval", "Retrieve nutrition rules from the knowledge base"),
-        ("4. Prompt Builder", "Compose grounded and structured generation prompt"),
-        ("5. Gemini API", "Primary model provider"),
-        ("6. OpenAI Fallback", "Secondary provider for resilience"),
-        ("7. Rules Engine", "Validate restrictions and compatibility"),
-        ("8. Structured Output", "Generate table, shopping logic and PDF-ready content"),
+        ("1. Entrada", "Objetivos, restricciones, preferencias y contexto.", "🏠"),
+        ("2. Perfil", "Normalización de datos y señales relevantes.", "👤"),
+        ("3. RAG", "Búsqueda de reglas nutricionales aplicables.", "🧠"),
+        ("4. Prompt Builder", "Construcción de un prompt controlado.", "🧩"),
+        ("5. Modelo principal", "Generación con proveedor principal.", "🤖"),
+        ("6. Fallback", "Proveedor alternativo si falla el primero.", "🔁"),
+        ("7. Reglas", "Validación de compatibilidad.", "🛡️"),
+        ("8. Salida", "Plan estructurado, lista y PDF.", "📄"),
     ]
 
     cols = st.columns(4)
 
-    for index, (title, description) in enumerate(steps):
+    for index, (title, description, icon) in enumerate(steps):
         with cols[index % 4]:
-            st.container(border=True).markdown(f"### {title}\n{description}")
+            card(title, description, icon)
 
-    st.success("Resilient orchestration: Gemini → OpenAI fallback → structured mock generation")
+    st.success("Orquestación resiliente: Gemini → OpenAI fallback → salida estructurada en modo demo.")
 
 
 def vision_tab() -> None:
-    st.header("Vision Module · OCR + Nutrition Intelligence")
+    st.header("Vision / OCR")
     st.caption("Simulación de análisis de etiqueta, despensa o PDF nutricional.")
 
     uploaded_file = st.file_uploader(
-        "Sube una etiqueta, imagen o PDF",
+        "Sube una etiqueta, imagen de despensa o PDF",
         type=["png", "jpg", "jpeg", "pdf"],
     )
 
     if uploaded_file:
-        st.success("Archivo recibido correctamente.")
+        st.success("Archivo recibido correctamente. En esta demo el análisis es simulado.")
     else:
-        st.info("Puedes probar sin subir archivo: la demo muestra un análisis simulado de una etiqueta de producto.")
+        st.info("Puedes probar sin subir archivo. Usamos una etiqueta ficticia, que también tiene sus secretos.")
 
-    st.code(
-        """
-Detected ingredients:
-- Wheat flour
-- Milk powder
-- Onion powder
-- Sugar
-- Salt
-        """,
-        language="text",
-    )
+    st.markdown("### Ingredientes detectados")
+
+    ingredients = get_detected_ingredients()
+    st.code("\n".join(f"- {ingredient}" for ingredient in ingredients), language="text")
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.warning("Gluten detected: wheat flour")
+        st.warning("Gluten detectado: harina de trigo")
 
     with col2:
-        st.warning("Lactose detected: milk powder")
+        st.warning("Lactosa detectada: leche en polvo")
 
     with col3:
-        st.warning("Low FODMAP warning: onion powder")
+        st.warning("Alerta Low FODMAP: cebolla en polvo")
 
-    st.info("NutriPrompt combina OCR, reglas nutricionales y restricciones del perfil antes de generar el resultado.")
+    st.info("NutriPrompt cruza OCR, reglas nutricionales y restricciones antes de generar el resultado.")
+
+
+def dashboard_tab() -> None:
+    st.header("Panel técnico")
+    st.caption("Resumen visual de la arquitectura que hay detrás del producto.")
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric("Proveedores IA", "2", "Gemini + OpenAI")
+    col2.metric("Tests", "17", "OK")
+    col3.metric("Capas del flujo", "8+", "modular")
+    col4.metric("Salida", "PDF", "descargable")
+
+    st.subheader("Arquitectura")
+
+    architecture = pd.DataFrame(
+        [
+            ["Backend principal", "Django"],
+            ["Lenguaje", "Python"],
+            ["Orquestación IA", "Gemini + OpenAI fallback"],
+            ["RAG", "Base de conocimiento nutricional"],
+            ["OCR", "Tesseract + parsing"],
+            ["Datos", "JSON"],
+            ["PDF", "WeasyPrint"],
+            ["Demo pública", "Streamlit"],
+        ],
+        columns=["Capa", "Tecnología"],
+    )
+
+    st.dataframe(architecture, use_container_width=True, hide_index=True)
+
+    st.subheader("Pipeline extremo a extremo")
+    st.info("Entrada → Perfil → RAG → Prompt Builder → Modelo IA → Fallback → Compatibilidad → Plan → PDF")
+
+
+def copilot_tab() -> None:
+    st.header("NutriPrompt Copilot")
+    st.caption("Chat demo. Se limpia al generar un nuevo perfil o al pulsar limpiar chat.")
+
+    if "chat_messages" not in st.session_state:
+        st.session_state["chat_messages"] = []
+
+    col_a, col_b = st.columns([3, 1])
+
+    with col_b:
+        if st.button("🧹 Limpiar chat", use_container_width=True):
+            st.session_state["chat_messages"] = []
+            st.rerun()
+
+    if not st.session_state.get("plan_generated"):
+        st.info("Genera primero un plan en **🏠 Intake** para que el Copilot tenga contexto.")
+        return
+
+    alias = st.session_state.get("alias", "esta persona")
+    goal = st.session_state.get("goal", "objetivo no indicado")
+    restrictions = st.session_state.get("restrictions", [])
+
+    if not st.session_state["chat_messages"]:
+        st.chat_message("assistant").write(
+            f"Hola, soy NutriPrompt Copilot. Puedo explicar el plan de {alias}, revisar restricciones "
+            "o detectar posibles incompatibilidades. Prometo no juzgar el batch cooking abandonado."
+        )
+
+    for message in st.session_state["chat_messages"]:
+        st.chat_message(message["role"]).write(message["content"])
+
+    question = st.chat_input("Pregunta sobre el plan nutricional...")
+
+    if question:
+        st.session_state["chat_messages"].append(
+            {"role": "user", "content": question}
+        )
+
+        answer = (
+            f"Para {alias}, el plan se orienta a **{goal}**. "
+            f"Las restricciones consideradas son: **{', '.join(restrictions) if restrictions else 'ninguna indicada'}**. "
+            "La demo cruza reglas nutricionales, preferencias y contexto antes de proponer el plan. "
+            "Esto no sustituye una valoración profesional, pero sí muestra cómo sería el flujo de IA explicable."
+        )
+
+        st.session_state["chat_messages"].append(
+            {"role": "assistant", "content": answer}
+        )
+
+        st.rerun()
 
 
 def plan_tab() -> None:
     if not st.session_state.get("plan_generated"):
-        st.info("Primero genera un plan desde la pestaña **🏠 Intake**.")
+        st.info("Primero genera un plan desde **🏠 Intake**.")
         return
 
-    name = st.session_state.get("name", "Laura")
-    goal = st.session_state.get("goal", "Mejora digestiva")
-    budget = st.session_state.get("budget", "Medio")
+    alias = st.session_state.get("alias", "Persona demo")
+    age = st.session_state.get("age")
+    goal = st.session_state.get("goal", "No indicado")
+    budget = st.session_state.get("budget", "No indicado")
+    activity = st.session_state.get("activity", 3)
     restrictions = st.session_state.get("restrictions", [])
     preferences = st.session_state.get("preferences", [])
     context = st.session_state.get("context", "")
 
     st.success("✅ Plan generado correctamente")
-    st.header(f"Generated Nutrition Plan for {name}")
+    st.header(f"Plan nutricional demo para {alias}")
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Objetivo", goal)
-    col2.metric("Presupuesto", budget)
-    col3.metric("Restricciones", str(len(restrictions)))
+    col1.metric("Edad", age)
+    col2.metric("Objetivo", goal)
+    col3.metric("Presupuesto", budget)
+    col4.metric("Actividad", f"{activity}/5")
 
     st.markdown("### Resumen del perfil")
 
-    st.write(
-        {
-            "Nombre": name,
-            "Objetivo": goal,
-            "Presupuesto": budget,
-            "Restricciones": restrictions,
-            "Preferencias": preferences,
-            "Contexto": context,
-        }
+    profile = pd.DataFrame(
+        [
+            ["Alias", alias],
+            ["Edad", age],
+            ["Objetivo", goal],
+            ["Presupuesto", budget],
+            ["Actividad física", f"{activity}/5"],
+            ["Restricciones", ", ".join(restrictions) if restrictions else "No indicadas"],
+            ["Preferencias", ", ".join(preferences) if preferences else "No indicadas"],
+            ["Contexto", context if context else "No indicado"],
+        ],
+        columns=["Campo", "Valor"],
     )
+
+    st.dataframe(profile, use_container_width=True, hide_index=True)
 
     st.markdown("### Plan semanal demo")
 
     plan = build_demo_plan()
-    st.dataframe(plan, use_container_width=True)
+    st.dataframe(plan, use_container_width=True, hide_index=True)
 
     col_rag, col_compatibility = st.columns(2)
 
     with col_rag:
-        st.subheader("Retrieved RAG Context")
+        st.subheader("Contexto recuperado con RAG")
         st.markdown(
             """
-            ✅ Low FODMAP rule: avoid onion, garlic, wheat, apples and some legumes when digestive sensitivity is present.
+            ✅ Regla Low FODMAP: revisar cebolla, ajo, trigo, manzana y algunas legumbres.
 
-            ✅ Lactose-free rule: avoid conventional dairy and use lactose-free or plant-based alternatives.
+            ✅ Regla sin lactosa: evitar lácteos convencionales y priorizar alternativas compatibles.
 
-            ✅ Planning rule: prioritize simple, repeatable and realistic meals for weekly organization.
+            ✅ Regla de planificación: priorizar comidas sencillas, repetibles y realistas.
             """
         )
 
     with col_compatibility:
-        st.subheader("Compatibility Analysis")
-        st.warning("Review yogurts, cheeses, sauces and processed foods for hidden lactose.")
-        st.warning("Avoid onion powder and wheat flour when Low FODMAP or gluten-free rules apply.")
+        st.subheader("Análisis de compatibilidad")
+        st.warning("Revisar yogures, quesos, salsas y procesados por posible lactosa oculta.")
+        st.warning("Evitar cebolla en polvo y harina de trigo si aplican reglas Low FODMAP o sin gluten.")
 
-    with st.expander("View generated prompt"):
+    with st.expander("Ver prompt generado"):
         st.code(
             f"""
-Act as a weekly meal organization assistant.
+Actúa como asistente de organización semanal de comidas.
 
-User profile:
-- Name: {name}
-- Goal: {goal}
-- Budget: {budget}
-- Restrictions: {", ".join(restrictions)}
-- Preferences: {", ".join(preferences)}
-- Context: {context}
+Perfil:
+- Alias: {alias}
+- Edad: {age}
+- Objetivo: {goal}
+- Presupuesto: {budget}
+- Actividad física: {activity}/5
+- Restricciones: {", ".join(restrictions) if restrictions else "No indicadas"}
+- Preferencias: {", ".join(preferences) if preferences else "No indicadas"}
+- Contexto: {context if context else "No indicado"}
 
-Use retrieved nutrition rules as priority context.
-Return structured JSON.
-Avoid medical claims.
-Generate a practical weekly plan adapted to restrictions and preferences.
+Prioriza las reglas nutricionales recuperadas por RAG.
+Evita afirmaciones médicas.
+Devuelve una salida estructurada, revisable y útil.
             """,
             language="text",
         )
 
 
-def dashboard_tab() -> None:
-    st.header("Intelligence Dashboard")
-
-    col1, col2, col3, col4 = st.columns(4)
-
-    col1.metric("AI Providers", "2", "Gemini + OpenAI")
-    col2.metric("Tests Passing", "17", "stable")
-    col3.metric("Workflow Layers", "8+", "production-ready")
-    col4.metric("Output Engine", "PDF", "downloadable")
-
-    st.subheader("Architecture Overview")
-
-    architecture = pd.DataFrame(
-        [
-            ["Backend Core", "Django"],
-            ["Language Runtime", "Python 3.13"],
-            ["AI Orchestration", "Gemini API + OpenAI Fallback"],
-            ["Knowledge Retrieval", "Custom Nutrition RAG Engine"],
-            ["OCR Intelligence", "Tesseract OCR + Parsing"],
-            ["Data Layer", "JSON Knowledge Base"],
-            ["Output Generation", "WeasyPrint PDF Engine"],
-            ["Presentation Layer", "HTML + CSS"],
-            ["Prototype Layer", "Streamlit Interactive Demo"],
-        ],
-        columns=["Layer", "Technology"],
-    )
-
-    st.dataframe(architecture, use_container_width=True)
-
-    st.subheader("Core AI System Layers")
-
-    layers = [
-        "User Profiling Engine",
-        "Restrictions Normalizer",
-        "Nutritional Rule Retrieval",
-        "Prompt Builder Engine",
-        "AI Multi-provider Routing",
-        "Compatibility Validator",
-        "Structured Plan Generator",
-        "PDF Export Pipeline",
-    ]
-
-    cols = st.columns(4)
-
-    for index, layer in enumerate(layers):
-        with cols[index % 4]:
-            st.container(border=True).markdown(f"✓ {layer}")
-
-    st.subheader("End-to-End AI Pipeline")
-    st.info(
-        "User Input → Profile Normalization → RAG Retrieval → Prompt Builder → Gemini Generation → "
-        "OpenAI Fallback → Compatibility Analysis → Structured Plan → PDF Export"
-    )
-
-
-def copilot_tab() -> None:
-    st.header("NutriPrompt AI Copilot")
-    st.caption("Una capa conversacional para explicar el plan y hacerlo más comprensible.")
-
-    st.chat_message("assistant").write(
-        "Hola, soy NutriPrompt Copilot. Puedo explicar el plan, revisar restricciones "
-        "o detectar posibles incompatibilidades."
-    )
-
-    question = st.chat_input("Pregunta sobre el plan nutricional...")
-
-    if question:
-        st.chat_message("user").write(question)
-        st.chat_message("assistant").write(
-            "Según el perfil actual, NutriPrompt prioriza un plan compatible con las restricciones indicadas. "
-            "El flujo combina RAG, reglas nutricionales y análisis de compatibilidad antes de generar el resultado."
-        )
-
-    st.chat_message("user").write(
-        "Explícame cómo este plan se adapta a mis restricciones y objetivos."
-    )
-
-    st.chat_message("assistant").write(
-        "El sistema recupera reglas relevantes sobre Low FODMAP y lactosa, detecta posibles conflictos "
-        "y adapta el plan con alternativas sencillas, transportables y compatibles con el contexto de la persona."
-    )
-
+# =========================================================
+# Main
+# =========================================================
 
 def main() -> None:
     init_state()
@@ -375,31 +576,35 @@ def main() -> None:
 
     tabs = st.tabs(
         [
+            "👋 Inicio",
             "🏠 Intake",
-            "🧠 AI Workflow",
+            "🧠 Flujo IA",
             "📄 Vision / OCR",
-            "📊 Dashboard",
-            "💬 AI Copilot",
-            "✅ Plan",
+            "📊 Panel técnico",
+            "💬 Copilot",
+            "✅ Plan generado",
         ]
     )
 
     with tabs[0]:
-        intake_tab()
+        intro_tab()
 
     with tabs[1]:
-        workflow_tab()
+        intake_tab()
 
     with tabs[2]:
-        vision_tab()
+        workflow_tab()
 
     with tabs[3]:
-        dashboard_tab()
+        vision_tab()
 
     with tabs[4]:
-        copilot_tab()
+        dashboard_tab()
 
     with tabs[5]:
+        copilot_tab()
+
+    with tabs[6]:
         plan_tab()
 
 

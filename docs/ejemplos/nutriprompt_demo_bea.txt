@@ -1,0 +1,28 @@
+NutriPrompt · Informe demo
+Fecha: 18/06/2026 10:42
+
+           Campo            Valor
+           Alias              Bea
+            Edad               42
+        Objetivo Mejora digestiva
+     Presupuesto            Medio
+Actividad física              3/5
+   Restricciones      Vegetariano
+    Preferencias           Tupper
+        Contexto      No indicado
+
+PLAN SEMANAL
+      Día                     Desayuno                            Comida                      Cena
+    Lunes  Yogur sin lactosa con fruta Arroz con pollo y verduras suaves    Tortilla con espinacas
+   Martes            Avena con plátano                    Pasta con pavo Crema de verduras y huevo
+Miércoles          Tostadas con aceite                  Quinoa con pollo Pescado con patata cocida
+   Jueves        Batido suave de fruta          Bowl de arroz y verduras    Revuelto con calabacín
+  Viernes Yogur sin lactosa con nueces           Tupper de pollo y arroz  Cena ligera con tortilla
+
+LISTA DE COMPRA
+Categoría                          Compra sugerida
+Proteínas           Pollo / tofu / huevo / pescado
+     Base             Arroz, quinoa, patata, avena
+ Verduras          Calabacín, espinacas, zanahoria
+Desayunos Yogur sin lactosa o vegetal, fruta, chía
+   Extras        Nueces, aceite de oliva, semillas

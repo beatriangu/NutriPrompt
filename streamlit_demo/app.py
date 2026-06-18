@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import io
+from datetime import datetime
+
 import pandas as pd
 import streamlit as st
 
@@ -11,56 +14,188 @@ st.set_page_config(
 )
 
 
-# =========================================================
-# Estado limpio
-# =========================================================
+CUSTOM_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+.stApp { background-color: #FAF7F2; }
+html, body, [class*="css"] { font-family: 'Inter', sans-serif; color: #1C2420; }
+h1, h2, h3 { font-family: 'Fraunces', serif; color: #2F4538; }
+code, pre { font-family: 'JetBrains Mono', monospace !important; }
+
+.dossier-header {
+    background: #FFFFFF;
+    border: 1px solid #E4DDD0;
+    border-radius: 8px;
+    padding: 2rem 2.2rem;
+    margin-bottom: 1.2rem;
+    position: relative;
+    box-shadow: 0 8px 24px rgba(47,69,56,.05);
+}
+.dossier-header::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0;
+    width: 6px; height: 100%;
+    background: #C76F4D;
+    border-radius: 8px 0 0 8px;
+}
+.eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .72rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #C76F4D;
+}
+.title {
+    font-family: 'Fraunces', serif;
+    font-size: 2.7rem;
+    font-weight: 700;
+    color: #2F4538;
+    margin: .4rem 0 .2rem 0;
+}
+.subtitle {
+    color: #4A6354;
+    max-width: 70ch;
+    font-size: 1.02rem;
+}
+.tag {
+    display:inline-block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:.72rem;
+    background:#F1ECE1;
+    border:1px solid #E4DDD0;
+    color:#2F4538;
+    padding:.35rem .75rem;
+    border-radius:999px;
+    margin:.25rem .25rem .25rem 0;
+}
+.notice {
+    border-left: 4px solid #C76F4D;
+    background: #FBEFE6;
+    padding: .9rem 1rem;
+    border-radius: 4px;
+    margin-bottom: 1.3rem;
+}
+.card {
+    background:#FFFFFF;
+    border:1px solid #E4DDD0;
+    border-radius:8px;
+    padding:1.1rem;
+    min-height:130px;
+}
+.card-title {
+    font-family:'Fraunces', serif;
+    color:#2F4538;
+    font-size:1.1rem;
+    font-weight:600;
+}
+.card-body { color:#4A6354; font-size:.9rem; }
+.section-label {
+    font-family:'JetBrains Mono', monospace;
+    font-size:.72rem;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:#C76F4D;
+}
+.footer {
+    text-align:center;
+    font-family:'JetBrains Mono', monospace;
+    color:#4A6354;
+    font-size:.75rem;
+    border-top:1px solid #E4DDD0;
+    margin-top:2rem;
+    padding-top:1rem;
+}
+</style>
+"""
+
+
+OBJETIVOS = ["Mejora digestiva", "Organizar comidas", "Comer más equilibrado", "Ganar energía"]
+PRESUPUESTOS = ["Ajustado", "Medio", "Flexible"]
+RESTRICCIONES = ["Low FODMAP", "Sin lactosa", "Sin gluten", "Vegetariano", "Vegano"]
+PREFERENCIAS = ["Recetas rápidas", "Batch cooking", "Tupper", "Cenas ligeras", "Presupuesto ajustado"]
+
 
 DEFAULT_STATE = {
-    "plan_generated": False,
+    "plan_generado": False,
     "alias": "",
-    "age": None,
-    "goal": None,
-    "budget": None,
-    "activity": 3,
-    "context": "",
-    "restrictions": [],
-    "preferences": [],
+    "edad": None,
+    "objetivo": None,
+    "presupuesto": None,
+    "actividad": 3,
+    "contexto": "",
+    "restricciones": [],
+    "preferencias": [],
     "chat_messages": [],
 }
 
 
 def init_state() -> None:
     for key, value in DEFAULT_STATE.items():
-        if key not in st.session_state:
-            st.session_state[key] = value
+        st.session_state.setdefault(key, value)
 
 
 def reset_demo() -> None:
-    for key in list(st.session_state.keys()):
-        del st.session_state[key]
+    st.session_state.clear()
     st.rerun()
 
 
-# =========================================================
-# Datos demo
-# =========================================================
+def render_header() -> None:
+    st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div class="dossier-header">
+            <div class="eyebrow">Expediente · NutriPrompt AI · Demo pública</div>
+            <div class="title">🥦 NutriPrompt</div>
+            <p class="subtitle">
+                Plataforma de inteligencia nutricional que combina intake inteligente, reglas,
+                RAG, OCR y orquestación multi-modelo para generar planes alimentarios explicables.
+            </p>
+            <span class="tag">Producto Django</span>
+            <span class="tag">Demo Streamlit</span>
+            <span class="tag">RAG explicado</span>
+            <span class="tag">OCR simulado</span>
+            <span class="tag">Copilot</span>
+        </div>
+        <div class="notice">
+            ⚠️ Demo técnica con datos simulados. No sustituye asesoramiento médico, sanitario o nutricional profesional.
+            La IA no conoce tu nevera ni tus dramas digestivos reales.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-def build_demo_plan() -> pd.DataFrame:
-    restrictions = st.session_state.get("restrictions", [])
 
-    if "Vegano" in restrictions:
+def card(title: str, body: str, icon: str) -> None:
+    st.markdown(
+        f"""
+        <div class="card">
+            <div style="font-size:1.7rem;">{icon}</div>
+            <div class="card-title">{title}</div>
+            <div class="card-body">{body}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def build_plan() -> pd.DataFrame:
+    vegan = "Vegano" in st.session_state.get("restricciones", [])
+
+    if vegan:
         meals = [
-            ["Lunes", "Avena con plátano y chía", "Bowl de arroz con tofu y verduras suaves", "Crema de calabacín con garbanzos"],
-            ["Martes", "Yogur vegetal con fruta", "Quinoa con verduras y proteína vegetal", "Tortilla vegana de harina de garbanzo"],
-            ["Miércoles", "Tostadas sin gluten con aguacate", "Arroz con tofu marinado", "Sopa de verduras y semillas"],
-            ["Jueves", "Batido vegetal con fruta", "Patata cocida con verduras y hummus suave", "Salteado de tofu con calabacín"],
-            ["Viernes", "Pudding de chía", "Tupper de arroz con verduras", "Cena ligera de crema vegetal"],
+            ["Lunes", "Avena con plátano y chía", "Bowl de arroz con tofu", "Crema de calabacín con garbanzos"],
+            ["Martes", "Yogur vegetal con fruta", "Quinoa con verduras", "Tortilla vegana de garbanzo"],
+            ["Miércoles", "Tostadas con aguacate", "Arroz con tofu marinado", "Sopa de verduras"],
+            ["Jueves", "Batido vegetal", "Patata cocida con hummus", "Salteado de tofu"],
+            ["Viernes", "Pudding de chía", "Tupper de arroz y verduras", "Crema vegetal"],
         ]
     else:
         meals = [
             ["Lunes", "Yogur sin lactosa con fruta", "Arroz con pollo y verduras suaves", "Tortilla con espinacas"],
-            ["Martes", "Avena sin gluten con plátano", "Pasta sin gluten con pavo", "Crema de verduras y huevo"],
-            ["Miércoles", "Tostadas sin gluten", "Quinoa con pollo", "Pescado con patata cocida"],
+            ["Martes", "Avena con plátano", "Pasta con pavo", "Crema de verduras y huevo"],
+            ["Miércoles", "Tostadas con aceite", "Quinoa con pollo", "Pescado con patata cocida"],
             ["Jueves", "Batido suave de fruta", "Bowl de arroz y verduras", "Revuelto con calabacín"],
             ["Viernes", "Yogur sin lactosa con nueces", "Tupper de pollo y arroz", "Cena ligera con tortilla"],
         ]
@@ -68,517 +203,383 @@ def build_demo_plan() -> pd.DataFrame:
     return pd.DataFrame(meals, columns=["Día", "Desayuno", "Comida", "Cena"])
 
 
-def get_detected_ingredients() -> list[str]:
-    return [
-        "Harina de trigo",
-        "Leche en polvo",
-        "Cebolla en polvo",
-        "Azúcar",
-        "Sal",
+def shopping_list() -> pd.DataFrame:
+    items = [
+        ["Proteínas", "Pollo / tofu / huevo / pescado"],
+        ["Base", "Arroz, quinoa, patata, avena"],
+        ["Verduras", "Calabacín, espinacas, zanahoria"],
+        ["Desayunos", "Yogur sin lactosa o vegetal, fruta, chía"],
+        ["Extras", "Nueces, aceite de oliva, semillas"],
     ]
+    return pd.DataFrame(items, columns=["Categoría", "Compra sugerida"])
 
 
-# =========================================================
-# UI helpers
-# =========================================================
+def compatibility_score() -> int:
+    score = 92
+    if not st.session_state.get("restricciones"):
+        score -= 5
+    if not st.session_state.get("contexto"):
+        score -= 4
+    if "Low FODMAP" in st.session_state.get("restricciones", []):
+        score -= 2
+    return max(score, 75)
 
-def card(title: str, body: str, icon: str = "✅") -> None:
-    st.markdown(
-        f"""
-        <div style="
-            padding: 1.1rem;
-            border: 1px solid #e5e7eb;
-            border-radius: 1rem;
-            background: #ffffff;
-            min-height: 135px;
-            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
-        ">
-            <div style="font-size:1.8rem;">{icon}</div>
-            <h4 style="margin:.4rem 0 .3rem 0;">{title}</h4>
-            <p style="color:#64748b; margin:0;">{body}</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def show_header() -> None:
-    st.markdown(
-        """
-        <h1 style="font-size:3rem; margin-bottom:.2rem;">🥦 NutriPrompt</h1>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        """
-        <div style="
-            padding: 1.6rem;
-            border-radius: 1.2rem;
-            background: linear-gradient(120deg, #eef7ff, #f2fff4);
-            border: 1px solid #d8eadf;
-            margin-bottom: 1rem;
-        ">
-            <h3 style="margin-bottom:.5rem;">Demo pública de inteligencia nutricional con IA</h3>
-            <p style="font-size:1rem; margin-bottom:1rem;">
-                Formulario inteligente · RAG · OCR · análisis de compatibilidad · orquestación multi-modelo
-            </p>
-            <span style="background:#f4f6f8;padding:.4rem .8rem;border-radius:999px;margin-right:.4rem;">Producto principal en Django</span>
-            <span style="background:#f4f6f8;padding:.4rem .8rem;border-radius:999px;margin-right:.4rem;">Demo pública en Streamlit</span>
-            <span style="background:#f4f6f8;padding:.4rem .8rem;border-radius:999px;margin-right:.4rem;">RAG explicado</span>
-            <span style="background:#f4f6f8;padding:.4rem .8rem;border-radius:999px;">OCR simulado</span>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.warning(
-        "Demo técnica. No sustituye asesoramiento médico, sanitario o nutricional profesional. "
-        "La IA no conoce tu nevera ni tus dramas digestivos reales."
-    )
-
-
-def show_demo_status() -> None:
-    if st.session_state.get("plan_generated"):
-        st.success("✅ Plan demo generado. Puedes revisarlo en **✅ Plan generado**.")
-    else:
-        st.info("Empieza en **🏠 Intake**, rellena el perfil ficticio y genera el plan.")
-
-
-# =========================================================
-# Tabs
-# =========================================================
 
 def intro_tab() -> None:
-    st.header("Qué puedes probar en esta demo")
-
-    st.markdown(
-        """
-        NutriPrompt muestra cómo una aplicación de IA puede transformar datos de entrada en una salida
-        estructurada, explicable y revisable. No es magia: es producto, reglas y prompts bien pensados.
-        """
-    )
+    st.markdown('<span class="section-label">Sección 01 · Visión del producto</span>', unsafe_allow_html=True)
+    st.header("Qué demuestra esta demo")
 
     col1, col2, col3, col4 = st.columns(4)
-
     with col1:
-        card("1. Intake", "Recoge objetivos, restricciones, preferencias y contexto real.", "🏠")
-
+        card("Intake", "Recoge contexto, restricciones y preferencias sin fricción.", "🏠")
     with col2:
-        card("2. Flujo IA", "Explica cómo se combinan RAG, prompt builder y fallback.", "🧠")
-
+        card("RAG", "Añade reglas nutricionales antes de generar contenido.", "🧠")
     with col3:
-        card("3. Vision / OCR", "Simula lectura de etiquetas e ingredientes conflictivos.", "📄")
-
+        card("OCR", "Simula lectura de etiquetas e ingredientes sensibles.", "📄")
     with col4:
-        card("4. Plan", "Genera una planificación semanal demo y revisable.", "✅")
+        card("Copilot", "Explica el plan y responde con contexto.", "💬")
 
     st.markdown("---")
-
-    col_a, col_b = st.columns(2)
-
-    with col_a:
-        st.markdown(
-            """
-            ### Producto principal: Django
-
-            - Arquitectura real
-            - Servicios separados
-            - Tests
-            - PDF
-            - RAG
-            - OCR
-            - Fallback Gemini/OpenAI
-            """
-        )
-
-    with col_b:
-        st.markdown(
-            """
-            ### Demo pública: Streamlit
-
-            - Fácil de probar
-            - Sin instalación
-            - Pensada para LinkedIn
-            - Explica el flujo
-            - Reduce fricción
-            - Permite recibir feedback
-            """
-        )
+    st.markdown(
+        """
+        **NutriPrompt no es un simple prompt.** La demo enseña producto: captura de datos,
+        reglas, trazabilidad, compatibilidad y salida estructurada.
+        """
+    )
 
 
 def intake_tab() -> None:
-    st.header("Smart Nutrition Intake")
-    st.caption("Completa un perfil ficticio. La demo no guarda datos personales ni llama a APIs externas.")
+    st.markdown('<span class="section-label">Sección 02 · Intake inteligente</span>', unsafe_allow_html=True)
+    st.header("Crea un perfil nutricional ficticio")
+    st.caption("No se guardan datos personales ni se llama a APIs externas en esta demo.")
 
-    with st.form("intake_form", clear_on_submit=False):
+    with st.form("intake_form"):
         col1, col2, col3 = st.columns(3)
 
         with col1:
             alias = st.text_input(
                 "¿Cómo te llaman en casa?",
-                value=st.session_state.get("alias", ""),
-                placeholder="Ej. La jefa del tupper, Txiki, Mamá tengo hambre..."
+                value=st.session_state["alias"],
+                placeholder="Ej. La jefa del tupper, Txiki, el de 'hoy empiezo'"
             )
-
-            age = st.number_input(
+            edad = st.number_input(
                 "Edad",
                 min_value=18,
                 max_value=90,
-                value=st.session_state.get("age"),
-                placeholder="Ej. 34, aunque tu espalda diga 57"
+                value=st.session_state["edad"],
+                placeholder="Ej. 34, aunque tu espalda diga otra cosa"
             )
 
         with col2:
-            goals = [
-                "Mejora digestiva",
-                "Organizar comidas",
-                "Comer más equilibrado",
-                "Ganar energía",
-            ]
-
-            current_goal = st.session_state.get("goal")
-            goal_index = goals.index(current_goal) if current_goal in goals else None
-
-            goal = st.selectbox(
+            objetivo = st.selectbox(
                 "Objetivo principal",
-                goals,
-                index=goal_index,
+                OBJETIVOS,
+                index=OBJETIVOS.index(st.session_state["objetivo"]) if st.session_state["objetivo"] in OBJETIVOS else None,
                 placeholder="Elige tu misión nutricional"
             )
-
-            budgets = ["Ajustado", "Medio", "Flexible"]
-            current_budget = st.session_state.get("budget")
-            budget_index = budgets.index(current_budget) if current_budget in budgets else None
-
-            budget = st.selectbox(
+            presupuesto = st.selectbox(
                 "Presupuesto semanal",
-                budgets,
-                index=budget_index,
+                PRESUPUESTOS,
+                index=PRESUPUESTOS.index(st.session_state["presupuesto"]) if st.session_state["presupuesto"] in PRESUPUESTOS else None,
                 placeholder="Desde supervivencia hasta me-lo-merezco"
             )
 
         with col3:
-            activity = st.slider(
+            actividad = st.slider(
                 "Nivel de actividad física",
-                min_value=1,
-                max_value=5,
-                value=st.session_state.get("activity", 3),
+                1,
+                5,
+                st.session_state["actividad"],
                 help="1 = sofá premium · 5 = persona que sube escaleras por gusto"
             )
-
-            context = st.text_area(
-                "Síntomas, rutina o contexto",
-                value=st.session_state.get("context", ""),
+            contexto = st.text_area(
+                "Rutina, síntomas o contexto",
+                value=st.session_state["contexto"],
                 placeholder="Ej. como fuera, tengo poco tiempo, digestiones pesadas, vivo a base de café y esperanza..."
             )
 
-        restrictions = st.multiselect(
+        restricciones = st.multiselect(
             "Restricciones alimentarias",
-            ["Low FODMAP", "Sin lactosa", "Sin gluten", "Vegetariano", "Vegano"],
-            default=st.session_state.get("restrictions", []),
+            RESTRICCIONES,
+            default=st.session_state["restricciones"],
             placeholder="Marca lo que haya que respetar"
         )
 
-        preferences = st.multiselect(
+        preferencias = st.multiselect(
             "Preferencias",
-            ["Recetas rápidas", "Batch cooking", "Tupper", "Cenas ligeras", "Presupuesto ajustado"],
-            default=st.session_state.get("preferences", []),
+            PREFERENCIAS,
+            default=st.session_state["preferencias"],
             placeholder="Lo que haría que no abandones al tercer día"
         )
 
-        st.markdown("### Antes de generar")
-        st.caption(
-            "La salida se genera en modo demo. Flujo: datos → reglas → compatibilidad → plan estructurado."
-        )
+        col_a, col_b = st.columns([2, 1])
+        generar = col_a.form_submit_button("🚀 Generar plan inteligente", type="primary", use_container_width=True)
+        limpiar = col_b.form_submit_button("🧹 Cliente nuevo", use_container_width=True)
 
-        col_button, col_reset = st.columns([2, 1])
-
-        with col_button:
-            submitted = st.form_submit_button("🚀 Generar plan inteligente", use_container_width=True)
-
-        with col_reset:
-            reset_clicked = st.form_submit_button("🧹 Cliente nuevo", use_container_width=True)
-
-    if reset_clicked:
+    if limpiar:
         reset_demo()
 
-    if submitted:
-        missing = []
-
+    if generar:
+        faltan = []
         if not alias.strip():
-            missing.append("cómo te llaman en casa")
-        if age is None:
-            missing.append("edad")
-        if goal is None:
-            missing.append("objetivo")
-        if budget is None:
-            missing.append("presupuesto")
+            faltan.append("cómo te llaman en casa")
+        if edad is None:
+            faltan.append("edad")
+        if objetivo is None:
+            faltan.append("objetivo")
+        if presupuesto is None:
+            faltan.append("presupuesto")
 
-        if missing:
-            st.error("Falta completar: " + ", ".join(missing) + ". La IA no adivina tanto, todavía.")
+        if faltan:
+            st.error("Falta completar: " + ", ".join(faltan) + ". La IA aún no lee la mente.")
             return
 
-        st.session_state["plan_generated"] = True
+        st.session_state["plan_generado"] = True
         st.session_state["alias"] = alias.strip()
-        st.session_state["age"] = age
-        st.session_state["goal"] = goal
-        st.session_state["budget"] = budget
-        st.session_state["activity"] = activity
-        st.session_state["context"] = context.strip()
-        st.session_state["restrictions"] = restrictions
-        st.session_state["preferences"] = preferences
+        st.session_state["edad"] = edad
+        st.session_state["objetivo"] = objetivo
+        st.session_state["presupuesto"] = presupuesto
+        st.session_state["actividad"] = actividad
+        st.session_state["contexto"] = contexto.strip()
+        st.session_state["restricciones"] = restricciones
+        st.session_state["preferencias"] = preferencias
         st.session_state["chat_messages"] = []
 
-        st.success("✅ Plan generado. Abre la pestaña **✅ Plan generado** para verlo.")
+        st.success("✅ Plan generado. Ve a **✅ Plan generado** para verlo.")
 
-    show_demo_status()
+    if st.session_state["plan_generado"]:
+        st.info("Plan demo listo. El Copilot también se ha reiniciado para este perfil.")
 
 
-def workflow_tab() -> None:
-    st.header("Flujo de IA explicado")
-    st.caption("NutriPrompt no lanza el formulario sin control al modelo. Primero ordena, contextualiza y valida.")
+def pipeline_tab() -> None:
+    st.markdown('<span class="section-label">Sección 03 · Pipeline IA</span>', unsafe_allow_html=True)
+    st.header("Trazabilidad del proceso")
 
     steps = [
-        ("1. Entrada", "Objetivos, restricciones, preferencias y contexto.", "🏠"),
-        ("2. Perfil", "Normalización de datos y señales relevantes.", "👤"),
-        ("3. RAG", "Búsqueda de reglas nutricionales aplicables.", "🧠"),
-        ("4. Prompt Builder", "Construcción de un prompt controlado.", "🧩"),
-        ("5. Modelo principal", "Generación con proveedor principal.", "🤖"),
-        ("6. Fallback", "Proveedor alternativo si falla el primero.", "🔁"),
-        ("7. Reglas", "Validación de compatibilidad.", "🛡️"),
-        ("8. Salida", "Plan estructurado, lista y PDF.", "📄"),
+        ("01", "Entrada", "Perfil, contexto, preferencias y restricciones."),
+        ("02", "Normalización", "Convierte datos libres en señales útiles."),
+        ("03", "RAG", "Recupera reglas nutricionales aplicables."),
+        ("04", "Prompt Builder", "Construye un prompt controlado."),
+        ("05", "Modelo IA", "Generación con proveedor principal."),
+        ("06", "Fallback", "Proveedor alternativo si falla el primero."),
+        ("07", "Reglas", "Validación de compatibilidad."),
+        ("08", "Salida", "Plan, explicación, compra y PDF."),
     ]
 
     cols = st.columns(4)
+    for i, (num, title, desc) in enumerate(steps):
+        with cols[i % 4]:
+            card(f"{num} · {title}", desc, "✓")
 
-    for index, (title, description, icon) in enumerate(steps):
-        with cols[index % 4]:
-            card(title, description, icon)
-
-    st.success("Orquestación resiliente: Gemini → OpenAI fallback → salida estructurada en modo demo.")
+    st.success("Pipeline: Entrada → RAG → Prompt Builder → Modelo → Validación → Plan explicable.")
 
 
 def vision_tab() -> None:
-    st.header("Vision / OCR")
-    st.caption("Simulación de análisis de etiqueta, despensa o PDF nutricional.")
+    st.markdown('<span class="section-label">Sección 04 · Vision / OCR</span>', unsafe_allow_html=True)
+    st.header("Lectura de etiquetas")
+    archivo = st.file_uploader("Sube una etiqueta, imagen o PDF", type=["png", "jpg", "jpeg", "pdf"])
 
-    uploaded_file = st.file_uploader(
-        "Sube una etiqueta, imagen de despensa o PDF",
-        type=["png", "jpg", "jpeg", "pdf"],
+    if archivo:
+        st.success("Archivo recibido. En esta demo el análisis es simulado.")
+    else:
+        st.info("Puedes probar sin subir archivo. Usamos una etiqueta ficticia con ingredientes problemáticos, como la vida misma.")
+
+    st.code(
+        "- Harina de trigo\n- Leche en polvo\n- Cebolla en polvo\n- Azúcar\n- Sal",
+        language="text"
     )
 
-    if uploaded_file:
-        st.success("Archivo recibido correctamente. En esta demo el análisis es simulado.")
-    else:
-        st.info("Puedes probar sin subir archivo. Usamos una etiqueta ficticia, que también tiene sus secretos.")
-
-    st.markdown("### Ingredientes detectados")
-
-    ingredients = get_detected_ingredients()
-    st.code("\n".join(f"- {ingredient}" for ingredient in ingredients), language="text")
-
     col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.warning("Gluten detectado: harina de trigo")
-
-    with col2:
-        st.warning("Lactosa detectada: leche en polvo")
-
-    with col3:
-        st.warning("Alerta Low FODMAP: cebolla en polvo")
-
-    st.info("NutriPrompt cruza OCR, reglas nutricionales y restricciones antes de generar el resultado.")
+    col1.warning("Gluten detectado: harina de trigo")
+    col2.warning("Lactosa detectada: leche en polvo")
+    col3.warning("Low FODMAP: cebolla en polvo")
 
 
 def dashboard_tab() -> None:
-    st.header("Panel técnico")
-    st.caption("Resumen visual de la arquitectura que hay detrás del producto.")
+    st.markdown('<span class="section-label">Sección 05 · Panel técnico</span>', unsafe_allow_html=True)
+    st.header("Arquitectura del producto")
 
     col1, col2, col3, col4 = st.columns(4)
-
     col1.metric("Proveedores IA", "2", "Gemini + OpenAI")
-    col2.metric("Tests", "17", "OK")
-    col3.metric("Capas del flujo", "8+", "modular")
+    col2.metric("Capas pipeline", "8+", "modular")
+    col3.metric("Compatibilidad", "Reglas", "RAG + validación")
     col4.metric("Salida", "PDF", "descargable")
-
-    st.subheader("Arquitectura")
 
     architecture = pd.DataFrame(
         [
             ["Backend principal", "Django"],
-            ["Lenguaje", "Python"],
-            ["Orquestación IA", "Gemini + OpenAI fallback"],
+            ["Demo pública", "Streamlit"],
             ["RAG", "Base de conocimiento nutricional"],
             ["OCR", "Tesseract + parsing"],
-            ["Datos", "JSON"],
+            ["IA", "Gemini + OpenAI fallback"],
+            ["Datos", "JSON estructurado"],
             ["PDF", "WeasyPrint"],
-            ["Demo pública", "Streamlit"],
         ],
         columns=["Capa", "Tecnología"],
     )
-
     st.dataframe(architecture, use_container_width=True, hide_index=True)
-
-    st.subheader("Pipeline extremo a extremo")
-    st.info("Entrada → Perfil → RAG → Prompt Builder → Modelo IA → Fallback → Compatibilidad → Plan → PDF")
 
 
 def copilot_tab() -> None:
+    st.markdown('<span class="section-label">Sección 06 · Copilot</span>', unsafe_allow_html=True)
     st.header("NutriPrompt Copilot")
-    st.caption("Chat demo. Se limpia al generar un nuevo perfil o al pulsar limpiar chat.")
 
-    if "chat_messages" not in st.session_state:
-        st.session_state["chat_messages"] = []
-
-    col_a, col_b = st.columns([3, 1])
-
-    with col_b:
-        if st.button("🧹 Limpiar chat", use_container_width=True):
-            st.session_state["chat_messages"] = []
-            st.rerun()
-
-    if not st.session_state.get("plan_generated"):
-        st.info("Genera primero un plan en **🏠 Intake** para que el Copilot tenga contexto.")
+    if not st.session_state["plan_generado"]:
+        st.info("Primero genera un plan en **🏠 Intake**.")
         return
 
-    alias = st.session_state.get("alias", "esta persona")
-    goal = st.session_state.get("goal", "objetivo no indicado")
-    restrictions = st.session_state.get("restrictions", [])
+    if st.button("🧹 Limpiar chat", use_container_width=False):
+        st.session_state["chat_messages"] = []
+        st.rerun()
+
+    alias = st.session_state["alias"]
+    objetivo = st.session_state["objetivo"]
+    restricciones = st.session_state["restricciones"]
 
     if not st.session_state["chat_messages"]:
         st.chat_message("assistant").write(
             f"Hola, soy NutriPrompt Copilot. Puedo explicar el plan de {alias}, revisar restricciones "
-            "o detectar posibles incompatibilidades. Prometo no juzgar el batch cooking abandonado."
+            "o proponer alternativas. Prometo no juzgar el cajón de snacks."
         )
 
-    for message in st.session_state["chat_messages"]:
-        st.chat_message(message["role"]).write(message["content"])
+    for msg in st.session_state["chat_messages"]:
+        st.chat_message(msg["role"]).write(msg["content"])
 
-    question = st.chat_input("Pregunta sobre el plan nutricional...")
+    pregunta = st.chat_input("Pregunta sobre el plan nutricional...")
 
-    if question:
-        st.session_state["chat_messages"].append(
-            {"role": "user", "content": question}
-        )
+    if pregunta:
+        st.session_state["chat_messages"].append({"role": "user", "content": pregunta})
 
-        answer = (
-            f"Para {alias}, el plan se orienta a **{goal}**. "
-            f"Las restricciones consideradas son: **{', '.join(restrictions) if restrictions else 'ninguna indicada'}**. "
+        respuesta = (
+            f"Para **{alias}**, el plan se orienta a **{objetivo}**. "
+            f"Restricciones consideradas: **{', '.join(restricciones) if restricciones else 'ninguna indicada'}**. "
             "La demo cruza reglas nutricionales, preferencias y contexto antes de proponer el plan. "
-            "Esto no sustituye una valoración profesional, pero sí muestra cómo sería el flujo de IA explicable."
+            "No sustituye una valoración profesional, pero muestra un flujo de IA explicable."
         )
 
-        st.session_state["chat_messages"].append(
-            {"role": "assistant", "content": answer}
-        )
-
+        st.session_state["chat_messages"].append({"role": "assistant", "content": respuesta})
         st.rerun()
 
 
 def plan_tab() -> None:
-    if not st.session_state.get("plan_generated"):
+    st.markdown('<span class="section-label">Sección 07 · Resultado final</span>', unsafe_allow_html=True)
+
+    if not st.session_state["plan_generado"]:
         st.info("Primero genera un plan desde **🏠 Intake**.")
         return
 
-    alias = st.session_state.get("alias", "Persona demo")
-    age = st.session_state.get("age")
-    goal = st.session_state.get("goal", "No indicado")
-    budget = st.session_state.get("budget", "No indicado")
-    activity = st.session_state.get("activity", 3)
-    restrictions = st.session_state.get("restrictions", [])
-    preferences = st.session_state.get("preferences", [])
-    context = st.session_state.get("context", "")
+    alias = st.session_state["alias"]
+    edad = st.session_state["edad"]
+    objetivo = st.session_state["objetivo"]
+    presupuesto = st.session_state["presupuesto"]
+    actividad = st.session_state["actividad"]
+    restricciones = st.session_state["restricciones"]
+    preferencias = st.session_state["preferencias"]
+    contexto = st.session_state["contexto"]
 
     st.success("✅ Plan generado correctamente")
     st.header(f"Plan nutricional demo para {alias}")
 
+    score = compatibility_score()
+
     col1, col2, col3, col4 = st.columns(4)
-
-    col1.metric("Edad", age)
-    col2.metric("Objetivo", goal)
-    col3.metric("Presupuesto", budget)
-    col4.metric("Actividad", f"{activity}/5")
-
-    st.markdown("### Resumen del perfil")
+    col1.metric("Edad", edad)
+    col2.metric("Objetivo", objetivo)
+    col3.metric("Presupuesto", presupuesto)
+    col4.metric("Compatibilidad", f"{score}%")
 
     profile = pd.DataFrame(
         [
             ["Alias", alias],
-            ["Edad", age],
-            ["Objetivo", goal],
-            ["Presupuesto", budget],
-            ["Actividad física", f"{activity}/5"],
-            ["Restricciones", ", ".join(restrictions) if restrictions else "No indicadas"],
-            ["Preferencias", ", ".join(preferences) if preferences else "No indicadas"],
-            ["Contexto", context if context else "No indicado"],
+            ["Edad", edad],
+            ["Objetivo", objetivo],
+            ["Presupuesto", presupuesto],
+            ["Actividad física", f"{actividad}/5"],
+            ["Restricciones", ", ".join(restricciones) if restricciones else "No indicadas"],
+            ["Preferencias", ", ".join(preferencias) if preferencias else "No indicadas"],
+            ["Contexto", contexto if contexto else "No indicado"],
         ],
         columns=["Campo", "Valor"],
     )
 
+    st.subheader("Resumen del perfil")
     st.dataframe(profile, use_container_width=True, hide_index=True)
 
-    st.markdown("### Plan semanal demo")
-
-    plan = build_demo_plan()
+    st.subheader("Plan semanal demo")
+    plan = build_plan()
     st.dataframe(plan, use_container_width=True, hide_index=True)
 
-    col_rag, col_compatibility = st.columns(2)
+    st.subheader("Lista de compra sugerida")
+    compra = shopping_list()
+    st.dataframe(compra, use_container_width=True, hide_index=True)
+
+    col_rag, col_comp = st.columns(2)
 
     with col_rag:
-        st.subheader("Contexto recuperado con RAG")
+        st.markdown("#### Contexto recuperado con RAG")
         st.markdown(
             """
-            ✅ Regla Low FODMAP: revisar cebolla, ajo, trigo, manzana y algunas legumbres.
+            ✅ Low FODMAP: revisar cebolla, ajo, trigo, manzana y algunas legumbres.
 
-            ✅ Regla sin lactosa: evitar lácteos convencionales y priorizar alternativas compatibles.
+            ✅ Sin lactosa: evitar lácteos convencionales y revisar procesados.
 
-            ✅ Regla de planificación: priorizar comidas sencillas, repetibles y realistas.
+            ✅ Planificación: priorizar platos repetibles, sencillos y realistas.
             """
         )
 
-    with col_compatibility:
-        st.subheader("Análisis de compatibilidad")
+    with col_comp:
+        st.markdown("#### Análisis de compatibilidad")
         st.warning("Revisar yogures, quesos, salsas y procesados por posible lactosa oculta.")
         st.warning("Evitar cebolla en polvo y harina de trigo si aplican reglas Low FODMAP o sin gluten.")
 
-    with st.expander("Ver prompt generado"):
-        st.code(
-            f"""
+    prompt = f"""
 Actúa como asistente de organización semanal de comidas.
 
 Perfil:
 - Alias: {alias}
-- Edad: {age}
-- Objetivo: {goal}
-- Presupuesto: {budget}
-- Actividad física: {activity}/5
-- Restricciones: {", ".join(restrictions) if restrictions else "No indicadas"}
-- Preferencias: {", ".join(preferences) if preferences else "No indicadas"}
-- Contexto: {context if context else "No indicado"}
+- Edad: {edad}
+- Objetivo: {objetivo}
+- Presupuesto: {presupuesto}
+- Actividad física: {actividad}/5
+- Restricciones: {", ".join(restricciones) if restricciones else "No indicadas"}
+- Preferencias: {", ".join(preferencias) if preferencias else "No indicadas"}
+- Contexto: {contexto if contexto else "No indicado"}
 
-Prioriza las reglas nutricionales recuperadas por RAG.
+Prioriza reglas nutricionales recuperadas por RAG.
 Evita afirmaciones médicas.
 Devuelve una salida estructurada, revisable y útil.
-            """,
-            language="text",
-        )
+"""
 
+    with st.expander("Ver prompt generado"):
+        st.code(prompt, language="text")
 
-# =========================================================
-# Main
-# =========================================================
+    informe = io.StringIO()
+    informe.write(f"NutriPrompt · Informe demo\n")
+    informe.write(f"Fecha: {datetime.now().strftime('%d/%m/%Y %H:%M')}\n\n")
+    informe.write(profile.to_string(index=False))
+    informe.write("\n\nPLAN SEMANAL\n")
+    informe.write(plan.to_string(index=False))
+    informe.write("\n\nLISTA DE COMPRA\n")
+    informe.write(compra.to_string(index=False))
+
+    st.download_button(
+        "📥 Descargar informe demo",
+        data=informe.getvalue(),
+        file_name=f"nutriprompt_demo_{alias.replace(' ', '_').lower()}.txt",
+        mime="text/plain",
+        use_container_width=True,
+    )
+
 
 def main() -> None:
     init_state()
-    show_header()
+    render_header()
 
     tabs = st.tabs(
         [
             "👋 Inicio",
             "🏠 Intake",
-            "🧠 Flujo IA",
+            "🧠 Pipeline IA",
             "📄 Vision / OCR",
             "📊 Panel técnico",
             "💬 Copilot",
@@ -588,24 +589,23 @@ def main() -> None:
 
     with tabs[0]:
         intro_tab()
-
     with tabs[1]:
         intake_tab()
-
     with tabs[2]:
-        workflow_tab()
-
+        pipeline_tab()
     with tabs[3]:
         vision_tab()
-
     with tabs[4]:
         dashboard_tab()
-
     with tabs[5]:
         copilot_tab()
-
     with tabs[6]:
         plan_tab()
+
+    st.markdown(
+        '<div class="footer">NutriPrompt · Demo técnica con datos simulados · Construido con Streamlit</div>',
+        unsafe_allow_html=True,
+    )
 
 
 if __name__ == "__main__":

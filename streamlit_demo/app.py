@@ -196,8 +196,47 @@ code, pre {
     color:#4A6354;
     font-size:.9rem;
 }
+
+div[data-testid="stHorizontalBlock"] button {
+    border-radius: 999px !important;
+}
 </style>
 """
+
+
+# =========================================================
+# Navigation (custom, so we can jump tabs from buttons)
+# =========================================================
+
+TAB_LABELS = [
+    "👋 Inicio",
+    "🏠 Perfil",
+    "🧠 Pipeline IA",
+    "📄 Vision / OCR",
+    "📊 Panel técnico",
+    "💬 Copilot",
+    "✅ Plan generado",
+]
+
+TAB_INTRO, TAB_INTAKE, TAB_PIPELINE, TAB_VISION, TAB_DASHBOARD, TAB_COPILOT, TAB_PLAN = range(7)
+
+
+def go_to(tab_index: int) -> None:
+    st.session_state["active_tab"] = tab_index
+    st.rerun()
+
+
+def render_nav() -> None:
+    cols = st.columns(len(TAB_LABELS))
+    for i, (col, label) in enumerate(zip(cols, TAB_LABELS)):
+        is_active = st.session_state["active_tab"] == i
+        if col.button(
+            label,
+            key=f"nav_{i}",
+            type="primary" if is_active else "secondary",
+            use_container_width=True,
+        ):
+            go_to(i)
 
 
 # =========================================================
@@ -229,7 +268,25 @@ PREFERENCIAS = [
     "Presupuesto ajustado",
 ]
 
+# Dos juegos de etiquetas: uno con emoji para la interfaz web (el navegador
+# los renderiza bien) y uno en texto plano para el PDF (la fuente base de
+# reportlab no soporta emoji y los pinta como cuadros negros). Generar el
+# texto plano directamente, en vez de "limpiar" el emoji después con regex,
+# evita problemas de compatibilidad entre entornos.
+ESTADO_LABELS_UI = {
+    "PASS": "✅ Cumple",
+    "WARNING": "⚠️ Revisar",
+    "INFO": "ℹ️ Informativo",
+}
+
+ESTADO_LABELS_PDF = {
+    "PASS": "Cumple",
+    "WARNING": "Revisar",
+    "INFO": "Informativo",
+}
+
 DEFAULT_STATE = {
+    "active_tab": TAB_INTRO,
     "plan_generado": False,
     "alias": "",
     "edad": None,
@@ -271,7 +328,7 @@ def render_header() -> None:
             <div class="eyebrow">Expediente · NutriPrompt AI · Demo pública</div>
             <div class="title">🥦 NutriPrompt</div>
             <p class="subtitle">
-                Plataforma de inteligencia nutricional que combina intake inteligente, reglas,
+                Plataforma de inteligencia nutricional que combina recogida de datos inteligente, reglas,
                 RAG, OCR y orquestación multi-modelo para generar planes alimentarios explicables,
                 compatibles y descargables.
             </p>
@@ -279,13 +336,12 @@ def render_header() -> None:
             <span class="tag">Demo Streamlit</span>
             <span class="tag">RAG explicado</span>
             <span class="tag">OCR simulado</span>
-            <span class="tag">Compatibility Engine</span>
-            <span class="tag">PDF report</span>
+            <span class="tag">Validación del plan</span>
+            <span class="tag">PDF descargable</span>
             <span class="tag">Copilot</span>
         </div>
         <div class="notice">
             ⚠️ Demo técnica con datos simulados. No sustituye asesoramiento médico, sanitario o nutricional profesional.
-            La IA no conoce tu nevera ni tus dramas digestivos reales.
         </div>
         """,
         unsafe_allow_html=True,
@@ -321,6 +377,28 @@ def clean_filename(text: str) -> str:
     text = text.strip().lower()
     text = re.sub(r"[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_-]+", "_", text)
     return text.strip("_") or "persona_demo"
+
+
+def markdown_escape(value: object) -> str:
+    """Escapa valores para crear tablas Markdown sin depender de tabulate."""
+    text = str(value).replace("\n", " ").strip()
+    return text.replace("|", "\\|")
+
+
+def dataframe_to_markdown(df: pd.DataFrame) -> str:
+    """Genera una tabla Markdown portable sin dependencias opcionales."""
+    if df.empty:
+        return "_Sin datos._"
+
+    columns = [markdown_escape(column) for column in df.columns]
+    header = "| " + " | ".join(columns) + " |"
+    separator = "| " + " | ".join(["---"] * len(columns)) + " |"
+    rows = []
+
+    for row in df.astype(str).itertuples(index=False):
+        rows.append("| " + " | ".join(markdown_escape(cell) for cell in row) + " |")
+
+    return "\n".join([header, separator, *rows])
 
 
 # =========================================================
@@ -392,11 +470,13 @@ def compatibility_score() -> int:
     return max(score, 75)
 
 
-def compatibility_checks() -> pd.DataFrame:
+def _compatibility_rows() -> list[list[str]]:
+    """Filas crudas (con códigos PASS/WARNING/INFO) compartidas por la
+    versión web y la versión PDF de la tabla de compatibilidad."""
     restricciones = st.session_state.get("restricciones", [])
     contexto = st.session_state.get("contexto", "")
 
-    rows = [
+    return [
         [
             "Perfil completo",
             "PASS" if contexto else "WARNING",
@@ -405,7 +485,7 @@ def compatibility_checks() -> pd.DataFrame:
         [
             "Sin lactosa",
             "PASS" if "Sin lactosa" in restricciones else "INFO",
-            "Se priorizan alternativas sin lactosa" if "Sin lactosa" in restricciones else "No indicada",
+            "Se priorizan alternativas sin lactosa" if "Sin lactosa" in restricciones else "No la has marcado, así que no se elimina por completo",
         ],
         [
             "Sin gluten",
@@ -417,11 +497,24 @@ def compatibility_checks() -> pd.DataFrame:
             "WARNING" if "Low FODMAP" in restricciones else "INFO",
             "Revisar cebolla, ajo, trigo y manzana" if "Low FODMAP" in restricciones else "No indicada",
         ],
-        ["Meal prep", "PASS", "Plan compatible con tupper y batch cooking"],
+        ["Organización semanal", "PASS", "Plan compatible con tupper y batch cooking"],
         ["Presupuesto", "PASS", "Plan ajustado al rango seleccionado"],
     ]
 
-    return pd.DataFrame(rows, columns=["Regla", "Estado", "Detalle"])
+
+def compatibility_checks() -> pd.DataFrame:
+    """Versión para la interfaz web, con etiquetas de estado + emoji."""
+    df = pd.DataFrame(_compatibility_rows(), columns=["Punto revisado", "Estado", "Detalle"])
+    df["Estado"] = df["Estado"].map(ESTADO_LABELS_UI)
+    return df
+
+
+def compatibility_checks_pdf() -> pd.DataFrame:
+    """Versión para el PDF: mismas filas, etiquetas de estado en texto
+    plano (sin emoji) para que reportlab las renderice sin problemas."""
+    df = pd.DataFrame(_compatibility_rows(), columns=["Punto revisado", "Estado", "Detalle"])
+    df["Estado"] = df["Estado"].map(ESTADO_LABELS_PDF)
+    return df
 
 
 def detected_ingredients() -> pd.DataFrame:
@@ -437,13 +530,73 @@ def detected_ingredients() -> pd.DataFrame:
     )
 
 
+def rag_bullets() -> list[str]:
+    """Genera el contexto RAG mostrado SOLO para las restricciones realmente
+    marcadas por la persona, dejando explícito por qué aparece cada aviso
+    (p. ej. la relación entre Low FODMAP y la lactosa)."""
+    restricciones = st.session_state.get("restricciones", [])
+    bullets: list[str] = []
+
+    if "Low FODMAP" in restricciones:
+        bullets.append(
+            "🟠 **Low FODMAP**: se vigilan cebolla, ajo, trigo y manzana. La lactosa "
+            "también es un FODMAP, así que se modera en lácteos — pero no se elimina "
+            "del todo a menos que marques también 'Sin lactosa'."
+        )
+    if "Sin lactosa" in restricciones:
+        bullets.append(
+            "🟠 **Sin lactosa**: se evitan lácteos convencionales y se priorizan alternativas sin lactosa."
+        )
+    if "Sin gluten" in restricciones:
+        bullets.append(
+            "🟠 **Sin gluten**: se sustituyen pan, pasta y bases con gluten por opciones aptas."
+        )
+    if "Vegano" in restricciones:
+        bullets.append(
+            "🟢 **Vegano**: toda la proteína animal se sustituye por opciones vegetales."
+        )
+    elif "Vegetariano" in restricciones:
+        bullets.append(
+            "🟢 **Vegetariano**: se prioriza proteína vegetal, huevo y lácteos."
+        )
+    if not restricciones:
+        bullets.append(
+            "ℹ️ No has marcado restricciones: el plan prioriza variedad y equilibrio general."
+        )
+
+    bullets.append("✅ **Planificación**: se priorizan platos repetibles, sencillos y realistas.")
+    return bullets
+
+
+def compat_warnings() -> list[str]:
+    """Avisos de compatibilidad, también condicionados a lo que el usuario
+    haya marcado, para no sugerir restricciones que no ha pedido."""
+    restricciones = st.session_state.get("restricciones", [])
+    warnings: list[str] = []
+
+    if "Sin lactosa" in restricciones:
+        warnings.append("Revisar yogures, quesos, salsas y procesados por posible lactosa oculta.")
+    elif "Low FODMAP" in restricciones:
+        warnings.append(
+            "Por Low FODMAP se modera la lactosa en lácteos, pero no se elimina del todo "
+            "(actívala marcando 'Sin lactosa' si la quieres fuera por completo)."
+        )
+
+    if "Sin gluten" in restricciones:
+        warnings.append("Evitar harina de trigo y derivados; revisar etiquetas de procesados.")
+
+    if "Low FODMAP" in restricciones:
+        warnings.append("Evitar cebolla y ajo en polvo en salsas y caldos preparados.")
+
+    if not warnings:
+        warnings.append("No hay restricciones activas, así que no hay alertas específicas que revisar.")
+
+    return warnings
+
+
 # =========================================================
 # Report generation
 # =========================================================
-
-def dataframe_to_table_data(df: pd.DataFrame) -> list[list[str]]:
-    return [list(df.columns)] + df.astype(str).values.tolist()
-
 
 def build_pdf_report(
     alias: str,
@@ -462,14 +615,19 @@ def build_pdf_report(
 ) -> bytes:
     buffer = BytesIO()
 
+    left_margin = 1.5 * cm
+    right_margin = 1.5 * cm
+
     doc = SimpleDocTemplate(
         buffer,
         pagesize=A4,
-        rightMargin=1.5 * cm,
-        leftMargin=1.5 * cm,
+        rightMargin=right_margin,
+        leftMargin=left_margin,
         topMargin=1.5 * cm,
         bottomMargin=1.5 * cm,
     )
+
+    usable_width = A4[0] - left_margin - right_margin
 
     styles = getSampleStyleSheet()
     styles.add(
@@ -502,9 +660,32 @@ def build_pdf_report(
             textColor=colors.HexColor("#1C2420"),
         )
     )
+    # Estilos pensados para celdas de tabla: tamaño pequeño y con wrap real,
+    # para que el contenido largo (contexto, restricciones...) no se salga
+    # del marco de la página.
+    styles.add(
+        ParagraphStyle(
+            name="CellText",
+            parent=styles["BodyText"],
+            fontSize=8,
+            leading=10.5,
+            textColor=colors.HexColor("#1C2420"),
+            wordWrap="CJK",
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            name="CellHeader",
+            parent=styles["CellText"],
+            textColor=colors.white,
+            fontName="Helvetica-Bold",
+        )
+    )
 
     story = []
-    story.append(Paragraph("🥦 NutriPrompt Report", styles["NutriTitle"]))
+    # Nota: se evita el emoji en el PDF a propósito — la fuente base de
+    # reportlab no lo soporta y aparece como un cuadrado negro.
+    story.append(Paragraph("NutriPrompt Report", styles["NutriTitle"]))
     story.append(Paragraph(f"Generado: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles["NutriBody"]))
     story.append(Spacer(1, 10))
 
@@ -518,18 +699,28 @@ def build_pdf_report(
     """
     story.append(Paragraph(summary, styles["NutriBody"]))
 
-    def add_table(title: str, df: pd.DataFrame) -> None:
+    def df_to_wrapped_data(df: pd.DataFrame) -> list[list[Paragraph]]:
+        header = [Paragraph(str(c), styles["CellHeader"]) for c in df.columns]
+        body = [
+            [Paragraph(str(v), styles["CellText"]) for v in row]
+            for row in df.astype(str).values.tolist()
+        ]
+        return [header] + body
+
+    def add_table(title: str, df: pd.DataFrame, col_ratios: list[float] | None = None) -> None:
         story.append(Paragraph(title, styles["NutriHeading"]))
-        data = dataframe_to_table_data(df)
-        table = Table(data, repeatRows=1)
+
+        n_cols = len(df.columns)
+        if col_ratios is None:
+            col_ratios = [1 / n_cols] * n_cols
+        col_widths = [usable_width * ratio for ratio in col_ratios]
+
+        data = df_to_wrapped_data(df)
+        table = Table(data, colWidths=col_widths, repeatRows=1)
         table.setStyle(
             TableStyle(
                 [
                     ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2F4538")),
-                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-                    ("FONTSIZE", (0, 0), (-1, -1), 7.5),
-                    ("LEADING", (0, 0), (-1, -1), 9),
                     ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#FAF7F2")),
                     ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#E4DDD0")),
                     ("VALIGN", (0, 0), (-1, -1), "TOP"),
@@ -543,10 +734,12 @@ def build_pdf_report(
         story.append(table)
         story.append(Spacer(1, 8))
 
-    add_table("Resumen del perfil", profile)
-    add_table("Plan semanal demo", plan)
-    add_table("Compatibility Layer Validation", checks)
-    add_table("Lista de compra sugerida", compra)
+    # Anchuras de columna fijas y proporcionales al ancho útil de la página,
+    # para que ninguna tabla se salga del marco (el bug del "formateado raro").
+    add_table("Resumen del perfil", profile, col_ratios=[0.30, 0.70])
+    add_table("Plan semanal demo", plan, col_ratios=[0.12, 0.293, 0.293, 0.294])
+    add_table("Revisión de compatibilidad", checks, col_ratios=[0.22, 0.20, 0.58])
+    add_table("Lista de compra sugerida", compra, col_ratios=[0.28, 0.72])
 
     story.append(Paragraph("Disclaimer", styles["NutriHeading"]))
     story.append(
@@ -598,19 +791,19 @@ Generated: {datetime.now().strftime("%d/%m/%Y %H:%M")}
 
 ## Weekly Plan
 
-{plan.to_markdown(index=False)}
+{dataframe_to_markdown(plan)}
 
 ---
 
 ## Shopping List
 
-{compra.to_markdown(index=False)}
+{dataframe_to_markdown(compra)}
 
 ---
 
-## Compatibility Layer Validation
+## Compatibility Review
 
-{checks.to_markdown(index=False)}
+{dataframe_to_markdown(checks)}
 
 ---
 
@@ -635,17 +828,6 @@ def intro_tab() -> None:
     st.markdown('<span class="section-label">Sección 01 · Visión del producto</span>', unsafe_allow_html=True)
     st.header("Qué demuestra esta demo")
 
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        card("Intake", "Recoge contexto, restricciones y preferencias sin fricción.", "🏠")
-    with col2:
-        card("RAG", "Añade reglas nutricionales antes de generar contenido.", "🧠")
-    with col3:
-        card("OCR", "Simula lectura de etiquetas e ingredientes sensibles.", "📄")
-    with col4:
-        card("Copilot", "Explica el plan y responde con contexto limpio por perfil.", "💬")
-
-    st.markdown("---")
     st.markdown(
         """
         **NutriPrompt no es un simple prompt.** La demo enseña producto: captura de datos,
@@ -653,14 +835,33 @@ def intro_tab() -> None:
         """
     )
 
+    # Instrucciones arriba del todo, antes de las tarjetas explicativas,
+    # más una CTA directa para no obligar a leer todo antes de empezar.
     st.info(
-        "Recorre las pestañas de izquierda a derecha: empieza en Intake, revisa el pipeline, prueba OCR, "
-        "consulta el Copilot y descarga el informe final."
+        "👉 **Cómo funciona:** crea tu perfil en **Perfil**, mira el **Pipeline IA**, prueba el **OCR**, "
+        "habla con el **Copilot** y descarga tu informe en **Plan generado**. Usa la barra de arriba "
+        "en cualquier momento, o pulsa el botón de aquí abajo para ir directo."
     )
+
+    if st.button("🚀 Empezar: crear mi perfil", type="primary", use_container_width=True):
+        go_to(TAB_INTAKE)
+
+    st.markdown("---")
+    st.caption("¿Prefieres entender el detalle antes de empezar? Aquí tienes un resumen de cada pieza.")
+
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        card("Perfil", "Recoge contexto, restricciones y preferencias sin fricción.", "🏠")
+    with col2:
+        card("RAG", "Añade reglas nutricionales antes de generar contenido.", "🧠")
+    with col3:
+        card("OCR", "Simula lectura de etiquetas e ingredientes sensibles.", "📄")
+    with col4:
+        card("Copilot", "Explica el plan y responde con contexto limpio por perfil.", "💬")
 
 
 def intake_tab() -> None:
-    st.markdown('<span class="section-label">Sección 02 · Intake inteligente</span>', unsafe_allow_html=True)
+    st.markdown('<span class="section-label">Sección 02 · Perfil inteligente</span>', unsafe_allow_html=True)
     st.header("Crea un perfil nutricional ficticio")
     st.caption("No se guardan datos personales ni se llama a APIs externas en esta demo.")
 
@@ -669,16 +870,16 @@ def intake_tab() -> None:
 
         with col1:
             alias = st.text_input(
-                "¿Cómo te llaman en casa?",
+                "¿Cómo quieres que te llamemos?",
                 value=st.session_state["alias"],
-                placeholder="Ej. La jefa del tupper, Txiki, el de 'hoy empiezo'",
+                placeholder="Ej. Marta, Ander, J.",
             )
             edad = st.number_input(
                 "Edad",
                 min_value=18,
                 max_value=90,
                 value=st.session_state["edad"],
-                placeholder="Ej. 34, aunque tu espalda diga otra cosa",
+                placeholder="Ej. 34",
             )
 
         with col2:
@@ -686,13 +887,13 @@ def intake_tab() -> None:
                 "Objetivo principal",
                 OBJETIVOS,
                 index=OBJETIVOS.index(st.session_state["objetivo"]) if st.session_state["objetivo"] in OBJETIVOS else None,
-                placeholder="Elige tu misión nutricional",
+                placeholder="Elige tu objetivo",
             )
             presupuesto = st.selectbox(
                 "Presupuesto semanal",
                 PRESUPUESTOS,
                 index=PRESUPUESTOS.index(st.session_state["presupuesto"]) if st.session_state["presupuesto"] in PRESUPUESTOS else None,
-                placeholder="Desde supervivencia hasta me-lo-merezco",
+                placeholder="Elige un rango de presupuesto",
             )
 
         with col3:
@@ -701,34 +902,35 @@ def intake_tab() -> None:
                 1,
                 5,
                 st.session_state["actividad"],
-                help="1 = sofá premium · 5 = persona que sube escaleras por gusto",
+                help="1 = poco activo · 5 = muy activo",
             )
             contexto = st.text_area(
                 "Rutina, síntomas o contexto",
                 value=st.session_state["contexto"],
-                placeholder="Ej. como fuera, tengo poco tiempo, digestiones pesadas, vivo a base de café y esperanza...",
+                placeholder="Ej. como fuera de casa a menudo, tengo poco tiempo entre semana, digestiones pesadas...",
             )
 
         restricciones = st.multiselect(
             "Restricciones alimentarias",
             RESTRICCIONES,
             default=st.session_state["restricciones"],
-            placeholder="Marca lo que haya que respetar",
+            placeholder="Selecciona si aplica alguna",
         )
 
         preferencias = st.multiselect(
             "Preferencias",
             PREFERENCIAS,
             default=st.session_state["preferencias"],
-            placeholder="Lo que haría que no abandones al tercer día",
+            placeholder="Selecciona tus preferencias",
         )
 
         col_a, col_b = st.columns([2, 1])
-        generar = col_a.form_submit_button("🚀 Generar plan inteligente", type="primary", use_container_width=True)
-        limpiar = col_b.form_submit_button("🧹 Cliente nuevo", use_container_width=True)
+        generar = col_a.form_submit_button("🚀 Generar plan", type="primary", use_container_width=True)
+        limpiar = col_b.form_submit_button("🧹 Nuevo perfil", use_container_width=True)
 
     if limpiar:
         reset_demo()
+
 
     if generar:
         faltan = []
@@ -742,7 +944,7 @@ def intake_tab() -> None:
             faltan.append("presupuesto")
 
         if faltan:
-            st.error("Falta completar: " + ", ".join(faltan) + ". La IA aún no lee la mente.")
+            st.error("Falta completar: " + ", ".join(faltan) + ".")
             return
 
         current_profile = f"{alias.strip().lower()}_{edad}_{objetivo}_{presupuesto}"
@@ -760,10 +962,14 @@ def intake_tab() -> None:
         st.session_state["preferencias"] = preferencias
         st.session_state["profile_id"] = current_profile
 
-        st.success("✅ Plan generado. Ve a **✅ Plan generado** para verlo.")
+        st.success("✅ Plan generado correctamente.")
 
+    # En lugar de un texto indicando en qué pestaña mirar, un botón que
+    # lleva directamente a "Plan generado".
     if st.session_state["plan_generado"]:
-        st.info("Plan demo listo. El Copilot se ha reiniciado si el perfil ha cambiado.")
+        st.markdown("Tu plan demo está listo para revisar y descargar.")
+        if st.button("📋 Ver mi plan generado →", type="primary", use_container_width=True, key="go_to_plan_from_intake"):
+            go_to(TAB_PLAN)
 
 
 def pipeline_tab() -> None:
@@ -777,7 +983,7 @@ def pipeline_tab() -> None:
         ("04", "Prompt Builder", "Construye un prompt controlado."),
         ("05", "Modelo IA", "Generación con proveedor principal."),
         ("06", "Fallback", "Proveedor alternativo si falla el primero."),
-        ("07", "Compatibility Engine", "Valida reglas, restricciones e ingredientes."),
+        ("07", "Validación del plan", "Valida reglas, restricciones e ingredientes."),
         ("08", "Salida", "Plan, explicación, compra e informe descargable."),
     ]
 
@@ -786,23 +992,32 @@ def pipeline_tab() -> None:
         with cols[i % 4]:
             card(f"{num} · {title}", desc, "✓")
 
-    st.success("Pipeline: Entrada → RAG → Prompt Builder → Modelo → Compatibility Engine → Plan explicable.")
+    st.success("Pipeline: Entrada → RAG → Prompt Builder → Modelo → Validación del plan → Plan final.")
 
 
 def vision_tab() -> None:
     st.markdown('<span class="section-label">Sección 04 · Vision / OCR</span>', unsafe_allow_html=True)
     st.header("Lectura de etiquetas")
+    st.caption(
+        "Esta demo no tiene un OCR real conectado: no analiza el contenido de tu archivo. "
+        "Sirve para mostrar el formato que tendría el resultado de un análisis real."
+    )
 
     archivo = st.file_uploader(
-        "Sube una etiqueta, imagen o PDF",
+        "Sube una etiqueta, imagen o PDF (opcional)",
         type=["png", "jpg", "jpeg", "pdf"],
     )
 
     if archivo:
-        st.success("Archivo recibido. En esta demo el análisis es simulado.")
+        st.success(f"Archivo recibido: **{archivo.name}**.")
+        st.warning(
+            "⚠️ Importante: esta demo **no analiza el contenido real** de tu archivo. "
+            "Lo de abajo es un ejemplo fijo e ilustrativo, no procede de tu imagen."
+        )
     else:
-        st.info("Puedes probar sin subir archivo. Usamos una etiqueta ficticia con ingredientes problemáticos, como la vida misma.")
+        st.info("Puedes probar sin subir archivo: verás el mismo ejemplo ilustrativo de abajo.")
 
+    st.markdown("##### 📌 Ejemplo ilustrativo (etiqueta ficticia, no depende del archivo subido)")
     ingredients = detected_ingredients()
     st.dataframe(ingredients, use_container_width=True, hide_index=True)
 
@@ -819,7 +1034,7 @@ def dashboard_tab() -> None:
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Proveedores IA", "2", "Gemini + OpenAI")
     col2.metric("Capas pipeline", "8+", "modular")
-    col3.metric("Compatibility Engine", "Activo", "RAG + reglas")
+    col3.metric("Validación del plan", "Activa", "RAG + reglas")
     col4.metric("Salida", "PDF + MD", "descargable")
 
     architecture = pd.DataFrame(
@@ -829,7 +1044,7 @@ def dashboard_tab() -> None:
             ["RAG", "Base de conocimiento nutricional"],
             ["OCR", "Tesseract + parsing"],
             ["IA", "Gemini + OpenAI fallback"],
-            ["Compatibility Engine", "Validación de reglas y restricciones"],
+            ["Validación del plan", "Validación de reglas y restricciones"],
             ["Datos", "JSON estructurado"],
             ["Informe", "PDF + Markdown descargable"],
         ],
@@ -838,12 +1053,69 @@ def dashboard_tab() -> None:
     st.dataframe(architecture, use_container_width=True, hide_index=True)
 
 
+def generate_copilot_response(
+    pregunta: str,
+    alias: str,
+    objetivo: str,
+    restricciones: list[str],
+    presupuesto: str,
+    preferencias: list[str],
+    contexto: str,
+) -> str:
+    """Respuesta simulada del Copilot. No es un LLM real: enruta por
+    palabras clave para que distintas preguntas den distintas respuestas,
+    en vez de repetir siempre el mismo resumen de perfil."""
+    q = pregunta.lower()
+    restr_txt = ", ".join(restricciones) if restricciones else "sin restricciones activas"
+
+    if "presupuesto" in q or "barato" in q or "ahorr" in q:
+        return (
+            f"Tu presupuesto actual es **{presupuesto.lower()}**. Para ajustarlo más, prioriza bases "
+            "económicas y versátiles (arroz, legumbres, huevo, avena), compra verdura de temporada y "
+            "cocina en formato batch para repartir el coste entre varias raciones de tupper. "
+            f"Todo esto manteniendo {restr_txt}."
+        )
+
+    if "cena" in q or ("alternativa" in q and "jueves" in q):
+        return (
+            "Como alternativa de cena podrías probar un salteado rápido de verduras de temporada con "
+            f"una fuente de proteína ligera, respetando {restr_txt}. Si buscas algo aún más rápido, "
+            "una tortilla sencilla con verdura picada también encaja con el objetivo de "
+            f"**{objetivo.lower()}**."
+        )
+
+    if "por qué" in q or "porque" in q or "elegido" in q or "platos" in q:
+        return (
+            f"Los platos se eligen pensando en tu objetivo, **{objetivo.lower()}**, y respetando "
+            f"{restr_txt}. Se prioriza variedad a lo largo de la semana, ingredientes que se repiten "
+            "(para no complicar la compra) y recetas fáciles de llevar en tupper."
+        )
+
+    if "preferencia" in q or "tupper" in q or "rápid" in q or "rapid" in q:
+        return (
+            f"Tus preferencias marcadas son: **{', '.join(preferencias) if preferencias else 'ninguna indicada'}**. "
+            "El plan intenta respetarlas priorizando recetas sencillas, fáciles de preparar en lote "
+            "y compatibles con guardar en tupper para el resto de la semana."
+        )
+
+    # Fallback genérico para preguntas libres que no encajan en ningún patrón anterior.
+    return (
+        f"Para **{alias}**, el plan se orienta a **{objetivo}**. "
+        f"Restricciones consideradas: **{restr_txt}**. "
+        f"Contexto disponible: **{contexto if contexto else 'no indicado'}**. "
+        "La demo cruza reglas nutricionales, preferencias y contexto antes de proponer el plan. "
+        "No sustituye una valoración profesional, pero muestra un flujo de IA explicable."
+    )
+
+
 def copilot_tab() -> None:
     st.markdown('<span class="section-label">Sección 06 · Copilot</span>', unsafe_allow_html=True)
     st.header("NutriPrompt Copilot")
 
     if not st.session_state["plan_generado"]:
-        st.info("Primero genera un plan en **🏠 Intake**.")
+        st.info("Primero genera un plan en **🏠 Perfil**.")
+        if st.button("🏠 Ir a Perfil", use_container_width=True, key="copilot_go_intake"):
+            go_to(TAB_INTAKE)
         return
 
     st.caption("El chat se reinicia automáticamente si generas un nuevo perfil.")
@@ -857,29 +1129,47 @@ def copilot_tab() -> None:
     alias = st.session_state["alias"]
     objetivo = st.session_state["objetivo"]
     restricciones = st.session_state["restricciones"]
+    presupuesto = st.session_state["presupuesto"]
+    preferencias = st.session_state["preferencias"]
     contexto = st.session_state["contexto"]
 
     if not st.session_state["chat_messages"]:
         st.chat_message("assistant").write(
             f"Hola, soy NutriPrompt Copilot. Estoy trabajando con el perfil actual de **{alias}**. "
-            "Puedo explicar el plan, revisar restricciones o proponer alternativas. "
-            "Prometo no juzgar el cajón de snacks."
+            "Puedo explicar el plan, revisar restricciones o proponer alternativas."
         )
 
     for msg in st.session_state["chat_messages"]:
         st.chat_message(msg["role"]).write(msg["content"])
 
-    pregunta = st.chat_input("Pregunta sobre el plan nutricional...")
+    # Chips de preguntas sugeridas: facilitan arrancar la conversación
+    # sin tener que escribir desde cero.
+    sugerencias = [
+        "¿Por qué se han elegido estos platos?",
+        "¿Cómo lo adapto a mi presupuesto?",
+        "Dame una alternativa para la cena del jueves",
+    ]
+    st.caption("Preguntas rápidas:")
+    sug_cols = st.columns(len(sugerencias))
+    pregunta_sugerida = None
+    for col, texto in zip(sug_cols, sugerencias):
+        if col.button(texto, use_container_width=True, key=f"sug_{texto}"):
+            pregunta_sugerida = texto
+
+    pregunta_input = st.chat_input("Pregunta sobre el plan nutricional...")
+    pregunta = pregunta_input or pregunta_sugerida
 
     if pregunta:
         st.session_state["chat_messages"].append({"role": "user", "content": pregunta})
 
-        respuesta = (
-            f"Para **{alias}**, el plan se orienta a **{objetivo}**. "
-            f"Restricciones consideradas: **{', '.join(restricciones) if restricciones else 'ninguna indicada'}**. "
-            f"Contexto disponible: **{contexto if contexto else 'no indicado'}**. "
-            "La demo cruza reglas nutricionales, preferencias y contexto antes de proponer el plan. "
-            "No sustituye una valoración profesional, pero muestra un flujo de IA explicable."
+        respuesta = generate_copilot_response(
+            pregunta=pregunta,
+            alias=alias,
+            objetivo=objetivo,
+            restricciones=restricciones,
+            presupuesto=presupuesto,
+            preferencias=preferencias,
+            contexto=contexto,
         )
 
         st.session_state["chat_messages"].append({"role": "assistant", "content": respuesta})
@@ -890,7 +1180,9 @@ def plan_tab() -> None:
     st.markdown('<span class="section-label">Sección 07 · Resultado final</span>', unsafe_allow_html=True)
 
     if not st.session_state["plan_generado"]:
-        st.info("Primero genera un plan desde **🏠 Intake**.")
+        st.info("Primero genera un plan desde **🏠 Perfil**.")
+        if st.button("🏠 Ir a Perfil", use_container_width=True, key="plan_tab_go_intake"):
+            go_to(TAB_INTAKE)
         return
 
     alias = st.session_state["alias"]
@@ -931,9 +1223,11 @@ def plan_tab() -> None:
         columns=["Campo", "Valor"],
     )
 
-    plan = build_plan()
-    compra = shopping_list()
-    checks = compatibility_checks()
+    profile = profile.astype(str)
+    plan = build_plan().astype(str)
+    compra = shopping_list().astype(str)
+    checks = compatibility_checks().astype(str)
+    checks_pdf = compatibility_checks_pdf().astype(str)
 
     st.subheader("Resumen del perfil")
     st.dataframe(profile, use_container_width=True, hide_index=True)
@@ -941,7 +1235,7 @@ def plan_tab() -> None:
     st.subheader("Plan semanal demo")
     st.dataframe(plan, use_container_width=True, hide_index=True)
 
-    st.subheader("Compatibility Layer Validation")
+    st.subheader("Revisión de compatibilidad")
     st.dataframe(checks, use_container_width=True, hide_index=True)
 
     st.subheader("Lista de compra sugerida")
@@ -949,22 +1243,19 @@ def plan_tab() -> None:
 
     col_rag, col_comp = st.columns(2)
 
+    # Ambos bloques ahora son dinámicos: solo muestran lo relacionado con
+    # las restricciones que la persona ha marcado realmente, y explican
+    # cuándo un aviso aparece por relación indirecta (p. ej. Low FODMAP → lactosa)
+    # en vez de dar la sensación de que se ha asumido una restricción no pedida.
     with col_rag:
         st.markdown("#### Contexto recuperado con RAG")
-        st.markdown(
-            """
-            ✅ Low FODMAP: revisar cebolla, ajo, trigo, manzana y algunas legumbres.
-
-            ✅ Sin lactosa: evitar lácteos convencionales y revisar procesados.
-
-            ✅ Planificación: priorizar platos repetibles, sencillos y realistas.
-            """
-        )
+        for bullet in rag_bullets():
+            st.markdown(bullet)
 
     with col_comp:
         st.markdown("#### Análisis de compatibilidad")
-        st.warning("Revisar yogures, quesos, salsas y procesados por posible lactosa oculta.")
-        st.warning("Evitar cebolla en polvo y harina de trigo si aplican reglas Low FODMAP o sin gluten.")
+        for warning in compat_warnings():
+            st.warning(warning)
 
     prompt = f"""
 Actúa como asistente de organización semanal de comidas.
@@ -980,7 +1271,7 @@ Perfil:
 - Contexto: {contexto if contexto else "No indicado"}
 
 Prioriza reglas nutricionales recuperadas por RAG.
-Valida las recomendaciones con el Compatibility Engine.
+Valida las recomendaciones con la capa de validación del plan.
 Evita afirmaciones médicas.
 Devuelve una salida estructurada, revisable y útil.
 """
@@ -1019,7 +1310,7 @@ Devuelve una salida estructurada, revisable y útil.
         profile=profile,
         plan=plan,
         compra=compra,
-        checks=checks,
+        checks=checks_pdf,
     )
 
     st.subheader("Descargas")
@@ -1048,37 +1339,26 @@ Devuelve una salida estructurada, revisable y útil.
 # Main
 # =========================================================
 
+TAB_RENDERERS = {
+    TAB_INTRO: intro_tab,
+    TAB_INTAKE: intake_tab,
+    TAB_PIPELINE: pipeline_tab,
+    TAB_VISION: vision_tab,
+    TAB_DASHBOARD: dashboard_tab,
+    TAB_COPILOT: copilot_tab,
+    TAB_PLAN: plan_tab,
+}
+
+
 def main() -> None:
     init_state()
     render_header()
+    render_nav()
+    st.write("")
 
-    tabs = st.tabs(
-        [
-            "👋 Inicio",
-            "🏠 Intake",
-            "🧠 Pipeline IA",
-            "📄 Vision / OCR",
-            "📊 Panel técnico",
-            "💬 Copilot",
-            "✅ Plan generado",
-        ]
-    )
+    TAB_RENDERERS[st.session_state["active_tab"]]()
 
-    with tabs[0]:
-        intro_tab()
-    with tabs[1]:
-        intake_tab()
-    with tabs[2]:
-        pipeline_tab()
-    with tabs[3]:
-        vision_tab()
-    with tabs[4]:
-        dashboard_tab()
-    with tabs[5]:
-        copilot_tab()
-    with tabs[6]:
-        plan_tab()
-
+    st.markdown("---")
     if st.button("🧹 Reset demo completo"):
         reset_demo()
 

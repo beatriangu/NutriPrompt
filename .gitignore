@@ -254,3 +254,13 @@ vision_outputs/
 !media/.gitkeep
 !data/.gitkeep
 !docs/data/.gitkeep
+# Generated demo outputs
+docs/ejemplos/nutriprompt_report_*.pdf
+docs/ejemplos/nutriprompt_report_*.md
+
+# Runtime generated reports
+media/resultados/*.pdf
+media/resultados/*.html
+
+# Streamlit temp outputs
+streamlit_demo/output/*

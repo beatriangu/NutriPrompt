@@ -407,18 +407,35 @@ def dataframe_to_markdown(df: pd.DataFrame) -> str:
 
 def build_plan() -> pd.DataFrame:
     restricciones = st.session_state.get("restricciones", [])
+
     vegan = "Vegano" in restricciones
+    vegetarian = "Vegetariano" in restricciones
     sin_gluten = "Sin gluten" in restricciones
     sin_lactosa = "Sin lactosa" in restricciones
 
     if vegan:
+        desayuno_base = "Yogur vegetal con fruta"
+        pasta_base = "Pasta sin gluten con tofu" if sin_gluten else "Pasta con tofu"
         meals = [
             ["Lunes", "Avena con plátano y chía", "Bowl de arroz con tofu y verduras suaves", "Crema de calabacín con garbanzos"],
-            ["Martes", "Yogur vegetal con fruta", "Quinoa con verduras y proteína vegetal", "Tortilla vegana de harina de garbanzo"],
-            ["Miércoles", "Tostadas sin gluten con aguacate", "Arroz con tofu marinado", "Sopa de verduras y semillas"],
-            ["Jueves", "Batido vegetal con fruta", "Patata cocida con verduras y hummus suave", "Salteado de tofu con calabacín"],
+            ["Martes", desayuno_base, "Quinoa con verduras y proteína vegetal", "Tortilla vegana de harina de garbanzo"],
+            ["Miércoles", "Tostadas sin gluten con aguacate" if sin_gluten else "Tostadas con aguacate", "Arroz con tofu marinado", "Sopa de verduras y semillas"],
+            ["Jueves", "Batido vegetal con fruta", pasta_base, "Salteado de tofu con calabacín"],
             ["Viernes", "Pudding de chía", "Tupper de arroz con verduras", "Cena ligera de crema vegetal"],
         ]
+
+    elif vegetarian:
+        desayuno_base = "Yogur sin lactosa con fruta" if sin_lactosa else "Yogur natural con fruta"
+        pasta_base = "Pasta sin gluten con verduras y huevo" if sin_gluten else "Pasta con verduras y huevo"
+
+        meals = [
+            ["Lunes", desayuno_base, "Arroz con verduras suaves y huevo", "Tortilla con espinacas"],
+            ["Martes", "Avena con plátano y chía", pasta_base, "Crema de verduras con queso fresco"],
+            ["Miércoles", "Tostadas sin gluten con aguacate" if sin_gluten else "Tostadas con aguacate", "Quinoa con verduras y huevo cocido", "Revuelto de calabacín"],
+            ["Jueves", "Batido suave de fruta", "Bowl de arroz con tofu y verduras", "Tortilla francesa con ensalada"],
+            ["Viernes", desayuno_base, "Tupper de quinoa con verduras y queso", "Cena ligera de crema vegetal"],
+        ]
+
     else:
         desayuno = "Yogur sin lactosa con fruta" if sin_lactosa else "Yogur natural con fruta"
         pan = "Tostadas sin gluten con aceite" if sin_gluten else "Tostadas con aceite"
@@ -437,15 +454,30 @@ def build_plan() -> pd.DataFrame:
 
 def shopping_list() -> pd.DataFrame:
     restricciones = st.session_state.get("restricciones", [])
+
     vegan = "Vegano" in restricciones
+    vegetarian = "Vegetariano" in restricciones
     sin_lactosa = "Sin lactosa" in restricciones
 
     if vegan:
         protein = "Tofu, garbanzos, hummus, semillas"
         breakfast = "Yogur vegetal, avena, fruta, chía"
+
+    elif vegetarian:
+        protein = "Huevos, tofu, queso, yogur, legumbres"
+        breakfast = (
+            "Yogur sin lactosa, fruta, avena, chía"
+            if sin_lactosa
+            else "Yogur, fruta, avena, chía"
+        )
+
     else:
-        protein = "Pollo, pavo, huevo, pescado, tofu"
-        breakfast = "Yogur sin lactosa o natural, fruta, avena, chía" if sin_lactosa else "Yogur, fruta, avena, chía"
+        protein = "Pollo, pavo, huevo, pescado"
+        breakfast = (
+            "Yogur sin lactosa, fruta, avena, chía"
+            if sin_lactosa
+            else "Yogur, fruta, avena, chía"
+        )
 
     items = [
         ["Proteínas", protein],
@@ -454,6 +486,7 @@ def shopping_list() -> pd.DataFrame:
         ["Desayunos", breakfast],
         ["Extras", "Nueces, aceite de oliva, semillas"],
     ]
+
     return pd.DataFrame(items, columns=["Categoría", "Compra sugerida"])
 
 

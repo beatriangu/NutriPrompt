@@ -129,11 +129,11 @@ Its architecture enriches every request before generation.
 This produces:
 
 ✅ grounded outputs
-✅ fewer hallucinations
-✅ explainable recommendations
+✅ hallucination-resistant pipelines
+✅ explainable decision flows
 ✅ compatibility-aware planning
-✅ resilient provider orchestration
-✅ production-ready AI workflows
+✅ resilient multi-provider orchestration
+✅ production-grade AI workflows
 
 ---
 

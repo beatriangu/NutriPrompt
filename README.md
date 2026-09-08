@@ -1,331 +1,581 @@
 # 🥦 NutriPrompt
 
-> **NutriPrompt is an AI decision-support architecture designed to transform nutrition planning into a contextual, validated and explainable workflow.**
+> **NutriPrompt is an AI decision-support system designed to transform nutrition planning into a contextual, retrieved, validated and explainable workflow.**
 
-NutriPrompt is not a meal-plan generator.
+NutriPrompt is not simply a meal-plan generator.
 
-It is a production-oriented AI system built to demonstrate how modern GenAI products should be designed:
+It is a production-minded Applied AI project built to explore how modern GenAI products can move beyond open-ended prompting into structured, domain-grounded and resilient workflows.
 
-* context-aware
-* retrieval-augmented
-* validation-first
-* resilient
-* explainable
-* execution-ready
+The system combines:
 
-Built with **Django**, **Python**, **RAG**, **OCR**, **multi-provider LLM orchestration**, **validation engines**, **PDF generation**, and **structured output pipelines**.
+- structured user context
+- domain-specific Retrieval-Augmented Generation (RAG)
+- controlled prompt construction
+- multi-provider LLM orchestration
+- deterministic validation rules
+- structured JSON outputs
+- OCR-based ingredient analysis
+- execution-oriented outputs
+- explainability and demo observability
+
+Built with **Django**, **Python**, **Gemini**, **OpenAI**, **custom RAG**, **OCR**, **validation services**, **PDF generation**, and **Streamlit**.
 
 Its purpose is simple:
 
-**to show how AI moves from content generation into intelligent product systems.**
+> **to demonstrate how AI can evolve from content generation into reliable product workflows.**
 
 ![Python](https://img.shields.io/badge/Python-3.13-blue)
 ![Django](https://img.shields.io/badge/Django-5.x-green)
 ![OpenAI](https://img.shields.io/badge/OpenAI-API-black)
 ![Gemini](https://img.shields.io/badge/Gemini-AI-orange)
 ![OCR](https://img.shields.io/badge/OCR-Vision-purple)
-![RAG](https://img.shields.io/badge/RAG-Knowledge%20Retrieval-red)
+![RAG](https://img.shields.io/badge/RAG-Domain%20Retrieval-red)
 
 ---
 
 # 🚀 Live Demo
 
-### Public Technical Demo
+## Public Technical Demo
 
 👉 **https://nutriprompt-live.streamlit.app**
 
-This public Streamlit demo exposes NutriPrompt’s internal AI workflow in a recruiter-friendly and technical format:
+The public Streamlit demo exposes NutriPrompt's internal AI workflow in a recruiter-friendly and technical format.
 
-* structured intake
-* RAG orchestration
-* OCR processing
-* validation layers
-* AI Copilot explainability
-* structured outputs
+It demonstrates:
+
+- structured intake
+- profile classification
+- RAG retrieval
+- prompt construction
+- LLM orchestration
+- OCR processing
+- validation layers
+- structured outputs
+- AI workflow explainability
+
+The demo is intentionally separated from the Django application so the AI pipeline can be inspected and tested interactively.
 
 ---
 
 # 🧠 What This Project Demonstrates
 
-NutriPrompt is an **AI Systems Engineering project**.
+NutriPrompt is an **Applied AI / AI Systems Engineering project**.
 
-It demonstrates:
+It demonstrates how different AI and software-engineering components can be combined into a controlled product workflow:
 
-* Prompt Engineering for controlled generation
-* Retrieval-Augmented Generation (RAG)
-* OCR ingestion and structured parsing
-* Validation layers before inference
-* Multi-provider LLM orchestration
-* Fallback resilience strategies
-* Explainable outputs
-* Human-readable + machine-readable reports
-* Product-oriented AI UX design
-* Context-first AI workflows
+- Prompt Engineering for controlled generation
+- Retrieval-Augmented Generation (RAG)
+- Domain-specific knowledge retrieval
+- Structured context injection
+- OCR ingestion and ingredient parsing
+- Deterministic validation after generation
+- Multi-provider LLM orchestration
+- Provider fallback strategies
+- Structured JSON generation
+- Explainable workflow outputs
+- Human-readable reports
+- Machine-readable outputs
+- Product-oriented AI UX
+- Context-first AI workflows
 
-This reflects how real-world AI systems move beyond prompting into structured, reliable and explainable pipelines.
+The project reflects a core design principle:
 
----
-
-# 💼 Business Value
-
-NutriPrompt demonstrates how AI can:
-
-* reduce planning friction
-* improve recommendation consistency
-* validate restrictions before execution
-* increase personalization quality
-* reduce user decision fatigue
-* transform static advice into actionable workflows
-
-This is not just about nutrition.
-
-It is about building **AI products that solve operational problems reliably.**
+> **Reliable AI products require more than a prompt and an LLM.**
 
 ---
 
-# 🌍 Why This Architecture Matters Beyond Nutrition
+# 🔎 Retrieval-Augmented Generation
 
-NutriPrompt’s architecture is transferable.
+NutriPrompt implements a lightweight, domain-specific RAG architecture over a curated nutrition knowledge base.
 
-The same workflow pattern can be applied to:
-
-* healthcare decision-support
-* legal document analysis
-* HR screening workflows
-* customer support copilots
-* insurance validation systems
-* procurement workflows
-* industrial compliance systems
-
-This makes NutriPrompt a reusable AI systems pattern.
-
-Not a niche app.
-
----
-
-# ✨ Product Vision
-
-Nutrition planning is not a content generation problem.
-
-Reliable AI nutrition systems must understand:
-
-* personal goals
-* digestive conditions
-* ingredient compatibility
-* dietary restrictions
-* food preferences
-* budget limitations
-* real-life constraints
-* execution friction
-
-NutriPrompt treats nutrition as an **intelligent workflow problem**.
-
-Not as a chatbot.
-
-That distinction changes everything.
-
-Its architecture enriches every request before generation.
-
-This produces:
-
-✅ grounded outputs
-✅ hallucination-resistant pipelines
-✅ explainable decision flows
-✅ compatibility-aware planning
-✅ resilient multi-provider orchestration
-✅ production-grade AI workflows
-
----
-
-# 🎯 Why I Built This
-
-I built NutriPrompt to explore how AI systems evolve beyond content generation into **decision-support architectures**.
-
-The goal was never to generate meal plans.
-
-The goal was to design a system that demonstrates:
-
-* structured reasoning
-* domain grounding
-* retrieval orchestration
-* explainability
-* resilient fallbacks
-* product-oriented thinking
-* real-world execution
-
-This project reflects how I approach **AI product design**:
-
-**connecting business, data and technology into usable systems.**
-
----
-
-# 🏗 System Architecture
+The current retrieval strategy is intentionally simple, transparent and testable:
 
 ```text
+User Profile
+     ↓
+RAG Query Builder
+     ↓
+Nutrition Knowledge Base
+     ↓
+Keyword / Rule Scoring
+     ↓
+Top-K Relevant Rules
+     ↓
+Retrieved Context
+     ↓
+Prompt Augmentation
+     ↓
+LLM Generation
+
+The knowledge base is stored as structured JSON rules.
+
+For every user request, NutriPrompt:
+
+extracts relevant profile information
+builds a retrieval query
+scores nutrition rules against the query
+retrieves the most relevant rules
+injects the retrieved context into the final prompt
+asks the LLM to generate a structured plan grounded in that context
+
+This is a rule-based / keyword-scored RAG implementation.
+
+It does not currently rely on vector embeddings or a vector database.
+
+That distinction is intentional: the current architecture keeps retrieval transparent, inspectable and easy to validate.
+
+A future evolution can replace the lexical retriever with semantic retrieval using embeddings without changing the rest of the RAG pipeline.
+
+🧩 RAG Architecture
+nutrition_rules.json
+        ↓
+knowledge_base.py
+        ↓
+retriever.py
+        ↓
+rag_context_builder.py
+        ↓
+prompt_builder.py
+        ↓
+Gemini / OpenAI
+
+The architecture separates:
+
+knowledge storage
+retrieval
+context construction
+prompt generation
+LLM inference
+
+This makes the retrieval layer independently testable and replaceable.
+
+💼 Business Value
+
+NutriPrompt demonstrates how AI can support real product workflows by helping to:
+
+reduce planning friction
+improve recommendation consistency
+personalize outputs using structured context
+validate critical restrictions
+reduce user decision fatigue
+transform recommendations into actionable plans
+isolate provider failures
+improve output reliability through post-generation validation
+
+This project is not only about nutrition.
+
+It demonstrates a reusable pattern for building AI products around business rules, domain knowledge and controlled generation.
+
+🌍 Why This Architecture Matters Beyond Nutrition
+
+The architecture is transferable to other domains where AI must combine user context, domain knowledge and validation.
+
+The same pattern can be applied to:
+
+healthcare decision-support
+legal document analysis
+HR screening workflows
+customer-support copilots
+insurance validation
+procurement workflows
+industrial compliance
+internal knowledge assistants
+
+The reusable pattern is:
+
+Structured Input
+      ↓
+Context Analysis
+      ↓
+Knowledge Retrieval
+      ↓
+Controlled Generation
+      ↓
+Validation
+      ↓
+Actionable Output
+✨ Product Vision
+
+Nutrition planning is not only a content-generation problem.
+
+A useful planning system must take into account:
+
+personal goals
+dietary restrictions
+ingredient compatibility
+food preferences
+lifestyle constraints
+budget
+time available
+cooking access
+eating outside the home
+execution friction
+
+NutriPrompt treats nutrition planning as an intelligent workflow problem, not as a chatbot interaction.
+
+The system enriches requests before generation and validates outputs afterwards.
+
+This creates:
+
+✅ domain-grounded generation
+✅ context-aware personalization
+✅ explicit validation layers
+✅ explainable decision flows
+✅ compatibility-aware planning
+✅ provider resilience
+✅ structured AI outputs
+
+🎯 Why I Built This
+
+I built NutriPrompt to explore how AI products evolve beyond content generation into decision-support and workflow architectures.
+
+The goal was not simply to generate meal plans.
+
+The goal was to design and implement a system that demonstrates:
+
+structured decision flows
+domain grounding
+retrieval orchestration
+controlled generation
+validation
+explainability
+resilient fallbacks
+product-oriented thinking
+real-world execution
+
+This project reflects how I approach Applied AI and AI Product design:
+
+connecting business logic, data, software architecture and Generative AI into usable systems.
+
+🏗 System Architecture
 User Input
       ↓
-Structured Intake Forms
+Structured Intake
       ↓
 Profile Analysis
       ↓
-RAG Knowledge Retrieval
+RAG Query Builder
+      ↓
+Domain Knowledge Retrieval
       ↓
 Prompt Builder
       ↓
 Gemini API
-      ↓ (Fallback)
-OpenAI API
+      ↓
+Validation
+      ↓
+Retry if required
+      ↓
+OpenAI Fallback
       ↓
 Structured JSON Output
       ↓
 Nutrition Rules Engine
       ↓
-Validation Layer
-      ↓
-HTML Rendering
+Presentation Layer
       ↓
 Shopping Intelligence
       ↓
-PDF Generation
+HTML / PDF Output
       ↓
-AI Copilot Layer
-```
+AI Copilot / Explainability
+🛡 Validation-First AI Workflow
 
----
+NutriPrompt does not rely exclusively on the LLM to respect business rules.
 
-# 📸 Product Walkthrough
+The system combines three complementary layers.
 
-## 1. Smart Nutrition Intake
+1. Deterministic input interpretation
 
-Transforms structured user input into contextual AI workflows:
+User restrictions and profile tags are identified explicitly.
 
-* goals
-* digestive symptoms
-* restrictions
-* food preferences
-* budget logic
-* lifestyle context
+Examples:
 
-![Home](docs/screenshots/01_home.png)
+vegan
+vegetarian
+pescetarian
+lactose-free
+gluten-free
+low-FODMAP
+limited kitchen access
+tupper requirements
+budget constraints
+2. Retrieved domain context
 
----
+Relevant nutrition rules are retrieved from the knowledge base and injected into the prompt.
 
-## 2. Generated Nutrition Plan
+3. Post-generation validation
 
-Produces:
+Generated plans are parsed and validated before being accepted.
 
-* weekly meal plans
-* compatibility-aware recommendations
-* tupper adaptation
-* explainable profile tags
-* downloadable PDF
+When validation fails, NutriPrompt can construct a corrective retry prompt containing:
 
-![Generated Plan](docs/screenshots/02_plan.png)
+the validation error
+the previous invalid output
+the original user context
+the retrieved RAG context
 
----
+This creates a controlled regeneration loop rather than accepting the first LLM response blindly.
 
-## 3. Shopping Intelligence Layer
+🤖 Multi-Provider LLM Orchestration
 
-Transforms recommendations into execution:
+NutriPrompt abstracts generation from a single AI provider.
 
-* categorized shopping lists
-* grouped ingredients
-* optimized planning
-* action-ready outputs
+Gemini
+   ↓
+Validate output
+   ↓
+Retry if required
+   ↓
+Provider failure
+   ↓
+OpenAI fallback
+   ↓
+Validate output
 
-![Shopping List](docs/screenshots/03_shopping_list.png)
+Current models:
 
----
-
-# ⚡ Core AI Capabilities
-
-* Personalized Nutrition Planning
-* Retrieval-Augmented Generation (RAG)
-* OCR + Ingredient Intelligence
-* Validation Engine
-* Shopping Intelligence
-* AI Copilot Explainability
-* Multi-provider resilience
-* Structured outputs
-
----
-
-# ⚡ Resilient AI Orchestration
-
-```text
-Gemini API
-      ↓
-OpenAI Fallback
-      ↓
-Structured Mock Generation
-```
+Gemini 2.5 Flash
+GPT-5 mini
 
 Benefits:
 
-* stable demos
-* graceful degradation
-* provider independence
-* predictable outputs
+reduced provider dependency
+graceful fallback
+improved demo reliability
+provider abstraction
+consistent validation across models
 
----
+This is multi-provider orchestration, not a multi-agent architecture.
 
-# ⚙ Design Principles
+📸 Product Walkthrough
+1. Smart Nutrition Intake
+
+Transforms structured user input into contextual AI workflows.
+
+The intake captures:
+
+goals
+dietary restrictions
+digestive context
+food preferences
+budget
+lifestyle context
+cooking access
+tupper requirements
+days outside the home
+
+2. Generated Nutrition Plan
+
+Produces:
+
+seven-day meal plans
+compatibility-aware recommendations
+context-aware adaptations
+structured outputs
+explainable profile tags
+downloadable reports
+
+3. Shopping Intelligence Layer
+
+Transforms recommendations into execution-oriented outputs.
+
+It supports:
+
+categorized shopping lists
+grouped ingredients
+reusable ingredients
+practical weekly planning
+
+👁 OCR + Ingredient Intelligence
+
+NutriPrompt also explores multimodal AI workflows.
+
+OCR and vision-related services can extract and analyze information from:
+
+food labels
+ingredient lists
+nutrition information
+product images
+
+The extracted information can then be processed by compatibility and nutrition-risk rules.
+
+This demonstrates how unstructured visual information can be transformed into structured product logic.
+
+⚡ Core AI Capabilities
+Personalized AI Planning
+Domain-Specific RAG
+Keyword-Scored Knowledge Retrieval
+Controlled Prompt Engineering
+OCR + Ingredient Intelligence
+Rule-Based Validation
+Structured JSON Generation
+Multi-Provider LLM Orchestration
+Retry / Fallback Logic
+Shopping Intelligence
+AI Workflow Explainability
+Streamlit Technical Demo
+⚙ Design Principles
 
 NutriPrompt was intentionally designed around:
 
-* Controlled generation over open prompting
-* Retrieval before inference
-* Validation before recommendation
-* Explainability over black-box generation
-* Provider abstraction
-* Structured outputs
-* Service-oriented architecture
-* Product-first UX thinking
+Context before generation
+Retrieval before inference
+Controlled generation over open prompting
+Validation over blind trust
+Explainability over black-box outputs
+Provider abstraction over vendor dependency
+Structured outputs over free-form text
+Modular services over monolithic AI functions
+Product workflows over chatbot interactions
+⚙️ Technology Stack
+Layer	Technology
+Backend	Django 5.x
+Language	Python 3.13
+Primary LLM	Gemini 2.5 Flash
+LLM Fallback	GPT-5 mini
+Retrieval	Custom rule-based RAG
+Knowledge Base	Structured JSON
+Retrieval Strategy	Keyword / relevance scoring
+OCR	Tesseract OCR
+Output Format	Structured JSON
+PDF Rendering	WeasyPrint
+Frontend	HTML + CSS
+Technical Demo	Streamlit
+Testing	Django Test Framework
+📁 AI Service Architecture
+nutriprompt_app/
+└── services/
+    ├── ai/
+    │   ├── ai_generator.py
+    │   ├── gemini_client.py
+    │   ├── openai_client.py
+    │   ├── prompt_builder.py
+    │   ├── json_parser.py
+    │   ├── validator.py
+    │   └── rules.py
+    │
+    ├── rag/
+    │   ├── knowledge_base.py
+    │   ├── retriever.py
+    │   ├── rag_context_builder.py
+    │   └── embeddings.py
+    │
+    ├── profiles/
+    │   └── profile_classifier.py
+    │
+    ├── vision/
+    │   ├── label_reader.py
+    │   ├── compatibility_analyzer.py
+    │   ├── nutrition_risk_rules.py
+    │   └── vision_analyzer.py
+    │
+    └── nutrition/
+        ├── meal_rules.py
+        ├── fallback_plan.py
+        └── shopping_list_generator.py
 
-These principles reflect modern AI product architecture.
+The service-oriented architecture keeps retrieval, generation, validation, vision and presentation concerns separated.
 
----
+🧪 Test Coverage
 
-# ⚙️ Technology Stack
+Automated tests cover critical parts of the AI workflow, including:
 
-| Layer         | Technology              |
-| ------------- | ----------------------- |
-| Backend       | Django                  |
-| Language      | Python 3.13             |
-| AI Providers  | Gemini API + OpenAI API |
-| Retrieval     | Custom Nutrition RAG    |
-| OCR           | Tesseract OCR           |
-| Data          | JSON                    |
-| PDF Rendering | WeasyPrint              |
-| Frontend      | HTML + CSS              |
-| Demo Layer    | Streamlit               |
-| Testing       | Django Test Framework   |
+knowledge-base loading
+rule serialization
+RAG retrieval
+low-FODMAP retrieval
+gluten-related retrieval
+RAG context construction
+RAG injection into prompts
+prompt generation
+AI output validation
+OCR processing
+compatibility analysis
+fallback behaviour
+structured outputs
+shopping generation
 
----
+Run the test suite with:
 
-# 🧪 Test Coverage
-
-Current validation includes:
-
-* prompt generation
-* knowledge retrieval
-* validation logic
-* OCR processing
-* context injection
-* structured outputs
-* shopping generation
-
-```bash
 python manage.py test
-```
 
-**17 automated tests passing**
+17 automated tests passing
 
----
+🔬 Example RAG Flow
 
-# 🛠 Installation
+Example user context:
 
-```bash
+Restrictions: gluten-free, low-FODMAP
+Preferences: rice, chicken, onion soup
+Needs tupper: yes
+
+NutriPrompt builds a retrieval query from the profile.
+
+The retriever may recover domain rules related to:
+
+Gluten
+Wheat
+Low-FODMAP
+Onion
+
+The resulting context is injected into the LLM prompt:
+
+CONTEXTO NUTRICIONAL RECUPERADO MEDIANTE RAG
+
+- Category: low_fodmap
+- Rule: ...
+- Risk level: high
+
+- Category: sin_gluten
+- Rule: ...
+- Risk level: ...
+
+The LLM generates the weekly plan using both:
+
+the user profile
+the retrieved domain knowledge
+
+The generated output is then validated before being accepted.
+
+🔄 Resilience Strategy
+
+NutriPrompt is designed to fail gracefully.
+
+The generation workflow includes:
+
+Gemini
+   ↓
+Validation
+   ↓
+Retry
+   ↓
+OpenAI Fallback
+   ↓
+Validation
+   ↓
+Controlled failure if no provider returns a valid result
+
+This reduces dependency on a single provider and keeps validation logic independent from the selected LLM.
+
+🗺 Technical Roadmap
+
+Potential future improvements include:
+
+semantic retrieval with embeddings
+vector similarity search
+configurable Top-K retrieval
+retrieval evaluation metrics
+provenance / source attribution
+richer RAG knowledge ingestion
+agentic tool orchestration
+automated RAG quality evaluation
+enhanced observability
+CI/CD quality gates
+
+The current modular architecture allows the lexical retriever to be replaced by a semantic retriever without redesigning the complete generation pipeline.
+
+🛠 Installation
 git clone https://github.com/beatriangu/NutriPrompt.git
 cd NutriPrompt
 
@@ -333,56 +583,51 @@ python3 -m venv venv
 source venv/bin/activate
 
 pip install -r requirements.txt
-```
 
 Run Django:
 
-```bash
 python manage.py runserver
-```
 
-Run Streamlit demo:
+Run the Streamlit demo:
 
-```bash
 streamlit run streamlit_demo/app.py
-```
+⚠️ Disclaimer
 
----
-
-# ⚠ Disclaimer
-
-NutriPrompt provides informational guidance only.
+NutriPrompt provides informational and organizational guidance only.
 
 It does not replace medical, nutritional or healthcare advice.
 
-Outputs should be reviewed by qualified professionals.
+The system is designed as an Applied AI technical demonstration.
 
----
+People with medical conditions, persistent symptoms or complex dietary requirements should consult qualified healthcare or nutrition professionals.
 
-# 👩‍💻 Author
+👩‍💻 Author
 
-**Bea Lamiquiz**
+Bea Lamiquiz
 
 🌐 Portfolio: https://bchill.net
 💻 GitHub: https://github.com/beatriangu
 💼 LinkedIn: https://www.linkedin.com/in/bealamiquiz/
 
----
-
-# 🤝 Let's Connect
+🤝 Let's Connect
 
 I build AI systems at the intersection of:
 
-* Product
-* Data
-* Business Logic
-* Generative AI
+Product
+Data
+Business Logic
+Software Engineering
+Generative AI
 
-Open to:
+Interested in:
 
-* AI Product roles
-* Applied AI opportunities
-* Technical collaborations
-* AI architecture discussions
-* Product strategy conversations
+AI Product
+Applied AI
+AI Systems Engineering
+Product & Technology
+AI architecture
+technical collaborations
+product strategy
+
+From prompts to products: building AI systems that retrieve, reason within constraints, validate and deliver usable outcomes.
 
